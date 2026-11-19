@@ -1,0 +1,15 @@
+package eapli.aisafe.sharedkernel.valueobjects;
+
+public enum MeasurementUnit {
+    METER, KILOMETER, MILE, NAUTICAL_MILE, FEET,
+    KILOGRAM, POUND, TON,
+    KNOT, KM_PER_HOUR, MPH,
+    CELSIUS, FAHRENHEIT, KELVIN,
+    DEGREE, RADIAN,
+    LITER, GALLON,
+    SQUARE_METER, SQUARE_KILOMETER,
+    NEWTON, KILONEWTON,
+    WATT, KILOWATT, HORSEPOWER,
+    PERCENT,
+    HOUR, MINUTE, SECOND
+}
