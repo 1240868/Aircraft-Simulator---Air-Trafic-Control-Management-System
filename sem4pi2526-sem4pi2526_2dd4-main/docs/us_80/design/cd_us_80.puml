@@ -1,0 +1,221 @@
+@startuml CD_US080_RegisterFlightPlan
+title Class Diagram — US080 Register a Flight Plan
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+' =================== AGGREGATE: FlightPlan ===================
+package "FlightPlan Aggregate" <<Rectangle>> {
+
+    class FlightPlan <<(R,#FFCC66) Root>> {
+        - id : FlightPlanId
+        - aircraft : RegistrationNumber
+        - flightRoute : FlightRouteId
+        - pilot : PilotId
+        - designator : FlightPlanDesignator
+        - status : FlightPlanStatus
+        - flightType : FlightType
+        - departureDateTime : DepartureDateTime
+        - legs : List<FlightLeg>
+        - wind : FlightWind
+        - dslSourcePath : String
+        + {constructor} FlightPlan(id, aircraft, flightRoute,
+              designator, flightType, departureDateTime,
+              legs, wind)
+        + setPilot(pilotId) : void
+        + insertWeatherData(wd, legId) : void
+        + updateWeatherData(speed, direction) : void
+        + markTestPassed() : void
+        + markTestFailed() : void
+    }
+
+    class FlightPlanId <<(V,#9ACD32) Value Object>> {
+        - value : String (UUID)
+        + {static} newId() : FlightPlanId
+        + asUuid() : UUID
+    }
+
+    class FlightPlanDesignator <<(V,#9ACD32) Value Object>> {
+        - value : String
+        + getLetters() : String
+    }
+
+    class FlightPlanStatus <<enum>> {
+        DRAFT
+        SUBMITTED
+        APPROVED
+        REJECTED
+        ACTIVE
+        COMPLETED
+        CANCELLED
+        PENDING_TEST
+        TESTED
+    }
+
+    class FlightType <<enum>> {
+        COMMERCIAL
+        CARGO
+        CHARTER
+        PRIVATE
+        MILITARY
+        EMERGENCY
+    }
+
+    class DepartureDateTime <<(V,#9ACD32) Value Object>> {
+        - value : LocalDateTime
+    }
+
+    class FlightLeg <<(E,#B0C4DE) Entity>> {
+        - id : FlightLegId
+        - departureAirport : AirportId
+        - arrivalAirport : AirportId
+        - legOrder : int
+        - segments : List<FlightSegmentId>
+        - fuelPlan : FuelPlan
+        - weatherData : WeatherData
+    }
+
+    class FlightLegId <<(V,#9ACD32) Value Object>> {
+        - value : String (UUID)
+        + {static} newId() : FlightLegId
+    }
+
+    class FlightSegmentId <<(V,#9ACD32) Value Object>> {
+        - value : String (UUID)
+        + {static} newId() : FlightSegmentId
+    }
+
+    class FuelPlan <<(V,#9ACD32) Value Object>> {
+        - totalFuel : double
+        - reserveFuel : double
+        - unit : MeasurementUnit
+    }
+
+    class FlightWind <<(V,#9ACD32) Value Object>> {
+        - speed : WindSpeed
+        - direction : WindDirection
+        - unit : MeasurementUnit
+    }
+
+    FlightPlan "1" *-- "1" FlightPlanId : identity
+    FlightPlan "1" *-- "1" FlightPlanDesignator : designator
+    FlightPlan "1" *-- "1" FlightType : flightType
+    FlightPlan "1" *-- "1" DepartureDateTime : departureDateTime
+    FlightPlan "1" *-- "1" FlightWind : wind
+    FlightPlan "1" *-- "1" FlightPlanStatus : status
+    FlightPlan "1" *--> "1..*" FlightLeg : legs
+    FlightLeg "1" *-- "1" FlightLegId : identity
+    FlightLeg "1" *-- "1" FuelPlan : fuelPlan
+}
+
+' =================== EXTERNAL AGGREGATE REFERENCES ===================
+class RegistrationNumber  <<(V,#9ACD32) VO>>
+class FlightRouteId       <<(V,#9ACD32) VO>>
+class PilotId             <<(V,#9ACD32) VO>>
+class AirportId           <<(V,#9ACD32) VO>>
+
+FlightPlan "*" --> "1" RegistrationNumber : aircraft
+FlightPlan "*" --> "1" FlightRouteId      : flightRoute
+FlightPlan "*" --> "1" PilotId            : pilot
+FlightLeg   "*" --> "2" AirportId         : departureAirport / arrivalAirport
+
+' =================== OTHER AGGREGATES (only roots shown) ===================
+class FlightRoute <<(R,#FFCC66) Root>> {
+    + identity() : FlightRouteId
+    + companyId() : CompanyId
+    + getStatus() : RouteActivationStatus
+    + originAirportId() : AirportId
+    + destinationAirportId() : AirportId
+}
+class Aircraft <<(R,#FFCC66) Root>> {
+    + identity() : RegistrationNumber
+    + companyId() : CompanyId
+    + aircraftModelId() : AircraftModelId
+    + operationalStatus() : AircraftOperationalStatus
+}
+class AircraftModel <<(R,#FFCC66) Root>> {
+    + id() : AircraftModelId
+    + maxFuelCapacityLiters() : double
+}
+class Pilot <<(R,#FFCC66) Root>> {
+    + identity() : PilotId
+    + getCompany() : CompanyId
+    + getStatus() : PilotStatus
+}
+
+' =================== APPLICATION LAYER FACTORY ===================
+class FlightPlanFactory <<(S,#F4A460) App Service>> {
+    + validatePreconditions(dto : FlightPlanDTO) : boolean
+}
+
+FlightPlanFactory ..> FlightPlanDTO
+FlightPlanFactory ..> FlightPlanRepository
+FlightPlanFactory ..> AircraftRepository
+FlightPlanFactory ..> AircraftModelRepository
+FlightPlanFactory ..> PilotRepository
+FlightPlanFactory ..> FlightRouteRepository
+FlightPlanFactory ..> AirTransportCompanyRepository
+FlightPlanFactory ..> Aircraft
+FlightPlanFactory ..> AircraftModel
+FlightPlanFactory ..> Pilot
+FlightPlanFactory ..> FlightRoute
+
+' =================== REPOSITORIES ===================
+interface FlightPlanRepository <<(I,#DDA0DD) Repository>> {
+    + save(fp : FlightPlan) : FlightPlan
+    + ofIdentity(id : FlightPlanId) : Optional<FlightPlan>
+    + findById(id : FlightPlanId) : Optional<FlightPlan>
+    + findByDepartureYearMonth(year, month) : Iterable<FlightPlan>
+    + hasAssignedFlightPlansFor(pilotId : PilotId) : boolean
+}
+interface FlightRouteRepository <<(I,#DDA0DD) Repository>> {
+    + findById(id : String) : Optional<FlightRoute>
+    + existsByName(name : FlightRouteName) : boolean
+}
+interface AircraftRepository <<(I,#DDA0DD) Repository>> {
+    + findByRegistration(reg : RegistrationNumber) : Optional<Aircraft>
+    + findByRegistration(reg : String) : Optional<Aircraft>
+}
+interface PilotRepository <<(I,#DDA0DD) Repository>>
+interface AircraftModelRepository <<(I,#DDA0DD) Repository>>
+interface AirTransportCompanyRepository <<(I,#DDA0DD) Repository>>
+
+FlightPlanRepository        ..> FlightPlan
+FlightRouteRepository       ..> FlightRoute
+AircraftRepository          ..> Aircraft
+PilotRepository             ..> Pilot
+AircraftModelRepository     ..> AircraftModel
+
+' =================== APPLICATION LAYER ===================
+class RegisterFlightPlanController <<(C,#F4A460) App Service>> {
+    + listFlightRoutes() : Iterable<FlightRoute>
+    + listAircraft()     : Iterable<Aircraft>
+    + listPilots()       : Iterable<Pilot>
+    + register(routeId : FlightRouteId, aircraftReg : RegistrationNumber,
+               pilotId : PilotId, designator : String,
+               flightType : String,
+               departureDateTime : LocalDateTime) : FlightPlan
+}
+
+class FlightPlanDTO <<DTO>> {
+    + flightRouteId : String
+    + aircraftReg : String
+    + pilotId : String
+    + designator : String
+    + flightType : String
+    + departureDateTime : LocalDateTime
+    + legs : List<LegDTO>
+    + wind : WindDTO
+}
+
+RegisterFlightPlanController ..> FlightPlanDTO : <<creates>>
+RegisterFlightPlanController ..> FlightPlanRepository
+RegisterFlightPlanController ..> FlightRouteRepository
+RegisterFlightPlanController ..> AircraftRepository
+RegisterFlightPlanController ..> PilotRepository
+RegisterFlightPlanController ..> AircraftModelRepository
+RegisterFlightPlanController ..> AirTransportCompanyRepository
+RegisterFlightPlanController ..> FlightPlanFactory : <<creates>>
+RegisterFlightPlanController ..> FlightPlan : <<creates>>
+
+@enduml

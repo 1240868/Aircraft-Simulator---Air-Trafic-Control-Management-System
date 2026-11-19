@@ -1,0 +1,62 @@
+@startuml SD_US077_DeactivatePilot
+title Sequence Diagram — US077 Deactivate Pilot
+
+actor "Company Collaborator" as ATCC
+participant ":DeactivatePilotUI" as UI <<Presentation>>
+participant ":DeactivatePilotController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":PilotRepository" as PILOT_REPO <<Repository>>
+participant ":FlightPlanRepository" as FP_REPO <<Repository>>
+participant ":PilotRosterListing" as HELPER <<Application>>
+participant "pilot:Pilot" as PILOT <<Aggregate Root>>
+
+ATCC -> UI : menu "Remove pilot from roster"
+activate UI
+
+UI -> UI : list active pilots\n(via ListPilotRosterController)
+ATCC -> UI : select pilot
+
+UI -> CTRL : deactivatePilot(pilotId)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+AUTHZ --> CTRL : ok
+
+CTRL -> AUTHZ : currentUsername()
+AUTHZ --> CTRL : username
+
+CTRL -> HELPER : requireCompanyOfUser(companyRepo, username)
+activate HELPER
+HELPER -> CO_REPO : findCompanyIdForCollaboratorUsername(username)
+CO_REPO --> HELPER : companyId
+HELPER --> CTRL : companyId
+deactivate HELPER
+
+CTRL -> PILOT_REPO : ofIdentity(pilotId)
+activate PILOT_REPO
+PILOT_REPO --> CTRL : pilot
+deactivate PILOT_REPO
+
+CTRL -> CTRL : verify pilot.company == companyId
+
+CTRL -> FP_REPO : hasAssignedFlightPlansFor(pilotId)
+activate FP_REPO
+FP_REPO --> CTRL : false
+deactivate FP_REPO
+
+CTRL -> PILOT : deactivate(false)
+activate PILOT
+PILOT --> CTRL : status = INACTIVE
+deactivate PILOT
+
+CTRL -> PILOT_REPO : save(pilot)
+PILOT_REPO --> CTRL : pilot
+
+CTRL --> UI : success
+deactivate CTRL
+
+UI --> ATCC : pilot deactivated
+deactivate UI
+
+@enduml

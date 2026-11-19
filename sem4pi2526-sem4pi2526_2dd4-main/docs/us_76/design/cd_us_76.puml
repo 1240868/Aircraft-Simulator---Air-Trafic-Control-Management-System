@@ -1,0 +1,118 @@
+@startuml CD_US076_ListPilotRoster
+title Class Diagram — US076 List Company Pilot Roster
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+' =================== AGGREGATE: Pilot ===================
+package "Pilot Aggregate" <<Rectangle>> {
+
+    class Pilot <<(R,#FFCC66) Root>> {
+        - status : PilotStatus
+        + isEligibleForRosterListing() : boolean
+        + identity() : PilotId
+        + getCompany() : CompanyId
+        + getCertifiedModels() : List<AircraftModelId>
+    }
+
+    class PilotId <<(V,#9ACD32) Value Object>> {
+        - value : UUID
+        + {static} newId() : PilotId
+    }
+
+    class FullName <<(V,#9ACD32) Value Object>>
+    class Email <<(V,#9ACD32) Value Object>>
+    class PilotCertification <<(V,#9ACD32) Value Object>>
+    class License <<(V,#9ACD32) Value Object>>
+
+    enum PilotStatus {
+        ACTIVE
+        INACTIVE
+        SUSPENDED
+        RETIRED
+    }
+
+    Pilot "1" *-- "1" PilotId
+    Pilot "1" *-- "1" FullName
+    Pilot "1" *-- "1" Email
+    Pilot "1" *-- "1" PilotCertification
+    Pilot "1" *-- "1" License
+    Pilot "1" -- "1" PilotStatus
+}
+
+' =================== REFERENCES BY IDENTITY ===================
+class CompanyId <<(V,#9ACD32) VO>>
+class AircraftModelId <<(V,#9ACD32) VO>>
+class UserId <<(V,#9ACD32) VO>> #LightGray
+
+Pilot "1" --> "1" CompanyId : company <<Ref>>
+Pilot "0..*" --> "0..*" AircraftModelId : certifiedModels <<Ref>>
+
+note right of UserId
+  Conceptual reference from the global DDD model.
+  In the current implementation (US075), user
+  identity is reflected via Email + FullName
+  embedded in the Pilot aggregate.
+end note
+
+Pilot ..> UserId : <<conceptual ref>>
+
+' =================== REPOSITORY ===================
+interface PilotRepository <<(I,#DDA0DD) Repository>> {
+    + findActiveByCompanyId(companyId : CompanyId) : Iterable<Pilot>
+    + ofIdentity(id : PilotId) : Optional<Pilot>
+    + findByEmail(email : Email) : Optional<Pilot>
+}
+
+PilotRepository ..> Pilot
+
+interface AirTransportCompanyRepository <<(I,#DDA0DD) Repository>> {
+    + findCompanyIdForCollaboratorUsername(username : String) : Optional<CompanyId>
+}
+
+interface AircraftModelRepository <<(I,#DDA0DD) Repository>> {
+    + findById(id : AircraftModelId) : Optional<AircraftModel>
+}
+
+' =================== APPLICATION LAYER ===================
+class ListPilotRosterController <<(C,#F4A460) App Service>> {
+    + listPilotRoster() : PilotRosterListResult
+}
+
+class PilotRosterListing <<(C,#F4A460) Helper>> {
+    + {static} requireCompanyOfUser(repo, username) : CompanyId
+    + {static} toRow(pilot, modelRepo) : PilotRosterListItemDTO
+    + {static} resolveCertifiedModelLabels(pilot, modelRepo) : List<String>
+}
+
+class PilotRosterListItemDTO <<DTO>> {
+    + pilotId : String
+    + fullName : String
+    + email : String
+    + certification : String
+    + licenseNumber : String
+    + licenseExpiration : String
+    + status : String
+    + certifiedModels : List<String>
+}
+
+class PilotRosterListResult <<DTO>> {
+    + {static} NO_ACTIVE_PILOTS : String
+}
+
+class ListPilotRosterUI <<Presentation>>
+
+interface AuthorizationPort <<(I,#DDA0DD) Security>>
+
+ListPilotRosterUI ..> ListPilotRosterController
+ListPilotRosterController ..> AuthorizationPort
+ListPilotRosterController ..> PilotRepository
+ListPilotRosterController ..> AirTransportCompanyRepository
+ListPilotRosterController ..> AircraftModelRepository
+ListPilotRosterController ..> PilotRosterListing
+ListPilotRosterController ..> PilotRosterListResult
+PilotRosterListing ..> Pilot
+PilotRosterListing ..> AircraftModelRepository
+PilotRosterListing ..> PilotRosterListItemDTO
+
+@enduml

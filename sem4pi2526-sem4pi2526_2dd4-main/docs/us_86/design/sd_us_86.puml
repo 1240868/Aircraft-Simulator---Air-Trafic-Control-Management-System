@@ -1,0 +1,62 @@
+@startuml SD_US086_PilotRemoteAccess
+title Sequence Diagram — US086 Pilot Remote Access (Login + Register Flight Plan)
+
+actor "Pilot" as PILOT
+participant ":PilotClient" as CLIENT <<RCOMP Client>>
+participant ":ServerConnection" as CONN <<RCOMP Client>>
+participant ":PilotClientHandler" as HANDLER <<RCOMP Server>>
+participant ":PilotSessionHandler" as SESSION <<Adapter>>
+participant ":AuthenticationService" as AUTH <<Infrastructure>>
+participant ":PilotRepository" as PILOT_REPO <<Repository>>
+participant ":RegisterFlightPlanController" as REG <<US080>>
+database ":PersistenceContext" as DB
+
+== Connect ==
+
+PILOT -> CLIENT : start client
+CLIENT -> CONN : new ServerConnection(127.0.0.1, 8890)
+CONN -> HANDLER : TCP connect
+HANDLER --> CONN : connected
+
+== LOGIN ==
+
+PILOT -> CLIENT : option 1 + credentials
+CLIENT -> CONN : send("LOGIN|pilot1|Pilot123!")
+CONN -> HANDLER : readLine
+HANDLER -> SESSION : processCommand
+SESSION -> AUTH : authenticate(user, pass, PILOT)
+AUTH -> DB : load SystemUser
+AUTH --> SESSION : UserSession
+SESSION --> HANDLER : "OK"
+HANDLER --> CONN : "OK"
+CONN --> CLIENT : "OK"
+CLIENT --> PILOT : welcome message
+
+== REGISTER_FLIGHT_PLAN (US080) ==
+
+PILOT -> CLIENT : option 1 + route, aircraft, designator, ...
+CLIENT -> CONN : send("REGISTER_FLIGHT_PLAN|...")
+CONN -> HANDLER : readLine
+HANDLER -> SESSION : processCommand
+SESSION -> SESSION : ensurePilot()
+SESSION -> PILOT_REPO : findByEmail(user.email)
+PILOT_REPO --> SESSION : Pilot
+SESSION -> REG : register(routeId, aircraft, pilotId, ...)
+REG -> DB : save FlightPlan
+REG --> SESSION : FlightPlan
+SESSION --> HANDLER : "OK|<planId>|<status>"
+HANDLER --> CONN : response
+CONN --> CLIENT : response
+CLIENT --> PILOT : show result
+
+== LOGOUT ==
+
+PILOT -> CLIENT : option 0
+CLIENT -> CONN : send("LOGOUT")
+SESSION --> HANDLER : "BYE"
+HANDLER --> CONN : "BYE"
+note over HANDLER : socket close;\nnotifyDisconnect()
+CLIENT -> CONN : reconnect()
+note over CLIENT : new TCP session\nfor next login
+
+@enduml

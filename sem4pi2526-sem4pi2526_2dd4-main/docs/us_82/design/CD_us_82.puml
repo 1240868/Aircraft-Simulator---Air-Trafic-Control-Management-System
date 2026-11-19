@@ -1,0 +1,460 @@
+@startuml US082_ClassDiagram
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor #444444
+skinparam classArrowColor #444444
+skinparam classFontName sans-serif
+skinparam classFontSize 11
+skinparam packageBackgroundColor #F8F8F8
+skinparam packageBorderColor #AAAAAA
+skinparam packageFontSize 11
+skinparam noteFontSize 10
+skinparam stereotypeCBackgroundColor #DDDDDD
+hide circle
+
+' =====================================================================
+' PRESENTATION LAYER
+' =====================================================================
+package "Presentation" #EEF0FB {
+
+  class InsertWeatherDataUI {
+    - controller : InsertWeatherDataInFlightController
+    --
+    + doShow() : boolean
+  }
+
+  class InsertWeatherDataDTO <<DTO>> {
+    + flightPlanId : String
+    + legId : String
+    + areaCode : String
+    + observedAt : Instant
+    + windSpeedMs : double
+    + windDirectionDeg : double
+    + temperatureC : double
+    + humidityPercent : double
+  }
+}
+
+' =====================================================================
+' APPLICATION LAYER
+' =====================================================================
+package "Application" #E8F5F0 {
+
+  class InsertWeatherDataInFlightController <<Controller>> {
+    - authz : AuthorizationPort
+    - flightPlanRepo : FlightPlanRepository
+    - weatherDataRepo : WeatherDataRepository
+    - flightRouteRepo : FlightRouteRepository
+    - airportRepo : AirportRepository
+    - airControlAreaRepo : AirControlAreaRepository
+    - pilotRepo : PilotRepository
+    --
+    + insertWeatherData(dto : InsertWeatherDataDTO) : void
+    + insertWeatherData(dto : InsertWeatherDataDTO, pilotId : PilotId) : void
+    + listPlansForCurrentPilot() : List<FlightPlan>
+    + listLegsForPlan(flightPlanId : FlightPlanId) : List<FlightLeg>
+    - validateCoherence(flightPlan : FlightPlan, areaCode : AirControlAreaCode, observedAt : Instant) : void
+    - resolvePilotIdForCurrentUser() : PilotId
+  }
+}
+
+' =====================================================================
+' DOMAIN LAYER
+' =====================================================================
+package "Domain" #FFF8EC {
+
+  ' --- Aggregate: FlightPlan ---
+  package "FlightPlan (AR)" {
+
+    class FlightPlan <<AggregateRoot>> {
+      - id : FlightPlanId
+      - aircraft : RegistrationNumber
+      - flightRoute : FlightRouteId
+      - pilot : PilotId
+      - designator : FlightPlanDesignator
+      - status : FlightPlanStatus
+      - flightType : FlightType
+      - departureDateTime : DepartureDateTime
+      - legs : List<FlightLeg>
+      - wind : FlightWind
+      - dslSourcePath : String
+      --
+      + insertWeatherData(weatherData : WeatherData, legId : FlightLegId) : void
+      + updateWeatherData(speed : WindSpeed, direction : WindDirection) : void
+      + markTestPassed() : void
+      + markTestFailed() : void
+    }
+
+    class FlightPlanId <<ValueObject>> {
+      - value : UUID
+    }
+
+    class FlightPlanDesignator <<ValueObject>> {
+      - value : String
+    }
+
+    enum FlightPlanStatus {
+      DRAFT
+      SUBMITTED
+      APPROVED
+      REJECTED
+      ACTIVE
+      COMPLETED
+      CANCELLED
+      PENDING_TEST
+      TESTED
+    }
+
+    enum FlightType {
+      COMMERCIAL
+      PRIVATE
+      CARGO
+    }
+
+    class DepartureDateTime <<ValueObject>> {
+      - value : LocalDateTime
+    }
+
+    class FlightWind <<ValueObject>> {
+      - speed : WindSpeed
+      - direction : WindDirection
+      - unit : MeasurementUnit
+    }
+
+    class FlightLeg <<Entity>> {
+      - id : FlightLegId
+      - departureAirport : AirportId
+      - arrivalAirport : AirportId
+      - legOrder : int
+      - segments : List<FlightSegmentId>
+      - fuelPlan : FuelPlan
+      - weatherData : WeatherData <<Ref>>
+      --
+      + assignWeatherData(weatherData : WeatherData) : void
+    }
+
+    class FlightLegId <<ValueObject>> {
+      - value : UUID
+    }
+
+    class FuelPlan <<ValueObject>> {
+      - totalFuel : double
+      - reserveFuel : double
+      - unit : MeasurementUnit
+    }
+
+    class FlightSegmentId <<ValueObject>> {
+      - value : UUID
+    }
+
+    class RegistrationNumber <<ValueObject>> {
+      - value : String
+    }
+
+    class FlightRoute <<Entity>> {
+      - id : FlightRouteId
+      - originAirportId : AirportId
+      - destinationAirportId : AirportId
+      - distance : RouteDistance
+      - duration : RouteDuration
+      --
+      + originAirportId() : AirportId
+      + destinationAirportId() : AirportId
+    }
+
+    class FlightRouteId <<ValueObject>> {
+      - value : UUID
+    }
+
+    class RouteDistance <<ValueObject>> {
+      - value : double
+      - unit : MeasurementUnit
+    }
+
+    class RouteDuration <<ValueObject>> {
+      - value : int
+      - unit : String
+    }
+  }
+
+  ' --- Aggregate: WeatherData ---
+  package "WeatherData (AR)" {
+
+    class WeatherData <<AggregateRoot>> {
+      - id : WeatherDataId
+      - areaCode : AirControlAreaCode
+      - observedAt : Instant
+      - windSpeedMs : double
+      - windDirectionDegrees : double
+      - temperatureC : double
+      - humidityPercent : double
+      - source : WeatherSource
+    }
+
+    class WeatherDataId <<ValueObject>> {
+      - value : UUID
+    }
+
+    class AirControlAreaCode <<ValueObject>> {
+      - value : String
+    }
+
+    class WeatherSource <<ValueObject>> {
+      - name : String
+    }
+  }
+
+  ' --- Cross-Aggregate Reference VOs ---
+  class PilotId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class AirportId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class FullName <<ValueObject>> {
+    - firstName : String
+    - lastName : String
+  }
+
+  class CompanyId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class PilotStatus <<enum>> {
+    ACTIVE
+    INACTIVE
+  }
+
+  ' --- Aggregate: AirControlArea ---
+  package "AirControlArea (AR)" {
+    class AirControlArea <<AggregateRoot>> {
+      - code : AirControlAreaCode
+      - name : String
+      - latMin : double
+      - latMax : double
+      - lonMin : double
+      - lonMax : double
+    }
+  }
+
+  ' --- Aggregate: Airport ---
+  package "Airport (AR)" {
+    class Airport <<AggregateRoot>> {
+      - icaoCode : String
+      - iataCode : String
+      - name : String
+      - town : String
+      - country : String
+      - airControlArea : AirControlArea
+    }
+  }
+
+  ' --- Aggregate: Pilot ---
+  package "Pilot (AR)" {
+    class Pilot <<AggregateRoot>> {
+      - id : PilotId
+      - name : FullName
+      - email : Email
+      - company : CompanyId
+      - status : PilotStatus
+    }
+  }
+
+  class WindSpeed <<ValueObject>> {
+    - value : double
+    - unit : String
+  }
+
+  class WindDirection <<ValueObject>> {
+    - value : double
+  }
+
+  class MeasurementUnit <<enum>> {
+    KILOGRAM
+    M_PER_S
+    DEGREES
+  }
+
+  class Email <<ValueObject>> {
+    - value : String
+  }
+
+  ' --- Repository Interfaces ---
+  interface FlightPlanRepository <<Repository>> {
+    + findById(id : FlightPlanId) : Optional<FlightPlan>
+    + save(flightPlan : FlightPlan) : FlightPlan
+    + findAll() : Iterable<FlightPlan>
+  }
+
+  interface WeatherDataRepository <<Repository>> {
+    + save(weatherData : WeatherData) : WeatherData
+    + ofIdentity(id : WeatherDataId) : Optional<WeatherData>
+    + findAll() : Iterable<WeatherData>
+    + findByAreaCode(areaCode : AirControlAreaCode) : Iterable<WeatherData>
+  }
+
+  interface FlightRouteRepository <<Repository>> {
+    + ofIdentity(id : FlightRouteId) : Optional<FlightRoute>
+  }
+
+  interface AirportRepository <<Repository>> {
+    + findById(code : String) : Optional<Airport>
+  }
+
+  interface AirControlAreaRepository <<Repository>> {
+    + findByCode(code : AirControlAreaCode) : Optional<AirControlArea>
+  }
+
+  interface PilotRepository <<Repository>> {
+    + findByEmail(email : Email) : Optional<Pilot>
+  }
+
+  ' --- Auth Port ---
+  interface AuthorizationPort {
+    + ensureAuthenticatedUserHasAnyOf(roles : Role[]) : void
+    + currentUsername() : String
+  }
+}
+
+' =====================================================================
+' INFRASTRUCTURE LAYER
+' =====================================================================
+package "Infrastructure / Persistence" #EAF3FB {
+
+  class JpaFlightPlanRepository <<Repository>> {
+    + findById(id : FlightPlanId) : Optional<FlightPlan>
+    + save(flightPlan : FlightPlan) : FlightPlan
+    + findAll() : Iterable<FlightPlan>
+  }
+
+  class JpaWeatherDataRepository <<Repository>> {
+    + save(weatherData : WeatherData) : WeatherData
+    + ofIdentity(id : WeatherDataId) : Optional<WeatherData>
+    + findAll() : Iterable<WeatherData>
+  }
+
+  class PersistenceContext {
+    + repositories() : RepositoryFactory
+  }
+
+  interface RepositoryFactory <<AbstractFactory>> {
+    + flightPlans() : FlightPlanRepository
+    + weatherData() : WeatherDataRepository
+    + flightRoutes() : FlightRouteRepository
+    + airports() : AirportRepository
+    + airControlAreas() : AirControlAreaRepository
+    + pilots() : PilotRepository
+  }
+
+  class FrameworkAuthorizationAdapter {
+    + usingRegistry() : AuthorizationPort
+  }
+
+  class JpaRepositoryFactory <<Factory>>
+
+  class InMemoryRepositoryFactory <<Factory>>
+}
+
+' =====================================================================
+' RELATIONS – Presentation
+' =====================================================================
+InsertWeatherDataUI ..> InsertWeatherDataInFlightController : uses
+InsertWeatherDataUI ..> InsertWeatherDataDTO : <<creates>>
+InsertWeatherDataDTO ..> InsertWeatherDataInFlightController : <<input>>
+
+' =====================================================================
+' RELATIONS – Application
+' =====================================================================
+InsertWeatherDataInFlightController ..> FlightPlanRepository : <<uses>>
+InsertWeatherDataInFlightController ..> WeatherDataRepository : <<uses>>
+InsertWeatherDataInFlightController ..> FlightRouteRepository : <<uses>>
+InsertWeatherDataInFlightController ..> AirportRepository : <<uses>>
+InsertWeatherDataInFlightController ..> AirControlAreaRepository : <<uses>>
+InsertWeatherDataInFlightController ..> PilotRepository : <<uses>>
+InsertWeatherDataInFlightController ..> AuthorizationPort : <<uses>>
+InsertWeatherDataInFlightController ..> PilotId : <<uses>>
+InsertWeatherDataInFlightController ..> FlightLegId : <<uses>>
+InsertWeatherDataInFlightController ..> FlightPlanId : <<uses>>
+InsertWeatherDataInFlightController ..> AirControlAreaCode : <<uses>>
+InsertWeatherDataInFlightController ..> FlightRouteId : <<uses>>
+InsertWeatherDataInFlightController ..> AirportId : <<uses>>
+
+' =====================================================================
+' RELATIONS – Domain: FlightPlan aggregate composition
+' =====================================================================
+FlightPlan "1" *-- "1" FlightPlanId
+FlightPlan "1" *-- "1" FlightPlanDesignator
+FlightPlan "1" *-- "1" FlightPlanStatus
+FlightPlan "1" *-- "1" FlightType
+FlightPlan "1" *-- "1" DepartureDateTime
+FlightPlan "1" *-- "1" FlightWind
+FlightPlan "1" *-- "1" RegistrationNumber : aircraft
+FlightPlan "1" *-- "1" FlightRouteId : flightRoute
+FlightPlan "1" --> "1..*" FlightLeg : legs
+FlightPlan "1" --> "1" PilotId : pilot\n<<Ref>>
+
+FlightLeg "1" *-- "1" FlightLegId
+FlightLeg "1" *-- "2" AirportId : departureAirport,\narrivalAirport
+FlightLeg "1" *-- "1" FuelPlan
+FlightLeg "1" --> "0..*" FlightSegmentId : segments\n<<Ref>>
+FlightLeg "1" --> "0..1" WeatherData : weatherData\n<<Ref>>
+
+' =====================================================================
+' RELATIONS – Domain: WeatherData aggregate composition
+' =====================================================================
+WeatherData "1" *-- "1" WeatherDataId
+WeatherData "1" *-- "1" AirControlAreaCode
+WeatherData "1" *-- "1" WeatherSource
+
+' =====================================================================
+' RELATIONS – Wind VOs
+' =====================================================================
+FlightWind "1" *-- "1" WindSpeed
+FlightWind "1" *-- "1" WindDirection
+FlightWind "1" *-- "1" MeasurementUnit
+
+' =====================================================================
+' RELATIONS – Repository interfaces manage aggregate roots
+' =====================================================================
+FlightPlanRepository ..> FlightPlan : <<manages>>
+WeatherDataRepository ..> WeatherData : <<manages>>
+FlightRouteRepository ..> FlightRoute : <<manages>>
+AirportRepository ..> Airport : <<manages>>
+AirControlAreaRepository ..> AirControlArea : <<manages>>
+PilotRepository ..> Pilot : <<manages>>
+
+' =====================================================================
+' RELATIONS – New aggregate compositions
+' =====================================================================
+FlightRoute "1" *-- "1" FlightRouteId
+FlightRoute "1" *-- "1" RouteDistance
+FlightRoute "1" *-- "1" RouteDuration
+FlightRoute "1" --> "1" AirportId : originAirportId\n<<Ref>>
+FlightRoute "1" --> "1" AirportId : destinationAirportId\n<<Ref>>
+
+AirControlArea "1" *-- "1" AirControlAreaCode
+
+Airport "1" --> "1" AirControlArea : airControlArea\n<<Ref>>
+
+Pilot "1" *-- "1" PilotId
+Pilot "1" *-- "1" FullName
+Pilot "1" *-- "1" Email
+Pilot "1" *-- "1" CompanyId
+Pilot "1" *-- "1" PilotStatus
+
+' =====================================================================
+' RELATIONS – Infrastructure implementations
+' =====================================================================
+JpaFlightPlanRepository ..|> FlightPlanRepository
+JpaWeatherDataRepository ..|> WeatherDataRepository
+JpaRepositoryFactory ..|> RepositoryFactory
+InMemoryRepositoryFactory ..|> RepositoryFactory
+FrameworkAuthorizationAdapter ..|> AuthorizationPort
+
+PersistenceContext --> RepositoryFactory : <<provides>>
+
+@enduml

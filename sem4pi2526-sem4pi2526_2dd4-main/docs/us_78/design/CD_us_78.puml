@@ -1,0 +1,327 @@
+@startuml US078_ClassDiagram
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor #444444
+skinparam classArrowColor #444444
+skinparam classFontName sans-serif
+skinparam classFontSize 11
+skinparam packageBackgroundColor #F8F8F8
+skinparam packageBorderColor #AAAAAA
+skinparam packageFontSize 11
+skinparam noteFontSize 10
+skinparam stereotypeCBackgroundColor #DDDDDD
+hide circle
+
+title US078 – Remote TCP Access (Class Diagram)
+
+' =====================================================================
+' CLIENT SIDE
+' =====================================================================
+package "ATC Client (cliente TCP)" #EEF0FB {
+
+  class ATCClient {
+    - HOST : String {static}
+    - PORT : int {static}
+    --
+    + main(args : String[]) : void {static}
+  }
+
+  class ServerConnection {
+    - socket : Socket
+    - in : BufferedReader
+    - out : PrintWriter
+    --
+    + ServerConnection(host : String, port : int)
+    + send(command : String) : String
+    + close() : void
+  }
+
+  note bottom of ServerConnection
+    Protocol:
+      REQ:  COMMAND|arg1|arg2|...
+      RESP: OK\n  or  ERROR|msg  or  PONG
+      Multi-line: OK|count\nrow1\nrow2\n...
+  end note
+
+  ATCClient ..> ServerConnection : creates and uses
+}
+
+' =====================================================================
+' SERVER SIDE – TCP Infrastructure
+' =====================================================================
+package "ATC Server (TCP)" #E8F5F0 {
+
+  class ATCServer {
+    - PORT : int {static}
+    --
+    + main(args : String[]) : void {static}
+    -- startup --
+    + AuthzRegistry.configure(userRepo, policy, encoder)
+    + new AisafeBootstrapper().execute()
+    + accept loop on ServerSocket(8888)
+  }
+
+  class ClientHandler {
+    - socket : Socket
+    - currentSession : UserSession
+    --
+    + run() : void
+    - processCommand(line : String) : String
+    - handleLogin(parts : String[]) : String
+    - handleLogout() : String
+    - handleListPilots() : String
+  }
+
+  ATCServer "1" *-- "*" ClientHandler : spawns per connection
+}
+
+' =====================================================================
+' SERVER SIDE – Auth (por cliente)
+' =====================================================================
+package "Authentication (per-client)" #FFF3E0 {
+
+  interface AuthorizationPort <<Application>> {
+    + ensureAuthenticatedUserHasAnyOf(roles : Role...) : void
+    + currentUsername() : String
+  }
+
+  class "Anonymous AuthorizationPort\n(created per request)" as AnonPort {
+    - user : SystemUser
+    --
+    + ensureAuthenticatedUserHasAnyOf(roles : Role...) : void
+    + currentUsername() : String
+  }
+
+  note right of AnonPort
+    Uses SystemUser.hasAny(roles)
+    directly instead of global
+    AuthzRegistry singleton.
+    Created via anonymous class
+    in ClientHandler for each
+    authenticated command.
+  end note
+
+  class FrameworkAuthorizationAdapter {
+    - delegate : AuthorizationService
+    --
+    + usingRegistry() : AuthorizationPort {static}
+    + ensureAuthenticatedUserHasAnyOf(roles) : void
+    + currentUsername() : String
+  }
+
+  note right of FrameworkAuthorizationAdapter
+    Used by default constructors
+    of existing controllers.
+    NOT used by ClientHandler —
+    we use the anonymous port
+    with per-client UserSession.
+  end note
+
+  AuthorizationPort <|.. AnonPort : <<implements>>
+  AuthorizationPort <|.. FrameworkAuthorizationAdapter : <<implements>>
+}
+
+' =====================================================================
+' SERVER SIDE – AuthzRegistry / Framework
+' =====================================================================
+package "EAPLI Framework Authz" #EAF3FB {
+
+  class AuthzRegistry {
+    - authorizationSvc : AuthorizationService {static}
+    - authenticationService : AuthenticationService {static}
+    --
+    + configure(userRepo, policy, encoder) : void {static}
+    + authenticationService() : AuthenticationService {static}
+    + authorizationService() : AuthorizationService {static}
+  }
+
+  class AuthorizationService {
+    # theSession : UserSession
+    --
+    # AuthorizationService()
+    + session() : Optional<UserSession>
+    + ensureAuthenticatedUserHasAnyOf(roles) : void
+    + isAuthenticatedUserAuthorizedTo(roles) : boolean
+  }
+
+  class AuthenticationService {
+    + authenticate(user, pwd, roles) : Optional<UserSession>
+  }
+
+  class UserSession <<ValueObject>> {
+    - authenticatedUser : SystemUser
+    --
+    + authenticatedUser() : SystemUser
+  }
+
+  class SystemUser <<AggregateRoot>> {
+    - username : Username
+    - roles : RoleSet
+    --
+    + username() : Username
+    + hasAny(roles : Role...) : boolean
+    + isActive() : boolean
+  }
+
+  AuthzRegistry --> AuthorizationService : authorizationService()
+  AuthzRegistry --> AuthenticationService : authenticationService()
+  AuthenticationService --> AuthorizationService : creates session
+  AuthenticationService ..> UserSession : <<returns>>
+  UserSession --> SystemUser : authenticatedUser
+}
+
+' =====================================================================
+' SERVER SIDE – Controllers existentes (reutilizados)
+' =====================================================================
+package "Existing Controllers (reused)" #E8F5F0 {
+
+  class ListPilotRosterController <<UseCaseController>> {
+    - authz : AuthorizationPort
+    - pilotRepo : PilotRepository
+    - companyRepo : AirTransportCompanyRepository
+    --
+    + ListPilotRosterController()
+    + ListPilotRosterController(\n  authz, pilotRepo, companyRepo)
+    + listPilotRoster() : PilotRosterListResult
+  }
+
+  class AddAircraftController <<UseCaseController>> {
+    - authz : AuthorizationPort
+    - aircraftRepo : AircraftRepository
+    - modelRepo : AircraftModelRepository
+    - companyRepo : AirTransportCompanyRepository
+    --
+    + AddAircraftController()
+    + AddAircraftController(\n  authz, aircraftRepo, modelRepo, companyRepo)
+    + addAircraft(...) : Aircraft
+    + listAircraftModels() : List<AircraftModelOptionDTO>
+  }
+
+  class DecommissionAircraftController <<UseCaseController>> {
+    + DecommissionAircraftController()
+    + DecommissionAircraftController(\n  authz, aircraftRepo, companyRepo, flightsChecker)
+    + decommission(registrationRaw : String) : void
+  }
+
+  class AddPilotController <<UseCaseController>> {
+    + AddPilotController()
+    + AddPilotController(\n  authz, pilotRepo, companyRepo, modelRepo)
+    + addPilot(...) : Pilot
+  }
+
+  class DeactivatePilotController <<UseCaseController>> {
+    + DeactivatePilotController()
+    + DeactivatePilotController(\n  authz, pilotRepo, companyRepo, flightPlanRepo)
+    + deactivatePilot(pilotId : PilotId) : void
+  }
+
+  class CreateFlightRouteController <<UseCaseController>> {
+    + CreateFlightRouteController()
+    + CreateFlightRouteController(\n  authz, routeRepo, airportRepo, companyRepo)
+    + createRoute(...) : FlightRouteDTO
+    + listOperationalAirports() : List<OperationalAirportDTO>
+  }
+
+  class ListFleetByMakerController <<UseCaseController>> {
+    + listFleetByMaker(manufacturer) : FleetListResult
+  }
+
+  class ListFleetByModelController <<UseCaseController>> {
+    + listFleetByModel(modelId) : FleetListResult
+  }
+
+  class ListFleetByAgeController <<UseCaseController>> {
+    + listFleetByAge(age) : FleetListResult
+  }
+
+  class ListFleetByPassengerCapacityController <<UseCaseController>> {
+    + listFleetByPassengerCapacity(capacity) : FleetListResult
+  }
+
+  note top of ListPilotRosterController
+    All controllers follow the same pattern:
+    1. Default constructor → FrameworkAuthorizationAdapter.usingRegistry()
+    2. Parameterized constructor → AuthorizationPort + repositories
+    3. ClientHandler uses the parameterized constructor
+       with the anonymous AuthorizationPort
+       to avoid global AuthzRegistry singleton
+  end note
+}
+
+' =====================================================================
+' SERVER SIDE – Persistence / Repositories
+' =====================================================================
+package "Persistence" #EAF3FB {
+
+  class PersistenceContext {
+    + repositories() : RepositoryFactory {static}
+  }
+
+  interface RepositoryFactory {
+    + users() : UserRepository
+    + pilots() : PilotRepository
+    + aircraft() : AircraftRepository
+    + aircraftModels() : AircraftModelRepository
+    + airTransportCompanies() : AirTransportCompanyRepository
+    + flightPlans() : FlightPlanRepository
+    + flightRoutes() : FlightRouteRepository
+    + airports() : AirportRepository
+    + weatherData() : WeatherDataRepository
+    + pendingFlightsChecker() : PendingFlightsChecker
+  }
+
+  class JpaRepositoryFactory {
+    + ... JPA implementations
+  }
+
+  RepositoryFactory <|.. JpaRepositoryFactory : <<implements>>
+  PersistenceContext --> RepositoryFactory
+}
+
+' =====================================================================
+' RELATIONS – ClientHandler uses
+' =====================================================================
+ClientHandler --> "currentSession" UserSession : stores
+ClientHandler ..> AuthorizationPort : creates anonymous
+ClientHandler ..> AuthenticationService : creates local (reflection)
+ClientHandler ..> AuthorizationService : creates local (reflection)
+ClientHandler ..> ListPilotRosterController : creates with authz + repos
+ClientHandler ..> PersistenceContext : obtains repositories
+ClientHandler ..> AddAircraftController : future
+ClientHandler ..> DecommissionAircraftController : future
+ClientHandler ..> AddPilotController : future
+ClientHandler ..> DeactivatePilotController : future
+ClientHandler ..> CreateFlightRouteController : future
+ClientHandler ..> ListFleetByMakerController : future
+ClientHandler ..> ListFleetByModelController : future
+ClientHandler ..> ListFleetByAgeController : future
+ClientHandler ..> ListFleetByPassengerCapacityController : future
+
+' =====================================================================
+' RELATIONS – Controllers depend on AuthorizationPort
+' =====================================================================
+ListPilotRosterController --> AuthorizationPort
+AddAircraftController --> AuthorizationPort
+DecommissionAircraftController --> AuthorizationPort
+AddPilotController --> AuthorizationPort
+DeactivatePilotController --> AuthorizationPort
+CreateFlightRouteController --> AuthorizationPort
+ListFleetByMakerController --> AuthorizationPort
+ListFleetByModelController --> AuthorizationPort
+ListFleetByAgeController --> AuthorizationPort
+ListFleetByPassengerCapacityController --> AuthorizationPort
+
+' =====================================================================
+' TCP Communication
+' =====================================================================
+ServerConnection .. ClientHandler : << TCP >>\ntext protocol\nLOGIN|user|pass\nPING\nLIST_PILOTS\nLOGOUT
+
+' =====================================================================
+' Startup
+' =====================================================================
+ATCServer ..> AuthzRegistry : configures at startup
+ATCServer ..> AisafeBootstrapper : runs at startup
+
+@enduml

@@ -1,0 +1,121 @@
+@startuml CD_US086_PilotRemoteAccess
+title Class Diagram — US086 Pilot Remote TCP Access
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+' =================== RCOMP CLIENT ===================
+package "RCOMP Client (aisafe.app.pilot.client)" <<Rectangle>> #EEF0FB {
+
+    class PilotClient <<Presentation>> {
+        - HOST : String {static} = "127.0.0.1"
+        - PORT : int {static} = 8890
+        + main(args) : void {static}
+    }
+
+    class ServerConnection <<Infrastructure>> {
+        - socket : Socket
+        - in : BufferedReader
+        - out : PrintWriter
+        + send(command : String) : String
+        + reconnect() : void
+        + close() : void
+    }
+
+    PilotClient ..> ServerConnection : uses
+}
+
+' =================== RCOMP SERVER ===================
+package "RCOMP Server (aisafe.app.pilot.server)" <<Rectangle>> #E8F5F0 {
+
+    class PilotServer <<Entry Point>> {
+        - PORT : int {static} = 8890
+        + main(args) : void {static}
+    }
+
+    class PilotServerWithRemoteLogging <<Entry Point>> {
+        + main(args) : void {static}
+    }
+
+    class PilotClientHandler <<Runnable>> {
+        - sessionHandler : PilotSessionHandler
+        + run() : void
+    }
+
+    class PilotLoggingClientHandler <<Runnable>> {
+        - sessionHandler : PilotSessionHandler
+        - accessLogger : RemoteAccessUdpLogger
+        + run() : void
+    }
+
+    class PilotSessionHandler <<Adapter>> {
+        - currentSession : UserSession
+        - loggedInUsername : String
+        + processCommand(line : String) : String
+        + notifyDisconnect() : void
+        - resolvePilotId() : PilotId
+        - authorizationPort() : AuthorizationPort
+    }
+
+    class RemoteAccessUdpLogger <<local>> {
+        + logLoginSuccess(...)
+        + logLogout(...)
+        + logDisconnect(...)
+    }
+
+    PilotServer "1" *-- "*" PilotClientHandler : spawns
+    PilotServerWithRemoteLogging "1" *-- "*" PilotLoggingClientHandler : spawns
+    PilotClientHandler --> PilotSessionHandler : delegates
+    PilotLoggingClientHandler --> PilotSessionHandler : delegates
+    PilotSessionHandler ..> RemoteAccessUdpLogger : audit (default)
+}
+
+' =================== EAPLI APPLICATION (reused) ===================
+package "EAPLI Application (reused)" <<Rectangle>> #FFF3E0 {
+
+    class RegisterFlightPlanController <<US080>>
+    class RegisterFlightPlanFromFileController <<US080>>
+    class InsertWeatherDataInFlightController <<US082>>
+    class ConsultWeatherDataController <<US043>>
+    class TestFlightPlanController <<US111>>
+
+    interface AuthorizationPort <<Security>>
+}
+
+PilotSessionHandler ..> RegisterFlightPlanController
+PilotSessionHandler ..> RegisterFlightPlanFromFileController
+PilotSessionHandler ..> InsertWeatherDataInFlightController
+PilotSessionHandler ..> ConsultWeatherDataController
+PilotSessionHandler ..> TestFlightPlanController
+PilotSessionHandler ..> AuthorizationPort : anonymous adapter
+
+' =================== INFRASTRUCTURE ===================
+package "Infrastructure" <<Rectangle>> #EAF3FB {
+
+    class PersistenceContext
+    class AuthenticationService
+    interface PilotRepository <<Repository>>
+}
+
+PilotServer ..> PersistenceContext : bootstrap
+PilotSessionHandler ..> AuthenticationService : LOGIN
+PilotSessionHandler ..> PilotRepository : resolvePilotId
+PilotSessionHandler ..> PersistenceContext : repositories
+
+' =================== REMOTE LOGGING (optional) ===================
+package "Remote Logging (optional)" <<Rectangle>> #F5F5F5 {
+
+    class RemoteAccessCommandObserver <<common>>
+    class RemoteAccessUdpLoggerCommon <<common>>
+}
+
+PilotLoggingClientHandler ..> RemoteAccessCommandObserver
+PilotLoggingClientHandler ..> RemoteAccessUdpLoggerCommon
+
+note bottom of PilotSessionHandler
+  Protocol: COMMAND|arg1|arg2|...
+  Responses: OK, OK|..., ERROR|..., PONG, BYE
+  Port: 8890 TCP
+end note
+
+@enduml

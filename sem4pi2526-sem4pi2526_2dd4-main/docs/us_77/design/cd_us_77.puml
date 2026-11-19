@@ -1,0 +1,81 @@
+@startuml CD_US077_DeactivatePilot
+title Class Diagram — US077 Remove (Deactivate) a Pilot
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+' =================== AGGREGATE: Pilot ===================
+package "Pilot Aggregate" <<Rectangle>> {
+
+    class Pilot <<(R,#FFCC66) Root>> {
+        - status : PilotStatus
+        + deactivate(hasAssignedFlightPlans : boolean) : void
+        + isEligibleForRosterListing() : boolean
+        + identity() : PilotId
+        + getCompany() : CompanyId
+    }
+
+    class PilotId <<(V,#9ACD32) Value Object>>
+    enum PilotStatus {
+    ACTIVE; INACTIVE; SUSPENDED; RETIRED
+    }
+
+    Pilot "1" *-- "1" PilotId
+    Pilot "1" -- "1" PilotStatus
+}
+
+class CompanyId <<(V,#9ACD32) VO>>
+Pilot "1" --> "1" CompanyId : company <<Ref>>
+
+' =================== CROSS-AGGREGATE REF ===================
+class FlightPlan <<(R,#FFCC66) Aggregate>> #LightGray
+class FlightPlanId <<(V,#9ACD32) VO>> #LightGray
+
+note right of FlightPlan
+  Cross-aggregate reference by PilotId.
+  Assignment checked via FlightPlanRepository
+  (read-only query — aggregate not modified).
+end note
+
+interface FlightPlanRepository <<(I,#DDA0DD) Repository>> {
+    + hasAssignedFlightPlansFor(pilotId : PilotId) : boolean
+}
+
+FlightPlanRepository ..> PilotId
+FlightPlanRepository ..> FlightPlan : <<queries>>
+
+interface PilotRepository <<(I,#DDA0DD) Repository>> {
+    + ofIdentity(id : PilotId) : Optional<Pilot>
+    + save(pilot : Pilot) : Pilot
+}
+
+PilotRepository ..> Pilot
+
+interface AirTransportCompanyRepository <<(I,#DDA0DD) Repository>> {
+    + findCompanyIdForCollaboratorUsername(username : String) : Optional<CompanyId>
+}
+
+' =================== APPLICATION LAYER ===================
+class DeactivatePilotUI <<Presentation>>
+class ListPilotRosterController <<(C,#F4A460) App Service>>
+
+class DeactivatePilotController <<(C,#F4A460) App Service>> {
+    + deactivatePilot(pilotId : PilotId) : void
+}
+
+class PilotRosterListing <<(C,#F4A460) Helper>> {
+    + {static} requireCompanyOfUser(repo, username) : CompanyId
+}
+
+interface AuthorizationPort <<(I,#DDA0DD) Security>>
+
+DeactivatePilotUI ..> ListPilotRosterController : list active pilots
+DeactivatePilotUI ..> DeactivatePilotController
+DeactivatePilotController ..> AuthorizationPort
+DeactivatePilotController ..> PilotRepository
+DeactivatePilotController ..> AirTransportCompanyRepository
+DeactivatePilotController ..> FlightPlanRepository
+DeactivatePilotController ..> PilotRosterListing
+DeactivatePilotController ..> Pilot
+
+@enduml

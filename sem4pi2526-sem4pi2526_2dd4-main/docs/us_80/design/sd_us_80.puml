@@ -1,0 +1,115 @@
+@startuml SD_US080_RegisterFlightPlan
+title Sequence Diagram — US080 Register Flight Plan (Happy Path)
+
+actor Pilot
+participant ":RegisterFlightPlanUI" as UI <<Presentation>>
+participant ":RegisterFlightPlanController" as CTRL <<Application>>
+participant ":FlightPlanFactory" as FAC <<Application Service>>
+participant ":FlightRouteRepository" as FRR <<Repository>>
+participant ":AircraftRepository"    as AR  <<Repository>>
+participant ":PilotRepository"       as PR  <<Repository>>
+participant ":FlightPlanRepository"  as FPR <<Repository>>
+participant "fp:FlightPlan" as FP <<Aggregate Root>>
+
+== Step 1 — Select Pilot, Route, Aircraft (dropdowns) ==
+
+Pilot -> UI : select menu option
+activate UI
+
+UI -> CTRL : listPilots()
+activate CTRL
+CTRL -> PR : findAll()
+activate PR
+PR --> CTRL : pilots
+deactivate PR
+CTRL --> UI : pilots
+deactivate CTRL
+UI --> Pilot : shows pilot list
+
+Pilot -> UI : picks a pilot
+UI -> CTRL : listFlightRoutes()
+activate CTRL
+CTRL -> FRR : findAll()
+activate FRR
+FRR --> CTRL : routes
+deactivate FRR
+CTRL --> UI : routes
+deactivate CTRL
+UI --> Pilot : shows route list
+
+Pilot -> UI : picks a route
+UI -> CTRL : listAircraft()
+activate CTRL
+CTRL -> AR : findAll()
+activate AR
+AR --> CTRL : aircraft
+deactivate AR
+CTRL --> UI : aircraft
+deactivate CTRL
+UI --> Pilot : shows aircraft list
+
+Pilot -> UI : picks an aircraft,\ntypes designator, flightType,\ndepartureDateTime
+
+== Step 2 — Register Flight Plan ==
+
+UI -> CTRL : register(routeId, aircraftReg,\n  pilotId, designator,\n  flightType, departureDateTime)
+activate CTRL
+
+CTRL -> CTRL : create FlightPlanDTO\n(routeId, aircraftReg, pilotId,\n designator, flightType,\n departureDateTime,\n legs=empty list, wind=null)
+
+CTRL -> FAC ** : new FlightPlanFactory(\n  aircraftModelRepo, aircraftRepo,\n  flightPlanRepo, companyRepo,\n  pilotRepo, flightRouteRepo)
+activate FAC
+
+CTRL -> FAC : validatePreconditions(dto)
+activate FAC
+note right of FAC
+  Validates:
+  - designator letters == IATA code
+  - route is ACTIVE
+  - route.company == pilot.company
+  - aircraft is ACTIVE
+  - pilot is ACTIVE
+  - total fuel < model capacity
+  (looks up repos internally)
+end note
+FAC --> CTRL : true
+deactivate FAC
+deactivate FAC
+
+CTRL -> CTRL : id = FlightPlanId.newId()
+CTRL -> CTRL : designator = new FlightPlanDesignator(...)
+CTRL -> CTRL : fpType = FlightType.valueOf(...)
+CTRL -> CTRL : departure = new DepartureDateTime(...)
+
+CTRL -> FRR : findById(routeId.toString())
+activate FRR
+FRR --> CTRL : route
+deactivate FRR
+
+CTRL -> CTRL : leg = new FlightLeg(\n  FlightLegId.newId(),\n  route.originAirportId(),\n  route.destinationAirportId(),\n  legOrder=1,\n  segments=[FlightSegmentId.newId()],\n  fuelPlan=new FuelPlan(1, 0, KILOGRAM))
+
+CTRL -> FP ** : new FlightPlan(id, aircraftReg,\n  flightRouteId, designator,\n  fpType, departure,\n  [leg], wind=null)
+activate FP
+note right of FP
+  Constructor sets status = DRAFT
+end note
+FP --> CTRL : fp
+deactivate FP
+
+CTRL -> FP : setPilot(pilotId)
+activate FP
+FP --> CTRL
+deactivate FP
+
+CTRL -> FPR : save(fp)
+activate FPR
+FPR --> CTRL : persisted fp
+deactivate FPR
+
+CTRL --> UI : ok
+deactivate CTRL
+
+UI --> Pilot : "Flight plan registered successfully."
+deactivate UI
+
+@enduml

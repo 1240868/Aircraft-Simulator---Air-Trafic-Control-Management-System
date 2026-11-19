@@ -1,0 +1,190 @@
+@startuml US082_SequenceDiagram
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam sequenceArrowThickness 1.2
+skinparam sequenceParticipantBorderColor #444444
+skinparam sequenceParticipantBackgroundColor #FAFAFA
+skinparam sequenceLifeLineBorderColor #888888
+skinparam sequenceGroupBorderColor #AAAAAA
+skinparam sequenceGroupFontSize 11
+skinparam noteFontSize 10
+skinparam sequenceDividerFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceFontName sans-serif
+
+title US082 – Insert Weather Data into a Flight Plan\n(As a Pilot, I want to add weather data to a flight plan of mine)
+
+' =====================================================================
+' LIFELINES
+' =====================================================================
+actor                    "Pilot"                              as PILOT
+participant              "InsertWeatherDataUI"                as UI        #EEF0FB
+participant              "InsertWeatherDataInFlightController" as CTRL    #E8F5F0
+participant              "AuthorizationPort"                  as AUTH      #F5F5F5
+participant              "FlightPlanRepository"               as FREPO    #FFF8EC
+participant              "FlightPlan"                         as FPLAN    #FFF8EC
+participant              "FlightLeg"                          as LEG       #FFF3E0
+participant              "WeatherData"                        as WEATHER  #FFECEC
+participant              "WeatherDataRepository"              as WREPO    #FFF8EC
+participant              "InsertWeatherDataDTO"               as DTO       #EAF3FB
+participant              "FlightRouteRepository"              as RRREPO   #FFF8EC
+participant              "AirportRepository"                  as AREPO    #FFF8EC
+participant              "AirControlAreaRepository"           as ACAREPO  #FFF8EC
+
+' =====================================================================
+' SEQUENCE
+' =====================================================================
+
+PILOT -> UI : requests to insert weather data\ninto a flight plan
+
+UI -> CTRL : new InsertWeatherDataInFlightController(\n  authz, flightPlanRepo, weatherDataRepo,\n  flightRouteRepo, airportRepo,\n  airControlAreaRepo, pilotRepo)
+activate CTRL
+CTRL --> UI : controller ready
+deactivate CTRL
+
+UI -> PILOT : show available flight plans\n(designator, route, status)
+
+PILOT -> UI : selects flight plan\n[flightPlanId, legId]
+
+UI -> PILOT : prompt for weather data\n(areaCode, observedAt,\n windSpeed, windDirection,\n temperature, humidity)
+
+PILOT -> UI : submits weather data
+
+UI -> DTO : new InsertWeatherDataDTO(\n  flightPlanId, legId, areaCode,\n  observedAt, windSpeedMs,\n  windDirectionDeg, temperatureC,\n  humidityPercent)
+activate DTO
+DTO --> UI : dto
+deactivate DTO
+
+UI -> CTRL : insertWeatherData(dto, pilotId)
+activate CTRL
+
+CTRL -> AUTH : ensureAuthenticatedUserHasAnyOf(PILOT)
+activate AUTH
+AUTH --> CTRL : void
+deactivate AUTH
+
+CTRL -> FREPO : findById(flightPlanId)
+activate FREPO
+FREPO --> CTRL : Optional<FlightPlan>
+deactivate FREPO
+
+alt flight plan not found
+    CTRL --> UI : throws IllegalArgumentException
+    UI --> PILOT : display error("Flight plan not found")
+else flight plan found
+    CTRL -> FPLAN : getPilot()
+    activate FPLAN
+    FPLAN --> CTRL : pilotId
+    deactivate FPLAN
+
+    alt pilot does not match
+        CTRL --> UI : throws IllegalArgumentException
+        UI --> PILOT : display error("Flight plan not yours")
+    else pilot matches
+
+        ' -- Coherence Validation --
+        CTRL -> ACAREPO : findByCode(areaCode)
+        activate ACAREPO
+        ACAREPO --> CTRL : Optional<AirControlArea>
+        deactivate ACAREPO
+
+        alt area not found
+            CTRL --> UI : throws IllegalArgumentException
+            UI --> PILOT : display error("Air control area not found")
+        else area found
+
+            CTRL -> RRREPO : ofIdentity(flightPlan.flightRoute)
+            activate RRREPO
+            RRREPO --> CTRL : Optional<FlightRoute>
+            deactivate RRREPO
+
+            alt route not found
+                CTRL --> UI : throws IllegalArgumentException
+                UI --> PILOT : display error("Flight route not found")
+            else route found
+                CTRL -> AREPO : findById(route.originAirportId.code())
+                CTRL -> AREPO : findById(route.destinationAirportId.code())
+                activate AREPO
+                AREPO --> CTRL : Optional<Airport>
+                AREPO --> CTRL : Optional<Airport>
+                deactivate AREPO
+
+                alt no airport matches areaCode
+                    CTRL --> UI : throws IllegalArgumentException
+                    UI --> PILOT : display error("Area does not match flight plan route")
+                else area matches
+                    CTRL -> FPLAN : getDepartureDateTime()
+                    activate FPLAN
+                    FPLAN --> CTRL : LocalDateTime
+                    deactivate FPLAN
+
+                    alt observedAt not within ±1 day of departure
+                        CTRL --> UI : throws IllegalArgumentException
+                        UI --> PILOT : display error("Date not within 1 day of departure")
+                    else date is valid
+
+                        alt status == TESTED
+                            CTRL -> FPLAN : setStatus(PENDING_TEST)
+                            activate FPLAN
+                            FPLAN --> CTRL : void
+                            deactivate FPLAN
+                        end
+
+                        CTRL -> WEATHER : new WeatherData(areaCode, observedAt,\n  windSpeedMs, windDirectionDeg,\n  temperatureC, humidityPercent)
+                        activate WEATHER
+                        note right of WEATHER
+                          WeatherData auto-generates
+                          a new WeatherDataId.
+                        end note
+                        WEATHER --> CTRL : weatherData
+                        deactivate WEATHER
+
+                        CTRL -> WREPO : save(weatherData)
+                        activate WREPO
+                        WREPO --> CTRL : weatherData
+                        deactivate WREPO
+
+                        CTRL -> FPLAN : insertWeatherData(weatherData, legId)
+                        activate FPLAN
+
+                        FPLAN -> FPLAN : check status != CANCELLED\nand status != COMPLETED
+
+                        alt status is CANCELLED or COMPLETED
+                            FPLAN --> CTRL : throws IllegalStateException
+                            CTRL --> UI : throws IllegalStateException
+                            UI --> PILOT : display error("Cannot add weather\ndata to this flight plan")
+                        else status is valid
+                            FPLAN -> FPLAN : find leg by legId
+                            alt leg not found
+                                FPLAN --> CTRL : throws IllegalArgumentException
+                                CTRL --> UI : throws IllegalArgumentException
+                                UI --> PILOT : display error("Leg not found")
+                            else leg found
+                                FPLAN -> LEG : assignWeatherData(weatherData)
+                                activate LEG
+                                LEG --> FPLAN : void
+                                deactivate LEG
+
+                                FPLAN --> CTRL : void
+                                deactivate FPLAN
+
+                                CTRL -> FREPO : save(flightPlan)
+                                activate FREPO
+                                FREPO --> CTRL : flightPlan
+                                deactivate FREPO
+
+                                CTRL --> UI : void (success)
+                                deactivate CTRL
+
+                                UI --> PILOT : display success\n"Weather data added to flight plan"
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+@enduml

@@ -1,0 +1,59 @@
+@startuml SD_US076_ListPilotRoster
+title Sequence Diagram — US076 List Pilot Roster (Happy Path)
+
+actor "Company Collaborator" as ATCC
+participant ":ListPilotRosterUI" as UI <<Presentation>>
+participant ":ListPilotRosterController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":PilotRepository" as PILOT_REPO <<Repository>>
+participant ":AircraftModelRepository" as MODEL_REPO <<Repository>>
+participant ":PilotRosterListing" as HELPER <<Application>>
+participant "pilot:Pilot" as PILOT <<Aggregate Root>>
+participant "result:PilotRosterListResult" as RESULT <<DTO>>
+
+ATCC -> UI : menu "List company pilot roster"
+activate UI
+
+UI -> CTRL : listPilotRoster()
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+AUTHZ --> CTRL : ok
+
+CTRL -> AUTHZ : currentUsername()
+AUTHZ --> CTRL : username
+
+CTRL -> HELPER : requireCompanyOfUser(companyRepo, username)
+activate HELPER
+HELPER -> CO_REPO : findCompanyIdForCollaboratorUsername(username)
+CO_REPO --> HELPER : companyId
+HELPER --> CTRL : companyId
+deactivate HELPER
+
+CTRL -> PILOT_REPO : findActiveByCompanyId(companyId)
+activate PILOT_REPO
+PILOT_REPO --> CTRL : Iterable<Pilot> (ACTIVE only)
+deactivate PILOT_REPO
+
+loop for each pilot
+    CTRL -> HELPER : toRow(pilot, modelRepo)
+    activate HELPER
+    HELPER -> PILOT : read display attributes
+    PILOT --> HELPER : values
+    HELPER -> MODEL_REPO : findById(modelId) per certified model
+    MODEL_REPO --> HELPER : model name / manufacturer
+    HELPER --> CTRL : PilotRosterListItemDTO
+    deactivate HELPER
+end
+
+CTRL -> CTRL : sort rows by fullName
+CTRL -> RESULT ** : build PilotRosterListResult
+
+CTRL --> UI : PilotRosterListResult
+deactivate CTRL
+
+UI -> ATCC : display roster\n(or NO_ACTIVE_PILOTS message)
+deactivate UI
+
+@enduml

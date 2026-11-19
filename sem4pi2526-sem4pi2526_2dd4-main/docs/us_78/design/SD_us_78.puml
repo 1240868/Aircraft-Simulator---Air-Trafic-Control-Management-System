@@ -1,0 +1,162 @@
+@startuml US078_SequenceDiagram
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam sequenceArrowThickness 1.2
+skinparam sequenceParticipantBorderColor #444444
+skinparam sequenceParticipantBackgroundColor #FAFAFA
+skinparam sequenceLifeLineBorderColor #888888
+skinparam sequenceGroupBorderColor #AAAAAA
+skinparam sequenceGroupFontSize 11
+skinparam noteFontSize 10
+skinparam sequenceDividerFontSize 11
+skinparam sequenceArrowFontSize 10
+skinparam sequenceFontName sans-serif
+
+title US078 – Remote TCP Access\n(As an ATCC, I want to remotely access the system)
+
+' =====================================================================
+' LIFELINES
+' =====================================================================
+actor                    "Air Transport Company\nCollaborator"      as ATCC     #EEF0FB
+participant              "ATCClient"                                as CLIENT   #EEF0FB
+participant              "ServerConnection"                         as CONN     #EEF0FB
+participant              "ClientHandler\n(server thread)"           as HANDLER  #E8F5F0
+participant              "AuthorizationPort\n(anonymous)"           as AUTHPORT #FFF3E0
+participant              "<<local>>\nAuthenticationService"         as LOCAUTH  #FFF3E0
+participant              "<<local>>\nAuthorizationService"          as LOCAUTHZ #FFF3E0
+participant              "PersistenceContext\n(repositories)"       as PERSIST  #EAF3FB
+participant              "ListPilotRosterController"                as CTRL     #E8F5F0
+database                 "Database"                                 as DB       #FFE5E5
+
+' =====================================================================
+' CONNECT
+' =====================================================================
+
+ATCC -> CLIENT : starts app
+CLIENT -> CONN : new ServerConnection(host, 8888)
+CONN -> HANDLER : << TCP connect >>
+activate HANDLER
+
+CONN <-- HANDLER : connected
+CLIENT <-- CONN : connected
+ATCC <-- CLIENT : show menu
+
+' =====================================================================
+' LOGIN
+' =====================================================================
+
+== LOGIN ==
+
+ATCC -> CLIENT : option 1 + username / password
+CLIENT -> CONN : send("LOGIN|user|pass")
+CONN -> HANDLER : "LOGIN|user|pass"
+
+activate HANDLER
+
+HANDLER -> LOCAUTHZ : <<reflection>>\nnew AuthorizationService()
+activate LOCAUTHZ
+LOCAUTHZ --> HANDLER : localAuthz
+deactivate LOCAUTHZ
+
+HANDLER -> LOCAUTH : new AuthenticationService(\n  userRepo, localAuthz,\n  passwordPolicy, encoder)
+activate LOCAUTH
+
+HANDLER -> LOCAUTH : authenticate(user, pass,\n  AIR_TRANSPORT_COMPANY_COLLABORATOR)
+LOCAUTH -> PERSIST : users().ofIdentity(\n  Username.valueOf(user))
+activate PERSIST
+PERSIST --> LOCAUTH : Optional<SystemUser>
+deactivate PERSIST
+
+LOCAUTH -> LOCAUTH : validate password\nvalidate roles
+LOCAUTH -> LOCAUTHZ : createSessionForUser(user)
+LOCAUTH --> HANDLER : Optional<UserSession>
+deactivate LOCAUTH
+
+alt success
+    HANDLER -> HANDLER : store UserSession
+    HANDLER --> CONN : "OK"
+    CONN --> CLIENT : "OK"
+    CLIENT --> ATCC : display success
+else failure
+    HANDLER --> CONN : "ERROR|INVALID_CREDENTIALS"
+    CONN --> CLIENT : "ERROR|INVALID_CREDENTIALS"
+    CLIENT --> ATCC : display error
+end
+
+deactivate HANDLER
+
+' =====================================================================
+' LIST_PILOTS
+' =====================================================================
+
+== LIST_PILOTS ==
+
+ATCC -> CLIENT : option 3
+CLIENT -> CONN : send("LIST_PILOTS")
+CONN -> HANDLER : "LIST_PILOTS"
+activate HANDLER
+
+HANDLER -> HANDLER : check session != null
+
+alt not authenticated
+    HANDLER --> CONN : "ERROR|NOT_AUTHENTICATED"
+else authenticated
+    HANDLER -> AUTHPORT : <<anonymous>>\nnew AuthorizationPort()
+    activate AUTHPORT
+
+    note right of AUTHPORT
+      ensureAuthenticatedUserHasAnyOf()
+      delegates to session.authenticatedUser()
+      .hasAny(roles) -- no global AuthzRegistry
+    end note
+
+    AUTHPORT --> HANDLER : authz
+    deactivate AUTHPORT
+
+    HANDLER -> PERSIST : repositories().pilots()
+    HANDLER -> PERSIST : repositories().airTransportCompanies()
+
+    HANDLER -> CTRL : new ListPilotRosterController(\n  authz, pilotRepo, companyRepo)
+    activate CTRL
+
+    HANDLER -> CTRL : listPilotRoster()
+    CTRL -> AUTHPORT : ensureAuthenticatedUserHasAnyOf(\n  ATCC_COLLABORATOR)
+    AUTHPORT --> CTRL : void (authorized)
+
+    CTRL -> PERSIST : pilots().findActiveByCompanyId()
+    PERSIST --> CTRL : List<Pilot>
+
+    CTRL --> HANDLER : PilotRosterListResult
+    deactivate CTRL
+
+    HANDLER -> HANDLER : serialize to text
+    HANDLER --> CONN : "OK|2\np1|João|...\np2|Maria|..."
+    deactivate HANDLER
+end
+
+CONN --> CLIENT : "OK|2\np1|...\np2|..."
+CLIENT --> ATCC : display pilot list
+
+' =====================================================================
+' LOGOUT
+' =====================================================================
+
+== LOGOUT ==
+
+ATCC -> CLIENT : option 4
+CLIENT -> CONN : send("LOGOUT")
+CONN -> HANDLER : "LOGOUT"
+activate HANDLER
+HANDLER -> HANDLER : currentSession = null
+HANDLER --> CONN : "BYE"
+deactivate HANDLER
+
+CONN --> CLIENT : "BYE"
+
+CONN -> HANDLER : << TCP close >>
+deactivate HANDLER
+
+CLIENT --> ATCC : display "disconnected"
+
+@enduml
