@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recent Events - AISafe Logging</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+        h1 { color: #333; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 15px; color: #0055aa; }
+        #events { margin-top: 15px; }
+        #status { color: #888; font-size: 0.85em; margin-top: 8px; }
+    </style>
+    <script>
+        function refreshEvents() {
+            var req = new XMLHttpRequest();
+            req.timeout = 3000;
+
+            req.onload = function () {
+                if (this.status === 200) {
+                    document.getElementById("events").innerHTML = this.responseText;
+                    document.getElementById("status").innerHTML =
+                        "Last updated: " + new Date().toLocaleTimeString();
+                } else {
+                    document.getElementById("status").innerHTML = "Still trying...";
+                }
+                setTimeout(refreshEvents, 1500);
+            };
+
+            req.onerror = function () {
+                document.getElementById("status").innerHTML = "Still trying... (connection error)";
+                setTimeout(refreshEvents, 1500);
+            };
+
+            req.ontimeout = function () {
+                document.getElementById("status").innerHTML = "Still trying... (timeout)";
+                setTimeout(refreshEvents, 1500);
+            };
+
+            req.open("GET", "/api/events");
+            req.send();
+        }
+    </script>
+</head>
+<body onload="refreshEvents()">
+    <h1>Recent Access Events</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/active-users">Active Users</a>
+    </nav>
+    <div id="events">Loading events...</div>
+    <div id="status"></div>
+</body>
+</html>

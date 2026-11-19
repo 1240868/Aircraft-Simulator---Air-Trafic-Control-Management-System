@@ -1,0 +1,16 @@
+// Valid flight with multiple altitude slots in the same segment
+flight ZB528 type regular route TP028 {
+    leg {
+        departure FRA 2026-09-01 10:00
+        arrival VIE 2026-09-01 11:30
+        segment {
+            start 50.0379, 8.5622
+            end 48.1103, 16.5697
+            altitude 30000 m width 10 m
+            altitude 31000 m width 12 m
+            altitude 32000 m width 15 m
+            wind 240 deg, 22 m/s
+        }
+        fuel 2200 kg
+    }
+}

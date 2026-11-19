@@ -1,0 +1,13 @@
+flight TT020 type regular route TP021 {
+    leg {
+        departure LIS 2026-05-01 08:00
+        arrival MAD 2026-05-01 10:00
+        segment {
+            start 38.7742, -9.1342
+            end 40.4168, -3.7038
+            altitude -500 m width 10 m
+            wind 270 deg, 20 m/s
+        }
+        fuel 3000 kg
+    }
+}

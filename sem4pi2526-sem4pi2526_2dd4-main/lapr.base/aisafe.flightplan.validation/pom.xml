@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>isep.ipp.pt</groupId>
+        <artifactId>lapr.base</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>aisafe.flightplan.validation</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.bitbucket.pag_isep.eapliframework</groupId>
+            <artifactId>eapli.framework.core</artifactId>
+            <version>${eapli.framework.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bitbucket.pag_isep.eapliframework</groupId>
+            <artifactId>eapli.framework.infrastructure.authz</artifactId>
+            <version>${eapli.framework.authz.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eapli</groupId>
+            <artifactId>aisafe.core</artifactId>
+            <version>${aisafe.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eapli</groupId>
+            <artifactId>aisafe.infrastructure.application</artifactId>
+            <version>${aisafe.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>isep.ipp.pt</groupId>
+            <artifactId>lprog.base</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+</project>

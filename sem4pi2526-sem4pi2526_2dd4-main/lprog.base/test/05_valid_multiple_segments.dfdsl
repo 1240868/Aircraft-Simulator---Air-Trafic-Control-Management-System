@@ -1,0 +1,19 @@
+flight EE505 type regular route TP005 {
+    leg {
+        departure ATL 2026-09-15 07:00
+        arrival MIA 2026-09-15 09:30
+        segment {
+            start 33.6407, -84.4277
+            end 28.5383, -81.3792
+            altitude 32000 m width 10 m
+            wind 120 deg, 25 m/s
+        }
+        segment {
+            start 28.5383, -81.3792
+            end 25.7932, -80.2906
+            altitude 30000 m width 10 m
+            wind 130 deg, 22 m/s
+        }
+        fuel 4500 kg
+    }
+}

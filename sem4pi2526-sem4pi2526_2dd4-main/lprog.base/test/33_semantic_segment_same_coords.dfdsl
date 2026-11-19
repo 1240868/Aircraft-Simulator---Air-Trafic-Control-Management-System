@@ -1,0 +1,14 @@
+// Semantic error: segment start and end coordinates are identical
+flight ZG533 type regular route TP033 {
+    leg {
+        departure LIS 2026-05-01 08:00
+        arrival MAD 2026-05-01 10:00
+        segment {
+            start 38.7742, -9.1342
+            end 38.7742, -9.1342
+            altitude 35000 m width 10 m
+            wind 270 deg, 20 m/s
+        }
+        fuel 3000 kg
+    }
+}

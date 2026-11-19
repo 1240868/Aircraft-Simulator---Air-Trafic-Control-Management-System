@@ -1,0 +1,15 @@
+flight CC303 type charter route TP003 {
+    leg {
+        /* Block comment
+           multiple lines */
+        departure OPO 2026-07-15 09:00
+        arrival FAO 2026-07-15 10:00
+        segment {
+            start 41.2356, -8.6781
+            end 37.0144, -7.9659
+            altitude 28000 ft width 12 m
+            wind 180 deg, 15 kt  // inline comment
+        }
+        fuel 1200 L
+    }
+}

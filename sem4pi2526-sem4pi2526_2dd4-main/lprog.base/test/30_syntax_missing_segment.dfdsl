@@ -1,0 +1,9 @@
+// Syntax error: leg has no segments (segment+ requires at least one)
+flight ZD530 type regular route TP030 {
+    leg {
+        departure LIS 2026-05-01 08:00
+        arrival MAD 2026-05-01 10:00
+        // no segment blocks
+        fuel 3000 kg
+    }
+}

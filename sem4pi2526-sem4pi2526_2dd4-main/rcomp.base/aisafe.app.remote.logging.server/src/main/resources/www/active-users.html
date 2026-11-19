@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Active Users - AISafe Logging</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+        h1 { color: #333; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 15px; color: #0055aa; }
+        #active-users { margin-top: 15px; }
+        #status { color: #888; font-size: 0.85em; margin-top: 8px; }
+    </style>
+    <script>
+        function refreshActiveUsers() {
+            var req = new XMLHttpRequest();
+            req.timeout = 3000;
+
+            req.onload = function () {
+                if (this.status === 200) {
+                    document.getElementById("active-users").innerHTML = this.responseText;
+                    document.getElementById("status").innerHTML =
+                        "Last updated: " + new Date().toLocaleTimeString();
+                } else {
+                    document.getElementById("status").innerHTML = "Still trying...";
+                }
+                setTimeout(refreshActiveUsers, 1500);
+            };
+
+            req.onerror = function () {
+                document.getElementById("status").innerHTML = "Still trying... (connection error)";
+                setTimeout(refreshActiveUsers, 1500);
+            };
+
+            req.ontimeout = function () {
+                document.getElementById("status").innerHTML = "Still trying... (timeout)";
+                setTimeout(refreshActiveUsers, 1500);
+            };
+
+            req.open("GET", "/api/active-users");
+            req.send();
+        }
+    </script>
+</head>
+<body onload="refreshActiveUsers()">
+    <h1>Active Remote Users</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/events">Recent Events</a>
+    </nav>
+    <div id="active-users">Loading active users...</div>
+    <div id="status"></div>
+</body>
+</html>

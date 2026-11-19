@@ -1,0 +1,15 @@
+// Lexical error: comma used as decimal separator in coordinates (38,7742 instead of 38.7742)
+// Common mistake for Portuguese speakers — the lexer expects a dot
+flight ZC537 type regular route TP037 {
+    leg {
+        departure LIS 2026-05-01 08:00
+        arrival MAD 2026-05-01 10:00
+        segment {
+            start 38,7742, -9,1342
+            end 40,4168, -3,7038
+            altitude 35000 m width 10 m
+            wind 270 deg, 20 m/s
+        }
+        fuel 3000 kg
+    }
+}

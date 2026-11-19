@@ -1,0 +1,13 @@
+flight DD404 type regular route TP004 {
+    leg {
+        departure SYD 2027-01-20 22:00
+        arrival SCL 2027-01-21 06:00
+        segment {
+            start -33.8650, 151.2094
+            end -33.4489, -70.6693
+            altitude 36000 m width 10 m
+            wind 200 deg, 18 m/s
+        }
+        fuel 8000 kg
+    }
+}

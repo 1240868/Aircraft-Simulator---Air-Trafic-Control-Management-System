@@ -1,0 +1,13 @@
+flite HH808 type regular route TP008 {
+    leg {
+        depart LIS 2026-05-01 08:00
+        arriv MAD 2026-05-01 10:00
+        segmant {
+            start 38.7742, -9.1342
+            end 40.4168, -3.7038
+            altitude 35000 m width 10 m
+            wind 270 deg, 20 m/s
+        }
+        fule 3000 kg
+    }
+}
