@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1100px" preserveAspectRatio="none" style="width:1561px;height:1100px;" version="1.1" viewBox="0 0 1561 1100" width="1561px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="310" x="637.5" y="16.708">US055 - Criar modelo de aeronave</text><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="700" x="442.5" y="37.6611">RegisterAircraftModelController | aisafe.infrastructure.application + aisafe.core</text><!--MD5=[67c6e09e561b4d3c00cf569b3fa6a364]
+cluster fleet_application--><rect fill="#FFFFFF" height="207" style="stroke: #000000; stroke-width: 1.5;" width="428" x="464.5" y="65.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="128" x="614.5" y="80.9014">fleet_application</text><!--MD5=[2549100e5a80009690c063f9cf4d4e0c]
+cluster application_security--><rect fill="#FFFFFF" height="117" style="stroke: #000000; stroke-width: 1.5;" width="290" x="315.5" y="305.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="156" x="382.5" y="320.9014">application_security</text><!--MD5=[e235ec1b508b78138e486f52afb029e8]
+cluster fleet_domain--><rect fill="#FFFFFF" height="516" style="stroke: #000000; stroke-width: 1.5;" width="665" x="558.5" y="463.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="100" x="841" y="478.9014">fleet_domain</text><!--MD5=[ab4bb0ef5367fc757d70d373f1a24f13]
+cluster fleet_repositories--><rect fill="#FFFFFF" height="117" style="stroke: #000000; stroke-width: 1.5;" width="800" x="750.5" y="305.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="139" x="1081" y="320.9014">fleet_repositories</text><!--MD5=[745c6a06784c633b6a67b8b9b13c0ca3]
+class RegisterAircraftModelController--><rect fill="#FEFECE" height="156.375" id="RegisterAircraftModelController" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="397" x="480" y="100.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="128" x="614.5" y="117.0449">«UseCaseController»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="195" x="581" y="131.0137">RegisterAircraftModelController</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="481" x2="876" y1="138.8438" y2="138.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="142" x="486" y="153.0542">-authz : AuthorizationPort</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="219" x="486" y="165.8589">-aircraftRepo : AircraftModelRepository</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="213" x="486" y="178.6636">-engineRepo : EngineModelRepository</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="481" x2="876" y1="185.2578" y2="185.2578"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="256" x="486" y="199.4683">+listEngineModels() : Iterable&lt;EngineModel&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="357" x="486" y="212.2729">+register(modelName, manufacturer, type, numberOfEngines,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="377" x="494" y="225.0776">passengerCapacity, maximumRangeKm, emptyWeightKg, mtowKg,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="373" x="494" y="237.8823">mzfwKg, maxFuelCapacityLiters, serviceCeilingM, cruiseSpeedMs,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="345" x="494" y="250.687">wingAreaM2, cd0, cl, certifiedEngineModelIds) : AircraftModel</text><!--MD5=[58d93e9cbb8e32d20b8c614d8381e11d]
+class AuthorizationPort--><rect fill="#FEFECE" height="65.5781" id="AuthorizationPort" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="257" x="332" y="340.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="108" x="406.5" y="357.0449">AuthorizationPort</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="333" x2="588" y1="364.875" y2="364.875"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="333" x2="588" y1="372.875" y2="372.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="245" x="338" y="387.0854">+ensureAuthenticatedUserHasAnyOf(roles)</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="163" x="338" y="399.8901">+currentUsername() : String</text><!--MD5=[57a82a7c1dd4c4d316ac6da8380db946]
+class AircraftModel--><rect fill="#FEFECE" height="284.4219" id="AircraftModel" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="294" x="739.5" y="498.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="109" x="832" y="515.0449">«AggregateRoot»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="82" x="845.5" y="529.0137">AircraftModel</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="740.5" x2="1032.5" y1="536.8438" y2="536.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="118" x="745.5" y="551.0542">-modelName : String</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="127" x="745.5" y="563.8589">-manufacturer : String</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="108" x="745.5" y="576.6636">-type : AircraftType</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="151" x="745.5" y="589.4683">-motorization : EngineType</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="132" x="745.5" y="602.2729">-numberOfEngines : int</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="139" x="745.5" y="615.0776">-passengerCapacity : int</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="163" x="745.5" y="627.8823">-maximumRangeKm : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="140" x="745.5" y="640.687">-emptyWeightKg : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="99" x="745.5" y="653.4917">-mtowKg : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="97" x="745.5" y="666.2964">-mzfwKg : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="181" x="745.5" y="679.1011">-maxFuelCapacityLiters : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="142" x="745.5" y="691.9058">-serviceCeilingM : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="141" x="745.5" y="704.7104">-cruiseSpeedMs : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="122" x="745.5" y="717.5151">-wingAreaM2 : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="74" x="745.5" y="730.3198">-cd0 : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="63" x="745.5" y="743.1245">-cl : double</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="740.5" x2="1032.5" y1="749.7188" y2="749.7188"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="154" x="745.5" y="763.9292">+identity() : AircraftModelId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="282" x="745.5" y="776.7339">+certifiedEngineModelIds() : List&lt;EngineModelId&gt;</text><!--MD5=[7453201be0c91db31c2ed1f01ac666e2]
+class AircraftModelId--><rect fill="#FEFECE" height="92.3516" id="AircraftModelId" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="158" x="574.5" y="865.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="609.5" y="882.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="93" x="607" y="896.0137">AircraftModelId</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="575.5" x2="731.5" y1="903.8438" y2="903.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="580.5" y="918.0542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="575.5" x2="731.5" y1="924.6484" y2="924.6484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="146" x="580.5" y="938.8589">+newId() : AircraftModelId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="108" x="580.5" y="951.6636">+toString() : String</text><!--MD5=[17380d85c9ac0629f46149aba9053261]
+class EngineModelId--><rect fill="#FEFECE" height="92.3516" id="EngineModelId" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="155" x="768" y="865.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="801.5" y="882.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="91" x="800" y="896.0137">EngineModelId</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="769" x2="922" y1="903.8438" y2="903.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="774" y="918.0542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="769" x2="922" y1="924.6484" y2="924.6484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="143" x="774" y="938.8589">+newId() : EngineModelId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="108" x="774" y="951.6636">+toString() : String</text><!--MD5=[01548482b6b23ba899b7885fcd52374e]
+class AircraftType--><rect fill="#FEFECE" height="78.3828" id="AircraftType" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="80" x="958.5" y="872.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="74" x="961.5" y="889.0449">AircraftType</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="959.5" x2="1037.5" y1="896.875" y2="896.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="68" x="964.5" y="911.0854">PASSENGER</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="40" x="964.5" y="923.8901">CARGO</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="34" x="964.5" y="936.6948">MIXED</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="959.5" x2="1037.5" y1="943.2891" y2="943.2891"/><!--MD5=[1e78618397744444919d60fc3347c2cd]
+class EngineType--><rect fill="#FEFECE" height="103.9922" id="EngineType" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="134" x="1073.5" y="859.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="72" x="1104.5" y="876.0449">EngineType</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="1074.5" x2="1206.5" y1="883.875" y2="883.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="60" x="1079.5" y="898.0854">TURBOFAN</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="69" x="1079.5" y="910.8901">TURBOPROP</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="56" x="1079.5" y="923.6948">TURBOJET</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="40" x="1079.5" y="936.4995">RAMJET</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="122" x="1079.5" y="949.3042">ELECTRIC_PROPELLER</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="1074.5" x2="1206.5" y1="955.8984" y2="955.8984"/><!--MD5=[31a238649d5181f9f874032343a5469e]
+class AircraftModelRepository--><rect fill="#FEFECE" height="65.5781" id="AircraftModelRepository" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="494" x="766.5" y="340.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="148" x="939.5" y="357.0449">AircraftModelRepository</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="767.5" x2="1259.5" y1="364.875" y2="364.875"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="767.5" x2="1259.5" y1="372.875" y2="372.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="482" x="772.5" y="387.0854">+findByModelNameAndManufacturer(name, manufacturer) : Optional&lt;AircraftModel&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="165" x="772.5" y="399.8901">+save(model) : AircraftModel</text><!--MD5=[8c87fc2fc1eb17997fcff85e33fdb691]
+class EngineModelRepository--><rect fill="#FEFECE" height="65.5781" id="EngineModelRepository" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="239" x="1296" y="340.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="146" x="1342.5" y="357.0449">EngineModelRepository</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="1297" x2="1534" y1="364.875" y2="364.875"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="1297" x2="1534" y1="372.875" y2="372.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="227" x="1302" y="387.0854">+ofIdentity(id) : Optional&lt;EngineModel&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="195" x="1302" y="399.8901">+findAll() : Iterable&lt;EngineModel&gt;</text><path d="M6,333.9063 L6,413.5703 A3,3 0 0 0 9,416.5703 L294,416.5703 A3,3 0 0 0 297,413.5703 L297,340.9063 L287,330.9063 L9,330.9063 A3,3 0 0 0 6,333.9063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M287,330.9063 L287,339.4063 A1.5,1.5 0 0 0 288.5,340.9063 L297,340.9063 L287,330.9063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="259" x="12" y="347.9731">Papeis: BACKOFFICE_OPERATOR, ADMIN.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="261" x="12" y="363.106">Valida que todos os motores certificados</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="270" x="12" y="378.2388">existem e partilham o mesmo EngineType</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="259" x="12" y="393.3716">(motorization). Rejeita modelo duplicado</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="199" x="12" y="408.5044">(modelName + manufacturer).</text><!--MD5=[4b3723a2e64ef4007c58751394ff1629]
+link RegisterAircraftModelController to AuthorizationPort--><path d="M582.4158,264.9714 C582.4158,264.9714 528.57,312.6463 506.81,331.9063 " fill="none" id="RegisterAircraftModelController-AuthorizationPort" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="496.87,340.7062,506.262,337.7414,500.6158,337.3943,500.9629,331.7481,496.87,340.7062" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="500.6158" x2="506.605" y1="337.3943" y2="332.0863"/><polygon fill="#FFFFFF" points="591.4,257.0163,584.2562,257.9991,582.4158,264.9714,589.5596,263.9886,591.4,257.0163" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[342551b9d19c804bff5ff3a459b08d10]
+link RegisterAircraftModelController to AircraftModelRepository--><path d="M822.7477,263.0068 C822.7477,263.0068 910.81,313.7463 946.03,334.0363 " fill="none" id="RegisterAircraftModelController-AircraftModelRepository" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="957.6,340.7062,951.7942,332.7506,953.2662,338.2126,947.8043,339.6846,957.6,340.7062" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="953.2662" x2="946.34" y1="338.2126" y2="334.2113"/><polygon fill="#FFFFFF" points="812.35,257.0163,815.552,263.4775,822.7477,263.0068,819.5457,256.5456,812.35,257.0163" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[5d23adcbe955557cfcb88286d55c8492]
+link RegisterAircraftModelController to EngineModelRepository--><path d="M889.033,205.1741 C889.033,205.1741 1153.43,252.5963 1278.5,297.9063 C1304.45,307.3063 1331.43,321.0963 1354.51,334.2863 " fill="none" id="RegisterAircraftModelController-EngineModelRepository" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1365.85,340.8963,1360.0833,332.9122,1361.5285,338.3813,1356.0594,339.8266,1365.85,340.8963" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="1361.5285" x2="1354.62" y1="338.3813" y2="334.3513"/><polygon fill="#FFFFFF" points="877.17,203.3663,882.4989,208.2245,889.033,205.1741,883.7041,200.3158,877.17,203.3663" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[03bfa13539d77aebb9b4b38ddc5671db]
+link AircraftModelRepository to AircraftModel--><path d="M998.05,407.1363 C987.31,429.5463 972.15,461.1863 956.46,493.9363 " fill="none" id="AircraftModelRepository-&gt;AircraftModel" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="954.14,498.7663,961.6295,492.3703,956.2958,494.2549,954.4113,488.9211,954.14,498.7663" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[ea934a32df71fa6289046ea8694c3cf8]
+link EngineModelRepository to EngineModelId--><path d="M1394.02,407.0063 C1338.11,488.3363 1179.83,704.9063 999.5,829.9063 C975.65,846.4363 967.2,846.4363 941.5,859.9063 C936.99,862.2763 932.36,864.7063 927.69,867.1663 " fill="none" id="EngineModelRepository-&gt;EngineModelId" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="923.01,869.6363,932.8358,868.9633,927.4296,867.2981,929.0948,861.8919,923.01,869.6363" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[8a4e8b581246f1e29111f2d87d202c06]
+link RegisterAircraftModelController to AircraftModel--><path d="M694.32,256.9662 C706.25,307.7263 724.95,374.9163 750.5,430.9063 C760.15,452.0463 771.73,473.5163 784.01,494.2363 " fill="none" id="RegisterAircraftModelController-&gt;AircraftModel" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="786.64,498.6463,785.4635,488.8679,784.0781,494.3525,778.5935,492.967,786.64,498.6463" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[7ff996829e51969dc70650a162f41af6]
+link RegisterAircraftModelController to EngineModelId--><path d="M662.57,257.1263 C640.34,385.7863 613.78,647.8363 720.5,829.9063 C726.37,839.9163 743.47,852.8563 763.22,865.4463 " fill="none" id="RegisterAircraftModelController-&gt;EngineModelId" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="767.74,868.2963,762.2478,860.1209,763.5064,865.636,757.9914,866.8946,767.74,868.2963" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[b756740cf9879edb227b45a8160a745a]
+reverse link AircraftModel to AircraftModelId--><path d="M755.41,793.2463 C732.55,819.6363 710.46,845.1463 692.72,865.6263 " fill="none" id="AircraftModel&lt;-AircraftModelId" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="764.2,783.1063,757.2481,785.0222,756.3428,792.1763,763.2948,790.2603,764.2,783.1063" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="11" x="736.5" y="825.9731">id</text><!--MD5=[7c26bde32b22a3681f406bbf2b5bf69c]
+link AircraftModel to AircraftType--><path d="M984.31,783.3063 C988.64,793.0763 992.44,802.9863 995.5,812.9063 C1000.82,830.1563 1002.24,849.9263 1002.09,867.1763 " fill="none" id="AircraftModel-&gt;AircraftType" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1002,872.4363,1006.1537,863.5061,1002.0857,867.437,998.1549,863.369,1002,872.4363" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[b995ce31861723e2be412f25f71b8ee1]
+link AircraftModel to EngineType--><path d="M1019.82,783.1063 C1044.28,809.0063 1068.42,834.5763 1088.61,855.9563 " fill="none" id="AircraftModel-&gt;EngineType" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1092.08,859.6263,1088.8063,850.3374,1088.646,855.992,1082.9915,855.8317,1092.08,859.6263" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[f655d4b0b7d9b95dcf5c6585ac13ba58]
+reverse link AircraftModel to EngineModelId--><path d="M842.09,796.2463 C841.11,801.8463 840.24,807.4163 839.5,812.9063 C838.49,820.3963 839.22,822.3563 839.5,829.9063 C839.93,841.4563 840.7,853.9263 841.54,865.5263 " fill="none" id="AircraftModel&lt;-EngineModelId" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="844.55,783.1363,839.5107,788.2943,842.3338,794.9298,847.3731,789.7718,844.55,783.1363" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="150" x="840.5" y="825.9731">certifiedEngineModelIds</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="834.0371" y="803.3836">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="23" x="816.3659" y="855.0009">1..*</text><!--MD5=[a06b85ca1376e9a9e9d0d4566ea9e02b]
+link RegisterAircraftModelController to GMN26--><path d="M479.7,239.9863 C425.97,257.4562 368.14,277.3963 315.5,297.9063 C290.27,307.7363 263.36,319.4863 238.8,330.7363 " fill="none" id="RegisterAircraftModelController-GMN26" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><rect fill="#DDDDDD" height="75.1875" rx="5" ry="5" style="stroke: #000000; stroke-width: 1.0;" width="379" x="602.5" y="1013.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="323" x="608.5" y="1031.9014">fleet_application  = eapli.aisafe.fleet.application</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="367" x="608.5" y="1048.1982">application_security = eapli.aisafe.application.security</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="297" x="608.5" y="1064.4951">fleet_domain       = eapli.aisafe.fleet.domain</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="335" x="608.5" y="1080.792">fleet_repositories = eapli.aisafe.fleet.repositories</text><!--MD5=[508d2b5e1ef05d07cf4bcd47f36ec7f5]
+@startuml US055-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam Roundcorner 6
+hide circle
+
+title US055 - Criar modelo de aeronave\nRegisterAircraftModelController | aisafe.infrastructure.application + aisafe.core
+
+package fleet_application {
+    class RegisterAircraftModelController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftModelRepository
+        - engineRepo : EngineModelRepository
+        - -
+        + listEngineModels() : Iterable<EngineModel>
+        + register(modelName, manufacturer, type, numberOfEngines,\n  passengerCapacity, maximumRangeKm, emptyWeightKg, mtowKg,\n  mzfwKg, maxFuelCapacityLiters, serviceCeilingM, cruiseSpeedMs,\n  wingAreaM2, cd0, cl, certifiedEngineModelIds) : AircraftModel
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class AircraftModel <<AggregateRoot>> {
+        - modelName : String
+        - manufacturer : String
+        - type : AircraftType
+        - motorization : EngineType
+        - numberOfEngines : int
+        - passengerCapacity : int
+        - maximumRangeKm : double
+        - emptyWeightKg : double
+        - mtowKg : double
+        - mzfwKg : double
+        - maxFuelCapacityLiters : double
+        - serviceCeilingM : double
+        - cruiseSpeedMs : double
+        - wingAreaM2 : double
+        - cd0 : double
+        - cl : double
+        - -
+        + identity() : AircraftModelId
+        + certifiedEngineModelIds() : List<EngineModelId>
+    }
+
+    class AircraftModelId <<ValueObject>> {
+        - value : String
+        - -
+        + {static} newId() : AircraftModelId
+        + toString() : String
+    }
+
+    class EngineModelId <<ValueObject>> {
+        - value : String
+        - -
+        + {static} newId() : EngineModelId
+        + toString() : String
+    }
+
+    enum AircraftType {
+        PASSENGER
+        CARGO
+        MIXED
+    }
+
+    enum EngineType {
+        TURBOFAN
+        TURBOPROP
+        TURBOJET
+        RAMJET
+        ELECTRIC_PROPELLER
+    }
+}
+
+package fleet_repositories {
+    interface AircraftModelRepository {
+        + findByModelNameAndManufacturer(name, manufacturer) : Optional<AircraftModel>
+        + save(model) : AircraftModel
+    }
+    interface EngineModelRepository {
+        + ofIdentity(id) : Optional<EngineModel>
+        + findAll() : Iterable<EngineModel>
+    }
+}
+
+RegisterAircraftModelController o- -> AuthorizationPort
+RegisterAircraftModelController o- -> AircraftModelRepository
+RegisterAircraftModelController o- -> EngineModelRepository
+
+AircraftModelRepository ..> AircraftModel
+EngineModelRepository ..> EngineModelId
+
+RegisterAircraftModelController ..> AircraftModel
+RegisterAircraftModelController ..> EngineModelId
+
+AircraftModel *- - AircraftModelId : id
+AircraftModel - -> AircraftType
+AircraftModel - -> EngineType
+AircraftModel "1" o- - "1..*" EngineModelId : certifiedEngineModelIds
+
+note bottom of RegisterAircraftModelController
+  Papeis: BACKOFFICE_OPERATOR, ADMIN.
+  Valida que todos os motores certificados
+  existem e partilham o mesmo EngineType
+  (motorization). Rejeita modelo duplicado
+  (modelName + manufacturer).
+end note
+
+legend bottom
+  fleet_application  = eapli.aisafe.fleet.application
+  application_security = eapli.aisafe.application.security
+  fleet_domain       = eapli.aisafe.fleet.domain
+  fleet_repositories = eapli.aisafe.fleet.repositories
+endlegend
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 10:22:07 UTC 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 17.0.19+10
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

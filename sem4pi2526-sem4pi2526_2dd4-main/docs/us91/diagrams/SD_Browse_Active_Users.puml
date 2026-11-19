@@ -1,0 +1,63 @@
+@startuml
+title US91 — Browse Active Sessions (design-level sequence diagram)
+
+actor "Service Administrator" as Admin
+participant "Browser" as Browser
+participant ":RemoteAccessHttpServer" as HttpServer
+participant ":RemoteAccessHttpHandler" as Handler
+participant ":RemoteAccessLogStore" as Store
+
+== Initial Page Load ==
+
+Admin -> Browser : open http://localhost:8080/active-users
+Browser -> HttpServer : TCP connect + GET /active-users HTTP/1.1
+activate HttpServer
+HttpServer -> Handler ** : new RemoteAccessHttpHandler(socket, store)
+HttpServer -> Handler : run() [new daemon thread]
+activate Handler
+
+Handler -> Handler : readLine() → "GET /active-users HTTP/1.1"
+Handler -> Handler : route("/active-users", out)
+Handler -> Handler : serveStaticFile("www/active-users.html", ...)
+Handler -> Handler : getResourceAsStream("www/active-users.html")
+Handler --> Browser : HTTP 200 OK\n  Content-Type: text/html\n  [active-users.html body]
+deactivate Handler
+deactivate HttpServer
+
+== AJAX Poll (triggered by onload and repeated every 1500 ms) ==
+
+Browser -> Browser : onload → refreshUsers()
+Browser -> HttpServer : TCP connect + GET /api/active-users HTTP/1.1
+activate HttpServer
+HttpServer -> Handler ** : new RemoteAccessHttpHandler(socket, store)
+HttpServer -> Handler : run() [new daemon thread]
+activate Handler
+
+Handler -> Handler : readLine() → "GET /api/active-users HTTP/1.1"
+Handler -> Handler : route("/api/active-users", out)
+Handler -> Handler : serveActiveUsersFragment(out)
+
+Handler -> Store : activeSessions()
+activate Store
+Store --> Handler : List<ActiveSession>
+note right of Store
+  ActiveSession is derived from the
+  event stream: LOGIN_SUCCESS adds,
+  LOGOUT/DISCONNECT removes.
+end note
+deactivate Store
+
+Handler -> Handler : build HTML <table>\n   for each session: append <tr> with\n     username, clientIp, clientPort,\n     serviceId, since (formatted)\n   (HTML-escape all string fields)
+Handler --> Browser : HTTP 200 OK\n  Content-Type: text/html\n  [<table>...</table> fragment\n   or <p>No users currently connected.</p>]
+deactivate Handler
+deactivate HttpServer
+
+Browser -> Browser : content.innerHTML = responseText\n   setTimeout(refreshUsers, 1500)
+
+note over Browser
+  After 1500 ms, refreshUsers() is called
+  again and the cycle repeats.
+  Reflects logins/logouts within ~1.5 s.
+end note
+
+@enduml

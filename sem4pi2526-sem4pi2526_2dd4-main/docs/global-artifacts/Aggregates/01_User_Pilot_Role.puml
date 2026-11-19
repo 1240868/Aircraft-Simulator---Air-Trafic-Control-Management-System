@@ -1,0 +1,129 @@
+@startuml User_and_Roles_Refactored
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor Black
+skinparam classArrowColor Black
+skinparam classFontName sans-serif
+skinparam classFontSize 12
+hide circle
+
+' =====================================================================
+' AGGREGADO: Role (Novo AR para gestão dinâmica)
+' =====================================================================
+package "Role Management (AR)" {
+    class Role <<AggregateRoot>> {
+        - id : RoleId
+        - name : RoleName
+        - description : String
+        --
+        + updateDescription(newDesc: String) : void
+    }
+
+    class RoleId <<ValueObject>> {
+        - value : UUID
+    }
+
+    class RoleName <<ValueObject>> {
+        - value : String
+        ' Ex: "ADMIN", "PILOT", "WEATHER_PERSON"
+    }
+}
+
+' =====================================================================
+' AGGREGADO: User (AR)
+' =====================================================================
+package "User (AR)" {
+
+'"At the moment, AISafe’s management hasn’t yet decide if a user can have multiple roles in the system. Right now, none has, but that may happen it the future."
+
+ class User <<AggregateRoot>> {
+     - id        : UserId
+     - email     : Email
+     - name      : FullName
+     - phone     : PhoneNumber
+     - status    : UserStatus
+     - clearance : SecurityClearance
+     - assignedRoles : Set<RoleId>
+     --
+     + activate() : void
+     + disable() : void
+     + assignRole(roleId: RoleId) : void
+     + removeRole(roleId: RoleId) : void
+     + renewClearance(expiryDate: LocalDate) : void
+   }
+
+   class UserId <<ValueObject>> {
+     - value : UUID
+   }
+
+  class Email <<ValueObject>> {
+    - address : String
+  }
+
+  class FullName <<ValueObject>> {
+    - firstName : String
+    - lastName  : String
+  }
+
+  class UserStatus <<ValueObject>> {
+    - value : Status <<enum: ACTIVE, DISABLED>>
+  }
+
+  class SecurityClearance <<ValueObject>> {
+    - level : ClearanceLevel
+    - expiryDate : LocalDate
+  }
+}
+
+' =====================================================================
+' AGGREGADO: Pilot (AR separado para consistência)
+' =====================================================================
+package "Pilot (AR)" {
+   class Pilot <<AggregateRoot>> {
+       - id : PilotId
+       - userId : UserId <<Ref>>
+       - companyId : AirTransportCompanyId <<Ref>>
+       - license : License
+       - certifications : List<AircraftModelId>
+       --
+       + updateLicense(newLicense: License) : void
+       + addCertification(modelId: AircraftModelId) : void
+     }
+
+     class PilotId <<ValueObject>> {
+       - value : UUID
+     }
+
+     class License <<ValueObject>> {
+       - number : String
+       - expiryDate : LocalDate
+     }
+}
+
+' IDs externos para contexto
+class AircraftModelId <<ValueObject>>
+class AirTransportCompanyId <<ValueObject>>
+
+' Composições internas
+Role "1" *-- "1" RoleId
+Role "1" *-- "1" RoleName
+
+User "1" *-- "1" UserId
+User "1" *-- "1" Email
+User "1" *-- "1" FullName
+User "1" *-- "1" UserStatus
+User "1" *-- "1" SecurityClearance
+
+Pilot "1" *-- "1" PilotId
+Pilot "1" *-- "1" License
+
+' Referências por Identidade (Vernon's Rule)
+User "1" --> "0..*" RoleId : references
+Pilot "1" --> "1" UserId : references
+Pilot "1" --> "1" AirTransportCompanyId : references
+Pilot "1" --> "0..*" AircraftModelId : references
+
+
+@enduml

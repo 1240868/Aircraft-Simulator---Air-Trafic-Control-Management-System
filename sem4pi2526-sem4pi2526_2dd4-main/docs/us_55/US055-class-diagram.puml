@@ -1,0 +1,121 @@
+@startuml US055-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam Roundcorner 6
+hide circle
+
+title US055 - Criar modelo de aeronave\nRegisterAircraftModelController | aisafe.infrastructure.application + aisafe.core
+
+package fleet_application {
+    class RegisterAircraftModelController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftModelRepository
+        - engineRepo : EngineModelRepository
+        --
+        + listEngineModels() : Iterable<EngineModel>
+        + register(modelName, manufacturer, type, numberOfEngines,\n  passengerCapacity, maximumRangeKm, emptyWeightKg, mtowKg,\n  mzfwKg, maxFuelCapacityLiters, serviceCeilingM, cruiseSpeedMs,\n  wingAreaM2, cd0, cl, certifiedEngineModelIds) : AircraftModel
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class AircraftModel <<AggregateRoot>> {
+        - modelName : String
+        - manufacturer : String
+        - type : AircraftType
+        - motorization : EngineType
+        - numberOfEngines : int
+        - passengerCapacity : int
+        - maximumRangeKm : double
+        - emptyWeightKg : double
+        - mtowKg : double
+        - mzfwKg : double
+        - maxFuelCapacityLiters : double
+        - serviceCeilingM : double
+        - cruiseSpeedMs : double
+        - wingAreaM2 : double
+        - cd0 : double
+        - cl : double
+        --
+        + identity() : AircraftModelId
+        + certifiedEngineModelIds() : List<EngineModelId>
+    }
+
+    class AircraftModelId <<ValueObject>> {
+        - value : String
+        --
+        + {static} newId() : AircraftModelId
+        + toString() : String
+    }
+
+    class EngineModelId <<ValueObject>> {
+        - value : String
+        --
+        + {static} newId() : EngineModelId
+        + toString() : String
+    }
+
+    enum AircraftType {
+        PASSENGER
+        CARGO
+        MIXED
+    }
+
+    enum EngineType {
+        TURBOFAN
+        TURBOPROP
+        TURBOJET
+        RAMJET
+        ELECTRIC_PROPELLER
+    }
+}
+
+package fleet_repositories {
+    interface AircraftModelRepository {
+        + findByModelNameAndManufacturer(name, manufacturer) : Optional<AircraftModel>
+        + save(model) : AircraftModel
+    }
+    interface EngineModelRepository {
+        + ofIdentity(id) : Optional<EngineModel>
+        + findAll() : Iterable<EngineModel>
+    }
+}
+
+RegisterAircraftModelController o--> AuthorizationPort
+RegisterAircraftModelController o--> AircraftModelRepository
+RegisterAircraftModelController o--> EngineModelRepository
+
+AircraftModelRepository ..> AircraftModel
+EngineModelRepository ..> EngineModelId
+
+RegisterAircraftModelController ..> AircraftModel
+RegisterAircraftModelController ..> EngineModelId
+
+AircraftModel *-- AircraftModelId : id
+AircraftModel --> AircraftType
+AircraftModel --> EngineType
+AircraftModel "1" o-- "1..*" EngineModelId : certifiedEngineModelIds
+
+note bottom of RegisterAircraftModelController
+  Papeis: BACKOFFICE_OPERATOR, ADMIN.
+  Valida que todos os motores certificados
+  existem e partilham o mesmo EngineType
+  (motorization). Rejeita modelo duplicado
+  (modelName + manufacturer).
+end note
+
+legend bottom
+  fleet_application  = eapli.aisafe.fleet.application
+  application_security = eapli.aisafe.application.security
+  fleet_domain       = eapli.aisafe.fleet.domain
+  fleet_repositories = eapli.aisafe.fleet.repositories
+endlegend
+
+@enduml

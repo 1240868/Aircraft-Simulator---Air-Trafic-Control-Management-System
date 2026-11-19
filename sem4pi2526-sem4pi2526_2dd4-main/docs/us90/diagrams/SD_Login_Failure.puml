@@ -1,0 +1,62 @@
+@startuml
+title US90 — Login Failure (design-level sequence diagram)
+
+actor "Pilot Client" as Client
+participant ":PilotLoggingClientHandler" as Handler
+participant "PilotSessionHandler" as SessionHandler
+participant "RemoteAccessCommandObserver" as Observer
+participant "RemoteAccessUdpLogger" as Logger
+participant "RemoteAccessUdpReceiver" as Receiver
+participant "RemoteAccessDatagramParser" as Parser
+participant "RemoteAccessLogStore" as Store
+
+Client -> Handler: LOGIN|attacker|wrongpass
+activate Handler
+
+Handler -> SessionHandler: processCommand("LOGIN|attacker|wrongpass")
+activate SessionHandler
+SessionHandler --> Handler: "ERROR|INVALID_CREDENTIALS"
+deactivate SessionHandler
+
+Handler -> Observer: observe(command, response, clientIp, clientPort, logger, tracker)
+activate Observer
+
+group response starts with "ERROR|"
+  Observer -> Logger: logLoginFailure("attacker", clientIp, clientPort)
+  activate Logger
+
+  Logger -> Logger: "LOGIN_FAILURE|2026-06-14T16:00:01Z|\nattacker|10.0.0.5|12345|PILOT"
+  note right
+    Observer does NOT call
+    tracker.onLoginSuccess()
+    on failure — session
+    remains anonymous
+  end note
+
+  Logger -> Logger: send UDP datagram via DatagramSocket
+  deactivate Logger
+end
+
+Observer --> Handler
+deactivate Observer
+
+Handler --> Client: "ERROR|INVALID_CREDENTIALS"
+deactivate Handler
+
+== Logging Server (dedicated UDP node) ==
+
+Logger -> Receiver : UDP datagram
+
+Receiver -> Parser: parse(payload)
+activate Parser
+Parser --> Receiver: RemoteAccessLogEntry
+deactivate Parser
+
+Receiver -> Store: add(entry)
+activate Store
+Store --> Receiver
+deactivate Store
+
+Receiver -> Receiver: appendToFile(entry)
+
+@enduml

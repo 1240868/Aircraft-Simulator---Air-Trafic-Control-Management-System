@@ -1,0 +1,71 @@
+@startuml Aircraft_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "Aircraft Aggregate (AR)" {
+  class Aircraft <<AggregateRoot>> {
+    - id                 : AircraftId
+    - registration       : RegistrationNumber
+    - companyId          : CompanyId
+    - modelId            : AircraftModelId
+    - engineModelId      : EngineModelId
+    - cabinConfiguration : CabinConfiguration
+    - crewSize           : CrewSize
+    - status             : AircraftStatus
+    --
+    + decommission() : void
+    + isOperational() : boolean
+    ' Corrigido: Recebe specs para validar o invariante de capacidade (US070)
+    + reconfigureCabin(newConfig: CabinConfiguration, modelSpecs: ModelSpecsVO) : void
+    + updateEngine(newEngineId: EngineModelId) : void
+  }
+
+  class AircraftId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class RegistrationNumber <<ValueObject>> {
+    - value : String
+  }
+
+  class CabinConfiguration <<ValueObject>> {
+    - firstClassSeats    : Integer
+    - businessClassSeats : Integer
+    - economyClassSeats  : Integer
+    + totalSeats() : Integer
+  }
+
+  class CrewSize <<ValueObject>> {
+    - number : Integer
+  }
+
+  class AircraftStatus <<ValueObject>> {
+    - value : Status <<enum: OPERATIONAL, RETIRED>>
+  }
+}
+
+' Referências externas (Apenas por ID para manter isolamento)
+class CompanyId <<ValueObject>>
+class AircraftModelId <<ValueObject>>
+class EngineModelId <<ValueObject>>
+
+Aircraft "1" *-- "1" AircraftId
+Aircraft "1" *-- "1" RegistrationNumber
+Aircraft "1" *-- "1" CabinConfiguration
+Aircraft "1" *-- "1" AircraftStatus
+Aircraft "1" *-- "1" CrewSize
+
+' Associações de Identidade
+Aircraft "1" --> "1" CompanyId
+Aircraft "1" --> "1" AircraftModelId
+Aircraft "1" --> "1" EngineModelId
+
+note bottom of Aircraft
+  **Invariante (US070):** O método reconfigureCabin
+  verifica se totalSeats() <= modelSpecs.maxCapacity().
+  A aeronave garante a sua própria validade.
+end note
+
+@enduml

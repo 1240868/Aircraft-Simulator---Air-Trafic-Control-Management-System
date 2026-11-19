@@ -1,0 +1,55 @@
+@startuml SD_US072c_ListFleetByPassengerCapacity
+title Sequence Diagram — US072c List Active Fleet by Passenger Capacity
+
+actor "Company Collaborator" as COLLAB
+participant ":ListFleetByPassengerCapacityUI" as UI <<Presentation>>
+participant ":ListFleetByPassengerCapacityController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":FleetListing" as LIST <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AircraftRepository" as AC_REPO <<Repository>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+
+COLLAB -> UI : menu "List fleet by passenger capacity"
+activate UI
+
+UI -> COLLAB : prompt "Total passenger capacity to list (positive integer):"
+COLLAB -> UI : capacityRaw
+
+UI -> CTRL : listFleetByPassengerCapacity(capacityRaw)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+CTRL -> AUTHZ : currentUsername()
+CTRL -> LIST : requireCompanyOfUser(companyRepo, username)
+LIST --> CTRL : companyId
+CTRL -> CTRL : parsePositivePassengerCapacity(capacityRaw)
+
+CTRL -> AC_REPO : findActiveByOwnerCompanyAndPassengerCapacity(\ncompanyId, capacity)
+AC_REPO --> CTRL : Iterable<Aircraft>
+
+loop each Aircraft a
+    CTRL -> LIST : requireModelForAircraft(modelRepo, a)
+    CTRL -> LIST : toRow(a, model)
+end
+
+CTRL -> CTRL : sort + FleetListResult.of(...)
+CTRL --> UI : FleetListResult
+deactivate CTRL
+
+alt r.messageWhenEmpty() != null
+    UI -> COLLAB : messageWhenEmpty
+else
+    UI -> COLLAB : "--- Aircraft (capacity match, active fleet) ---"
+    loop each row
+        UI -> COLLAB : printf registration | model | maker | status | seats
+    end
+    UI -> COLLAB : "----------------------------------------------"
+end
+
+opt IllegalArgumentException | IllegalStateException
+    UI -> COLLAB : ex.getMessage()
+end
+deactivate UI
+
+@enduml

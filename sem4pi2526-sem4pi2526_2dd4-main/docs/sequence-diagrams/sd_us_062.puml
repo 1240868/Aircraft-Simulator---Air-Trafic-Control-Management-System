@@ -1,0 +1,86 @@
+@startuml SD_US062_ListCustomerCollaborators
+title Sequence Diagram — US062 List Active Customer Collaborators
+
+actor "Backoffice Operator" as BO
+participant ":ListCollaboratorsUI" as UI <<Presentation>>
+participant ":CustomerConsoleHelper" as H <<Presentation>>
+participant ":ListCollaboratorsController" as CTRL <<Application>>
+participant ":AuthorizationService" as AUTHZ <<Framework>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant ":UserManagementService" as UMS <<Framework>>
+participant "company:AirTransportCompany" as CO <<Aggregate Root>>
+participant "area:AirControlArea" as AREA <<Aggregate Root>>
+
+BO -> UI : menu "List customer collaborators"
+activate UI
+
+UI -> H : readCustomerKindOrCancel()
+H -> BO : prompt "Customer type: 1 = company, 2 = area, 0 = cancel"
+BO -> H : kind
+H --> UI : Optional<kind>
+
+alt kind empty
+    UI --> BO : doShow returns false
+else kind == KIND_COMPANY (1)
+    UI -> CTRL : listAirTransportCompaniesForSelection()
+    activate CTRL
+    CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(ADMIN, BACKOFFICE_OPERATOR)
+    CTRL -> CO_REPO : findAll()
+    CO_REPO --> CTRL : companies
+    CTRL --> UI : Iterable<AirTransportCompanyOptionDTO>
+    deactivate CTRL
+
+    UI -> H : pickAirTransportCompany(companies)
+    H -> BO : tabela + "Select company nº (0 = cancel)"
+    BO -> H : choice
+    H --> UI : Optional<selected>
+
+    alt seleção vazia
+        UI --> BO : false
+    else
+        UI -> CTRL : listActiveCollaboratorsForCompany(selected.companyId())
+        activate CTRL
+        CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(...)
+        CTRL -> CO_REPO : ofIdentity(CompanyId)
+        CO_REPO --> CTRL : company
+        CTRL -> CO : collaboratorUsernames()
+        CO --> CTRL : Set<String>
+        CTRL -> UMS : activeUsers()
+        UMS --> CTRL : active SystemUsers
+        CTRL -> CTRL : montar List<CollaboratorDTO>
+        CTRL --> UI : collaborators
+        deactivate CTRL
+
+        UI -> H : printActiveCollaborators(collaborators)
+        H -> BO : tabela Username / First / Last / Email\nou "No active collaborators..."
+    end
+
+else kind == KIND_AREA (2)
+    UI -> CTRL : listAirControlAreasForSelection()
+    CTRL -> AREA_REPO : findAll()
+    CTRL --> UI : options
+
+    UI -> H : pickAirControlArea(areas)
+    H -> BO : tabela + prompt seleção
+    BO -> H : choice
+    H --> UI : Optional<selected>
+
+    alt seleção vazia
+        UI --> BO : false
+    else
+        UI -> CTRL : listActiveCollaboratorsForAirControlArea(selected.areaId())
+        activate CTRL
+        CTRL -> AREA_REPO : ofIdentity(AirControlAreaCode)
+        AREA_REPO --> CTRL : area
+        CTRL -> AREA : collaboratorUsernames()
+        CTRL -> UMS : activeUsers()
+        CTRL --> UI : List<CollaboratorDTO>
+        deactivate CTRL
+        UI -> H : printActiveCollaborators(collaborators)
+        H -> BO : tabela ou mensagem vazia
+    end
+end
+deactivate UI
+
+@enduml

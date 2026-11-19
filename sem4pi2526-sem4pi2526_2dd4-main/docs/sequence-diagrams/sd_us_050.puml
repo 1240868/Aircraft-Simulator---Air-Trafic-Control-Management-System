@@ -1,0 +1,50 @@
+@startuml SD_US050_RegisterAirControlArea
+title Sequence Diagram — US050 Register Air Control Area (Happy Path)
+
+actor "Backoffice Operator" as BO
+participant ":RegisterAirControlAreaUI" as UI <<Presentation>>
+participant ":RegisterAirControlAreaController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AirControlAreaRepository" as REPO <<Repository>>
+participant "area:AirControlArea" as AREA <<Aggregate Root>>
+
+BO -> UI : menu "Register Air Control Area"
+activate UI
+
+UI -> BO : prompt "Area Code (e.g. LPPT)"
+BO -> UI : code
+UI -> BO : prompt "Area Name"
+BO -> UI : name
+UI -> BO : prompt "Latitude Min (-90 to 90)"
+BO -> UI : latMin
+UI -> BO : prompt "Latitude Max (-90 to 90)"
+BO -> UI : latMax
+UI -> BO : prompt "Longitude Min (-180 to 180)"
+BO -> UI : lonMin
+UI -> BO : prompt "Longitude Max (-180 to 180)"
+BO -> UI : lonMax
+
+UI -> CTRL : registerAirControlArea(code, name,\nlatMin, latMax, lonMin, lonMax)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nBACKOFFICE_OPERATOR, ADMIN)
+AUTHZ --> CTRL : ok
+
+CTRL -> REPO : findByCode(AirControlAreaCode.valueOf(code))
+REPO --> CTRL : Optional
+
+alt código já existe
+    CTRL --> UI : IntegrityViolationException
+    UI -> BO : "Error: " + message
+else novo
+    CTRL -> AREA ** : new AirControlArea(...)
+    AREA --> CTRL : area
+    CTRL -> REPO : save(area)
+    REPO --> CTRL : persisted
+    CTRL --> UI : AirControlArea
+    UI -> BO : "Air control area registered successfully."
+end
+deactivate CTRL
+deactivate UI
+
+@enduml

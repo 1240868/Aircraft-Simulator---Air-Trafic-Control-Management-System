@@ -1,0 +1,46 @@
+@startuml US050_RegisterAirControlArea
+
+package "presentation" {
+    class RegisterAirControlAreaUI {
+        +doShow()
+    }
+}
+
+package "application" {
+    class RegisterAirControlAreaController <<Controller>> {
+        -authz: AuthorizationService
+        -repo: AirControlAreaRepository
+        +registerAirControlArea(code, name, latMin, latMax, lonMin, lonMax): AirControlArea
+    }
+}
+
+package "domain" {
+    class AirControlArea <<Entity>> <<AggregateRoot>> {
+        -code: AirControlAreaCode
+        -name: String
+        -latMin: double
+        -latMax: double
+        -lonMin: double
+        -lonMax: double
+        +identity(): AirControlAreaCode
+        +sameAs(other): boolean
+    }
+
+    class AirControlAreaCode <<ValueObject>> {
+        -value: String
+        +valueOf(value): AirControlAreaCode
+        +toString(): String
+    }
+
+    interface AirControlAreaRepository {
+        +findByCode(code): Optional<AirControlArea>
+        +save(area): AirControlArea
+    }
+}
+
+RegisterAirControlAreaUI --> RegisterAirControlAreaController : uses
+RegisterAirControlAreaController --> AirControlAreaRepository : uses
+RegisterAirControlAreaController ..> AirControlArea : creates
+AirControlArea --> AirControlAreaCode : uses
+
+@enduml

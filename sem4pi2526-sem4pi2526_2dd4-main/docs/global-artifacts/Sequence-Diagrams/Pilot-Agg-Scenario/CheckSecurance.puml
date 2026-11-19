@@ -1,0 +1,40 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+hide footbox
+
+actor "Operador de Voo" as User
+participant ":PilotController" as Ctrl
+participant ":PilotService" as AppSvc
+participant ":PilotRepository" as PilotRepo
+participant ":UserRepository" as UserRepo
+participant "pilot:Pilot" as PilotAR
+
+User -> Ctrl : verificarAptidao(pilotId)
+activate Ctrl
+Ctrl -> AppSvc : checkPilotFitness(pilotId)
+activate AppSvc
+
+' Repositórios abstraem a persistência [8]
+AppSvc -> PilotRepo : findById(pilotId)
+activate PilotRepo
+PilotRepo --> AppSvc : pilot
+deactivate PilotRepo
+
+' Referência por Identidade [1]
+AppSvc -> UserRepo : findById(pilot.userId)
+activate UserRepo
+UserRepo --> AppSvc : user
+deactivate UserRepo
+
+' A Raiz do Agregado avalia a invariante [5]
+AppSvc -> PilotAR : isFitToOperate(user.clearance)
+activate PilotAR
+PilotAR --> AppSvc : fitnessStatus
+deactivate PilotAR
+
+AppSvc --> Ctrl : fitnessStatus
+deactivate AppSvc
+Ctrl --> User : fitnessStatus
+deactivate Ctrl
+@enduml

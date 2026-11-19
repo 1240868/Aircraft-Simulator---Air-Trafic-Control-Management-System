@@ -1,0 +1,157 @@
+@startuml US061-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US061 - Registar colaborador de cliente\nAddCollaboratorController | aisafe.infrastructure.application + aisafe.core
+
+package company_application {
+    class AddCollaboratorController <<UseCaseController>> {
+        - authz : AuthorizationService
+        - userSvc : UserManagementService
+        - customerCatalog : ListCollaboratorsController
+        - companyRepo : AirTransportCompanyRepository
+        - areaRepo : AirControlAreaRepository
+        --
+        + listAirTransportCompaniesForSelection()
+        + listAirControlAreasForSelection()
+        + registerCollaboratorForAirTransportCompany(dto) : SystemUser
+        + registerCollaboratorForAirControlArea(dto) : SystemUser
+    }
+
+    class ListCollaboratorsController <<UseCaseController>> {
+        + listAirTransportCompaniesForSelection()
+        + listAirControlAreasForSelection()
+    }
+
+    record RegisterCustomerCollaboratorDTO {
+        companyId
+        username
+        password
+        email
+        firstName
+        lastName
+        phone
+    }
+
+    record RegisterAreaCollaboratorDTO {
+        areaId
+        username
+        password
+        email
+        firstName
+        lastName
+        phone
+    }
+}
+
+package backoffice_presentation {
+    class AddCollaboratorUI {
+        - controller : AddCollaboratorController
+        --
+        + doShow() : boolean
+    }
+
+    class CustomerConsoleHelper {
+        + readCustomerKindOrCancel()
+        + pickAirTransportCompany()
+        + pickAirControlArea()
+    }
+}
+
+package usermanagement_domain {
+    class CollaboratorUserFactory {
+        + {static} newCollaboratorUser(email, firstName, lastName, phone)
+    }
+
+    class CollaboratorUserData
+    class CollaboratorEmail <<ValueObject>>
+    class CollaboratorFullName <<ValueObject>>
+    class CollaboratorPhoneNumber <<ValueObject>>
+}
+
+package company_domain {
+    class AirTransportCompany <<AggregateRoot>> {
+        - collaborators : Set<CustomerCollaboratorRef>
+        --
+        + addCollaborator(username, phone) : void
+        + collaboratorUsernames() : Set<String>
+    }
+
+    class CustomerCollaboratorRef <<Embeddable>> {
+        - username : String
+        - phone : String
+    }
+}
+
+package aircontrol_domain {
+    class AirControlArea <<AggregateRoot>> {
+        - collaborators : Set<CustomerCollaboratorRef>
+        --
+        + addCollaborator(username, phone) : void
+        + collaboratorUsernames() : Set<String>
+    }
+}
+
+package company_repositories {
+    interface AirTransportCompanyRepository
+}
+
+package aircontrol_repositories {
+    interface AirControlAreaRepository
+}
+
+package framework_authz {
+    interface AuthorizationService
+    interface UserManagementService
+    class SystemUser
+}
+
+AddCollaboratorUI --> AddCollaboratorController
+AddCollaboratorUI ..> CustomerConsoleHelper
+AddCollaboratorController o--> AuthorizationService
+AddCollaboratorController o--> UserManagementService
+AddCollaboratorController o--> ListCollaboratorsController
+AddCollaboratorController --> AirTransportCompanyRepository
+AddCollaboratorController --> AirControlAreaRepository
+AddCollaboratorController ..> RegisterCustomerCollaboratorDTO
+AddCollaboratorController ..> RegisterAreaCollaboratorDTO
+AddCollaboratorController ..> CollaboratorUserFactory
+AddCollaboratorController ..> SystemUser
+
+CollaboratorUserFactory ..> CollaboratorUserData
+CollaboratorUserData *-- CollaboratorEmail
+CollaboratorUserData *-- CollaboratorFullName
+CollaboratorUserData *-- CollaboratorPhoneNumber
+
+AirTransportCompany *-- CustomerCollaboratorRef
+AirControlArea *-- CustomerCollaboratorRef
+AirTransportCompanyRepository ..> AirTransportCompany
+AirControlAreaRepository ..> AirControlArea
+
+note bottom of AddCollaboratorController
+  Papeis: ADMIN, BACKOFFICE_OPERATOR.
+  1) Valida email/nome/telefone (CollaboratorUserFactory).
+  2) Regista SystemUser com role ATCC ou area collaborator.
+  3) Liga username ao cliente (company/area) e persiste.
+  Rejeita email duplicado (IntegrityViolationException).
+  Rejeita colaborador duplicado no mesmo cliente.
+end note
+
+note right of CustomerCollaboratorRef
+  @Embeddable em @ElementCollection.
+  Tabelas: air_transport_company_collaborators,
+  air_control_area_collaborators.
+  Colunas: collaborator_username, collaborator_phone.
+end note
+
+legend bottom
+  company_application   = eapli.aisafe.company.application
+  backoffice_presentation = eapli.aisafe.app.backoffice.console.presentation.company
+  usermanagement_domain = eapli.aisafe.usermanagement.domain
+  company_domain        = eapli.aisafe.company.domain
+  aircontrol_domain     = eapli.aisafe.aircontrol.domain
+endlegend
+
+@enduml

@@ -1,0 +1,61 @@
+@startuml US041-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US041 - Registar dados meteorologicos\nRegisterWeatherDataController
+
+package weather_application {
+    class RegisterWeatherDataController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - weatherRepo : WeatherDataRepository
+        - areaRepo : AirControlAreaRepository
+        --
+        + register(airControlAreaCode, observedAt,\n  temperatureC, humidityPercent,\n  windSpeedMs, windDirectionDegrees) : WeatherData
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...)
+        + currentUsername() : String
+    }
+}
+
+package weather_domain {
+    class WeatherData <<AggregateRoot>> {
+        - areaCode : AirControlAreaCode
+        - observedAt : Instant
+        - temperatureC : double
+        - humidityPercent : double
+        - windSpeedMs : double
+        - windDirectionDegrees : double
+        --
+        + identity() : WeatherDataId
+    }
+
+    class AirControlAreaCode <<ValueObject>> {
+        + {static} valueOf(value) : AirControlAreaCode
+    }
+
+    interface WeatherDataRepository {
+        + save(weatherData) : WeatherData
+        + findByAreaCode(code) : Iterable<WeatherData>
+    }
+}
+
+package aircontrol_domain {
+    interface AirControlAreaRepository {
+        + findByCode(code) : Optional<AirControlArea>
+    }
+}
+
+RegisterWeatherDataController o--> AuthorizationPort
+RegisterWeatherDataController --> WeatherDataRepository
+RegisterWeatherDataController --> AirControlAreaRepository
+RegisterWeatherDataController ..> WeatherData
+RegisterWeatherDataController ..> AirControlAreaCode
+WeatherDataRepository ..> WeatherData
+
+@enduml

@@ -1,0 +1,92 @@
+@startuml US044_ClassDiagram
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor #444444
+skinparam packageBackgroundColor #F8F8F8
+hide circle
+
+title US044 – Weather Person Remote TCP Access (Class Diagram)
+
+package "Weather Client (rcomp)" #EEF0FB {
+  class WeatherClient {
+    - HOST : String {static} = "127.0.0.1"
+    - PORT : int {static} = 8889
+    --
+    + main(args) : void {static}
+  }
+
+  class ServerConnection {
+    - socket : Socket
+    - in : BufferedReader
+    - out : PrintWriter
+    --
+    + send(command : String) : String
+    + close() : void
+  }
+
+  WeatherClient ..> ServerConnection : uses
+}
+
+package "Weather Server (rcomp)" #E8F5F0 {
+  class WeatherServer {
+    - PORT : int {static} = 8889
+    --
+    + main(args) : void {static}
+  }
+
+  class ClientHandler {
+    - socket : Socket
+    - sessionHandler : WeatherSessionHandler
+    --
+    + run() : void
+  }
+
+  class WeatherSessionHandler {
+    - currentSession : UserSession
+    --
+    + processCommand(line : String) : String
+    - handleLogin(parts) : String
+    - handleRegisterWeather(parts) : String
+    - handleImportWeather(parts) : String
+    - handleConsultWeather(parts) : String
+    - authorizationPort() : AuthorizationPort
+  }
+
+  class LoggingClientHandler {
+    + run() : void
+  }
+
+  WeatherServer "1" *-- "*" ClientHandler : spawns
+  ClientHandler --> WeatherSessionHandler : delegates
+  LoggingClientHandler --> WeatherSessionHandler : delegates
+}
+
+package "EAPLI Application (reused)" #FFF3E0 {
+  class RegisterWeatherDataController <<US041>>
+  class ImportWeatherDataController <<US042>>
+  class ConsultWeatherDataController <<US043>>
+  interface AuthorizationPort
+}
+
+WeatherSessionHandler ..> RegisterWeatherDataController
+WeatherSessionHandler ..> ImportWeatherDataController
+WeatherSessionHandler ..> ConsultWeatherDataController
+WeatherSessionHandler ..> AuthorizationPort : anonymous adapter
+
+package "Infrastructure" #EAF3FB {
+  class PersistenceContext
+  class AuthenticationService
+}
+
+WeatherServer ..> PersistenceContext : bootstrap
+WeatherSessionHandler ..> AuthenticationService : LOGIN
+WeatherSessionHandler ..> PersistenceContext : repositories
+
+note bottom of WeatherSessionHandler
+  Protocol: COMMAND|arg1|arg2|...
+  Responses: OK, OK|..., ERROR|..., PONG, BYE
+end note
+
+@enduml

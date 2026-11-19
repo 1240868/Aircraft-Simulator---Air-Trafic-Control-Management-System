@@ -1,0 +1,40 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Backoffice Operator" as User
+participant ":AirportController" as Ctrl
+participant ":AirControlAreaRepository" as AreaRepo
+participant "area:AirControlArea" as AreaAR
+participant ":AirportRepository" as AirportRepo
+participant "newAirport:Airport" as AirportAR
+
+User -> Ctrl : createAirport(data, areaId)
+activate Ctrl
+
+' Referência por Identidade: Recupera o agregado da área para validar o limite
+Ctrl -> AreaRepo : findById(areaId)
+activate AreaRepo
+AreaRepo --> Ctrl : area
+deactivate AreaRepo
+
+' Invariante US052: O ponto deve estar dentro da fronteira da área
+Ctrl -> AreaAR : isPointInside(data.coordinates, data.elevation)
+activate AreaAR
+AreaAR --> Ctrl : isValid
+deactivate AreaAR
+
+alt isValid == true
+    ' Criação do agregado Airport se a regra de negócio for satisfeita
+    Ctrl -> AirportAR** : create(data, areaId)
+    Ctrl -> AirportRepo : save(newAirport)
+    activate AirportRepo
+    AirportRepo --> Ctrl : success
+    deactivate AirportRepo
+    Ctrl --> User : confirmação(sucesso)
+else isValid == false
+    Ctrl --> User : erro("Coordenadas fora dos limites da área")
+end
+
+deactivate Ctrl
+@enduml

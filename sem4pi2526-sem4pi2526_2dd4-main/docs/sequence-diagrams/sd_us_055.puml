@@ -1,0 +1,84 @@
+@startuml SD_US055_RegisterAircraftModel
+title Sequence Diagram — US055 Register Aircraft Model (Happy Path)
+
+actor "Backoffice Operator" as BO
+participant ":RegisterAircraftModelUI" as UI <<Presentation>>
+participant ":RegisterAircraftModelController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+participant ":EngineModelRepository" as EM_REPO <<Repository>>
+participant "model:AircraftModel" as AM <<Aggregate Root>>
+
+BO -> UI : menu "Register aircraft model"
+activate UI
+
+UI -> CTRL : listEngineModels()
+activate CTRL
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nBACKOFFICE_OPERATOR, ADMIN)
+CTRL -> EM_REPO : findAll()
+EM_REPO --> CTRL : engines
+CTRL --> UI : Iterable<EngineModel>
+deactivate CTRL
+
+UI -> BO : listar "--- Existing engine models ---" (id, nome, tipo)
+
+UI -> BO : prompt "Aircraft model name"
+BO -> UI : modelName
+UI -> BO : prompt "Manufacturer"
+BO -> UI : manufacturer
+UI -> BO : prompt "Aircraft type (PASSENGER, CARGO, MIXED)"
+BO -> UI : typeStr
+UI -> BO : prompt "Number of engines (positive integer)"
+BO -> UI : numberOfEngines
+UI -> BO : prompt "Maximum passenger capacity..."
+BO -> UI : passengerCapacity
+UI -> BO : prompt "Maximum range (km)"
+BO -> UI : rangeKm
+UI -> BO : prompt "Empty weight (kg)"
+BO -> UI : emptyWeightKg
+UI -> BO : prompt "Maximum take-off weight - MTOW (kg)"
+BO -> UI : mtowKg
+UI -> BO : prompt "Maximum zero fuel weight - MZFW (kg)"
+BO -> UI : mzfwKg
+UI -> BO : prompt "Maximum fuel capacity (liters)"
+BO -> UI : maxFuelLiters
+UI -> BO : prompt "Service ceiling (m)"
+BO -> UI : serviceCeilingM
+UI -> BO : prompt "Cruise speed (m/s)"
+BO -> UI : cruiseSpeedMs
+UI -> BO : prompt "Wing area (m2)"
+BO -> UI : wingAreaM2
+UI -> BO : prompt "Zero-lift drag coefficient Cd0..."
+BO -> UI : cd0
+UI -> BO : prompt "Design lift coefficient Cl..."
+BO -> UI : cl
+UI -> BO : prompt "Certified engine model IDs (comma-separated UUIDs...)"
+BO -> UI : idsLine
+
+UI -> UI : AircraftType.valueOf(typeStr)\nparseEngineIds(idsLine)
+
+UI -> CTRL : register(modelName, manufacturer, type,\nnumberOfEngines, passengerCapacity,\nrangeKm, emptyWeightKg, mtowKg, mzfwKg,\nmaxFuelLiters, serviceCeilingM, cruiseSpeedMs,\nwingAreaM2, cd0, cl, ids)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nBACKOFFICE_OPERATOR, ADMIN)
+AUTHZ --> CTRL : ok
+
+CTRL -> AM_REPO : findByModelNameAndManufacturer(name, maker)
+AM_REPO --> CTRL : empty
+
+loop each EngineModelId in ids
+    CTRL -> EM_REPO : ofIdentity(engineId)
+    EM_REPO --> CTRL : EngineModel
+end
+
+CTRL -> AM ** : new AircraftModel(...)
+AM --> CTRL : model
+CTRL -> AM_REPO : save(model)
+AM_REPO --> CTRL : persisted
+
+CTRL --> UI : AircraftModel
+UI -> BO : "Aircraft model registered: ... id=..."
+deactivate CTRL
+deactivate UI
+
+@enduml

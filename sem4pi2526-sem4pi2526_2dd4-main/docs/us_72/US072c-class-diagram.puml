@@ -1,0 +1,73 @@
+@startuml US072c-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US072c - Listar frota ativa por capacidade de passageiros\nListFleetByPassengerCapacityController
+
+package fleet_application {
+    class ListFleetByPassengerCapacityController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftRepository
+        - modelRepo : AircraftModelRepository
+        - companyRepo : AirTransportCompanyRepository
+        --
+        + listFleetByPassengerCapacity(passengerCapacityRaw : String) : FleetListResult
+    }
+
+    class FleetListResult <<record>> {
+        + aircraft : List<AircraftFleetListItemDTO>
+        + messageWhenEmpty : String
+    }
+
+    class AircraftFleetListItemDTO <<record>> {
+        + registrationNumber : String
+        + modelName : String
+        + manufacturer : String
+        + operationalStatus : String
+        + numberOfSeats : int
+        + ageInCompleteYears : Integer
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class Aircraft <<AggregateRoot>> {
+        + isListedForActiveFleetByPassengerCapacity(companyId, capacity) : boolean
+        + totalConfiguredSeats() : int
+    }
+
+    class AircraftModel <<Entity>> {
+        + identity() : AircraftModelId
+    }
+
+    interface AircraftRepository {
+        + findActiveByOwnerCompanyAndPassengerCapacity(companyId, passengerCapacity)
+    }
+
+    interface AircraftModelRepository {
+        + findByIdentity(id) : Optional<AircraftModel>
+    }
+}
+
+package company_domain {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username) : Optional<CompanyId>
+    }
+}
+
+ListFleetByPassengerCapacityController o--> AuthorizationPort
+ListFleetByPassengerCapacityController --> AircraftRepository
+ListFleetByPassengerCapacityController --> AircraftModelRepository
+ListFleetByPassengerCapacityController --> AirTransportCompanyRepository
+ListFleetByPassengerCapacityController ..> FleetListResult
+FleetListResult *-- AircraftFleetListItemDTO
+
+@enduml

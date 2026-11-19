@@ -1,0 +1,105 @@
+@startuml Flight_Aggregate
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "Flight Aggregate (AR)" {
+
+  class Flight <<AggregateRoot>> {
+    - id               : FlightId
+    - designator       : FlightDesignator
+    - routeId          : FlightRouteId <<Ref>>
+    - flightPlanId     : FlightPlanId <<Ref>>
+    - pilotId          : PilotId <<Ref>>
+    - schedule         : FlightSchedule
+    - payload          : Payload
+    - validationStatus : FlightValidationStatus
+    - weatherDataIds   : List<WeatherDataId> <<Ref>>
+    - operationalStatus : FlightStatus
+    --
+    + reschedule(newSchedule: FlightSchedule) : void
+    + cancel(reason: String) : void
+    + attachWeatherData(weatherDataId: WeatherDataId) : void
+    + markValidated() : void
+    + voidValidation() : void
+    - validateScheduleCoherence() : void
+  }
+
+  class FlightId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class FlightDesignator <<ValueObject>> {
+    - value : String
+    ' Formato: xxn(n)(n)(n)(a)  — secção 3.2
+  }
+
+  class FlightSchedule <<ValueObject>> {
+    - scheduledDeparture : LocalDateTime
+    - scheduledArrival   : LocalDateTime
+    - daysOfWeek         : Set<DayOfWeek>
+    ' Invariante: scheduledArrival > scheduledDeparture
+  }
+
+  ' Dados específicos desta instância de voo (variam por Flight)
+  class Payload <<ValueObject>> {
+    - passengerCount         : Integer
+    - cargoWeightKg          : Double
+    - averagePassengerWeight : Double
+    + totalWeightKg() : Double
+  }
+
+  ' Status de validação do plano de voo para esta instância
+  enum FlightValidationStatus {
+    DRAFT
+    VALIDATED
+    VOID
+    REJECTED
+  }
+
+  ' Status operacional do voo
+  enum FlightStatus {
+    SCHEDULED
+    BOARDING
+    IN_FLIGHT
+    ARRIVED
+    CANCELLED
+  }
+}
+
+' ── Referências externas (só IDs) ─────────────────────────────────────
+class FlightRouteId  <<ValueObject>>
+class FlightPlanId   <<ValueObject>>
+class PilotId        <<ValueObject>>
+class WeatherDataId  <<ValueObject>>
+
+' ── Composições internas ───────────────────────────────────────────────
+Flight "1" *-- "1" FlightId
+Flight "1" *-- "1" FlightDesignator
+Flight "1" *-- "1" FlightSchedule
+Flight "1" *-- "1" Payload
+Flight "1" *-- "1" FlightValidationStatus
+Flight "1" *-- "1" FlightStatus
+
+' ── Referências por ID a outros agregados ─────────────────────────────
+Flight "0..*" --> "1" FlightPlanId  : instancia
+Flight "0..*" --> "1" FlightRouteId : segue
+Flight "0..*" --> "1" PilotId       : pilotado por
+Flight "0..*" --> "0..*" WeatherDataId : condições meteorológicas
+
+note bottom of Flight
+  **Relação 1-N com FlightPlan:**
+  Vários Flights podem partilhar o mesmo FlightPlan
+  (ex: voo regular TP123 que opera 3x por semana).
+  O FlightPlan define o procedimento reutilizável;
+  o Flight acrescenta os dados específicos da instância.
+
+  **Regras de negócio:**
+  - attachWeatherData() transita validationStatus VALIDATED → VOID.
+  - Só é possível attachWeatherData() se validationStatus != CANCELLED.
+  - O piloto deve pertencer à companhia da FlightRoute (validado no AS).
+  - Designador segue o formato xxn(n)(n)(n)(a) — secção 3.2.
+end note
+
+@enduml

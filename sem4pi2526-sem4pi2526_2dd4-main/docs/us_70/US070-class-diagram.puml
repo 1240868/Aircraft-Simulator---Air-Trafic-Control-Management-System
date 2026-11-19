@@ -1,0 +1,127 @@
+@startuml US070-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US070 - Adicionar aeronave a frota da companhia\nAddAircraftController | aisafe.infrastructure.application + aisafe.core
+
+package fleet_application {
+    class AddAircraftController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftRepository
+        - modelRepo : AircraftModelRepository
+        - companyRepo : AirTransportCompanyRepository
+        --
+        + listAircraftModels() : List<AircraftModelOptionDTO>
+        + resolveCompanyOfAuthenticatedUser() : CompanyId
+        + addAircraft(registration, country, modelId,\n  cabinBlocks, mfgDate, firstRegDate) : Aircraft
+    }
+
+    record AircraftModelOptionDTO {
+        modelId
+        modelName
+        manufacturer
+        type
+        passengerCapacity
+    }
+}
+
+package user_presentation {
+    class AddAircraftUI {
+        - controller : AddAircraftController
+        --
+        + doShow() : boolean
+    }
+}
+
+package fleet_domain {
+    class AircraftFactory {
+        + {static} registerNew(...)
+        + {static} registerWithOperationalStatus(...)
+    }
+
+    class Aircraft <<AggregateRoot>> {
+        - registrationNumber : RegistrationNumber
+        - ownerCompanyId : CompanyId
+        - aircraftModelId : AircraftModelId
+        - registrationCountry : AircraftRegistrationCountry
+        - operationalStatus : AircraftOperationalStatus
+        - cabinSeatBlocks : List<CabinSeatBlock>
+        --
+        + totalConfiguredSeats() : int
+    }
+
+    class RegistrationNumber <<ValueObject>>
+    class AircraftRegistrationCountry <<ValueObject>>
+    class AircraftModelId <<ValueObject>>
+    class CabinSeatBlock <<Embeddable>>
+    class AircraftOperationalStatus <<enum>>
+}
+
+package company_domain {
+    class CompanyId <<ValueObject>>
+    class AirTransportCompany <<AggregateRoot>>
+}
+
+package fleet_repositories {
+    interface AircraftRepository {
+        + findByRegistration(reg) : Optional<Aircraft>
+        + findByOwnerCompanyId(companyId)
+    }
+
+    interface AircraftModelRepository
+}
+
+package company_repositories {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username)
+    }
+}
+
+package application_security {
+    interface AuthorizationPort
+}
+
+AddAircraftUI --> AddAircraftController
+AddAircraftController o--> AuthorizationPort
+AddAircraftController --> AircraftRepository
+AddAircraftController --> AircraftModelRepository
+AddAircraftController --> AirTransportCompanyRepository
+AddAircraftController ..> AircraftFactory
+AddAircraftController ..> AircraftModelOptionDTO
+AddAircraftController ..> CompanyId
+
+AircraftFactory ..> Aircraft
+AircraftFactory ..> CabinSeatBlock
+Aircraft *-- RegistrationNumber
+Aircraft *-- CabinSeatBlock
+Aircraft ..> AircraftModelId
+Aircraft ..> CompanyId
+AircraftRepository ..> Aircraft
+
+note bottom of AddAircraftController
+  Papel: AIR_TRANSPORT_COMPANY_COLLABORATOR.
+  Empresa = colaborador autenticado (findCompanyIdForCollaboratorUsername).
+  Rejeita matricula duplicada.
+  AircraftFactory: total lugares <= capacidade do modelo.
+  Estado inicial: ACTIVE.
+  Persistencia JPA: JpaAircraftRepository, tabela aircraft
+  + aircraft_cabin_seats (@ElementCollection).
+end note
+
+note right of Aircraft
+  Invariante US070: soma dos lugares por classe
+  nao pode exceder passengerCapacity do modelo.
+  Matricula (tail number) e identidade do agregado.
+end note
+
+legend bottom
+  fleet_application  = eapli.aisafe.fleet.application
+  user_presentation  = eapli.aisafe.app.user.console.presentation.fleet
+  fleet_domain       = eapli.aisafe.fleet.domain
+  company_domain     = eapli.aisafe.company.domain
+  fleet_repositories = eapli.aisafe.fleet.repositories
+endlegend
+
+@enduml

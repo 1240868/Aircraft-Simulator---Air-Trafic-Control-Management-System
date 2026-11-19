@@ -1,0 +1,102 @@
+@startuml SD_US070_AddAircraft
+title Sequence Diagram — US070 Add Aircraft to Fleet (Happy Path)
+
+actor "Company Collaborator" as COLLAB
+participant ":AddAircraftUI" as UI <<Presentation>>
+participant ":AddAircraftController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AircraftRepository" as AC_REPO <<Repository>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AircraftFactory" as FACT <<Domain Factory>>
+participant "reg:RegistrationNumber" as REG <<Value Object>>
+participant "ac:Aircraft" as AC <<Aggregate Root>>
+
+COLLAB -> UI : menu "Add aircraft to fleet"
+activate UI
+
+UI -> CTRL : listAircraftModels()
+activate CTRL
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+CTRL -> AM_REPO : findAll()
+AM_REPO --> CTRL : models
+CTRL --> UI : List<AircraftModelOptionDTO>
+deactivate CTRL
+
+alt models.isEmpty()
+    UI -> COLLAB : "No aircraft models available..."
+    UI --> COLLAB : doShow returns false
+else
+    UI -> COLLAB : listar "--- Available Aircraft Models ---" (nº, nome, id)
+    UI -> COLLAB : prompt "Select model number"
+    COLLAB -> UI : choice
+
+    alt choice inválido
+        UI -> COLLAB : "Invalid selection."
+        UI --> COLLAB : false
+    else modelo válido
+        UI -> UI : selectedModel = models.get(choice - 1)
+
+        UI -> COLLAB : prompt "Aircraft registration number (tail number...)"
+        COLLAB -> UI : registration
+        UI -> COLLAB : prompt "Registration country (ISO 3166-1 alpha-2...)"
+        COLLAB -> UI : country
+
+        UI -> COLLAB : mensagem "--- Age (at least one date) ---"
+        UI -> COLLAB : prompt "Manufacturing date (yyyy-MM-dd, empty to skip):"
+        COLLAB -> UI : manufacturingDateStr
+        UI -> COLLAB : prompt "First registration date (yyyy-MM-dd, empty to skip):"
+        COLLAB -> UI : firstRegistrationDateStr
+        UI -> UI : readOptionalIsoDate → LocalDate ou null
+
+        alt DateTimeParseException
+            UI -> COLLAB : "Invalid date format. Use yyyy-MM-dd."
+        else
+            UI -> COLLAB : "--- Cabin seat configuration (max N seats) ---"
+
+            loop while addMore == true
+                UI -> COLLAB : prompt "Cabin class name (e.g. ECONOMY...)"
+                COLLAB -> UI : cabinClass
+                UI -> COLLAB : prompt "Number of seats for {cabinClass}"
+                COLLAB -> UI : seats
+                UI -> UI : cabinBlocks.add(CabinSeatBlock)
+                UI -> COLLAB : "Total configured so far: X / capacity"
+                UI -> COLLAB : prompt "Add another cabin class? (y/n)"
+                COLLAB -> UI : more
+                UI -> UI : addMore = more equalsIgnoreCase("y")
+            end
+
+            UI -> CTRL : addAircraft(registration, country,\nselectedModel.modelId(), cabinBlocks,\nmanufacturingDate, firstRegistrationDate)
+            activate CTRL
+
+            CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(...)
+            CTRL -> CTRL : new AircraftModelId(UUID)
+            CTRL -> REG : valueOf(registration)
+            CTRL -> AC_REPO : ofIdentity(reg)
+            AC_REPO --> CTRL : empty
+            CTRL -> AM_REPO : ofIdentity(modelId)
+            AM_REPO --> CTRL : model
+            CTRL -> CTRL : resolveCompanyOfAuthenticatedUser()
+            CTRL -> AUTHZ : currentUsername()
+            CTRL -> CO_REPO : findCompanyIdForCollaboratorUsername(...)
+            CTRL -> FACT : registerNew(...)
+            FACT -> AC ** : new Aircraft
+            FACT --> CTRL : aircraft
+            CTRL -> AC_REPO : save(aircraft)
+            AC_REPO --> CTRL : persisted
+
+            CTRL --> UI : Aircraft
+
+            alt sucesso
+                UI -> COLLAB : "Aircraft registered successfully!"
+                UI -> COLLAB : registration, model, country, status, seats, dates
+            else exceção
+                UI -> COLLAB : "Could not register aircraft: " + message
+            end
+            deactivate CTRL
+        end
+    end
+end
+deactivate UI
+
+@enduml

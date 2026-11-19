@@ -1,0 +1,51 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "ATCC" as User
+participant ":RouteController" as Ctrl
+participant "svc:RouteCreationService" as Svc
+participant ":AirportRepository" as RepoA
+participant "origin:Airport" as AirportO
+participant "dest:Airport" as AirportD
+participant "route:FlightRoute" as AR
+
+User -> Ctrl : criarRota(dados)
+activate Ctrl
+
+Ctrl -> Svc : validateAndCreate(dados)
+activate Svc
+
+' 1. Verificar se aeroportos existem e estão ativos (Requisito da Query)
+Svc -> RepoA : findById(dados.originId)
+RepoA --> Svc : origin
+Svc -> RepoA : findById(dados.destId)
+RepoA --> Svc : dest
+
+alt aeroportos válidos e ativos
+    Svc -> AirportO : isOperational()
+    Svc -> AirportD : isOperational()
+
+    ' 2. Proteção do Invariante Interno pela Raiz do Agregado [4]
+    Svc -> AR** : create(dados.name, originId, destId)
+    activate AR
+
+
+    alt origin != destination
+        AR --> Svc : routeInstance
+        Svc --> Ctrl : sucesso
+        Ctrl --> User : confirmação
+    else origin == destination
+        AR --> Svc : throw DomainException("Origin must differ from Destination")
+        Svc --> Ctrl : erro
+        Ctrl --> User : erro("Origem e destino iguais")
+    end
+    deactivate AR
+else aeroportos inexistentes ou inativos
+    Svc --> Ctrl : erro
+    Ctrl --> User : erro("Aeroportos inválidos")
+end
+
+deactivate Svc
+deactivate Ctrl
+@enduml

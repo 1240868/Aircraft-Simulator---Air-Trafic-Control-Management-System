@@ -1,0 +1,132 @@
+@startuml CD_US042_ImportBulkWeatherData
+title Class Diagram — US042 Import Bulk Weather Data
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+' =================== AGGREGATE: WeatherData ===================
+package "WeatherData Aggregate" <<Rectangle>> {
+
+    class WeatherData <<(R,#FFCC66) Aggregate Root>> {
+        - id : WeatherDataId
+        - areaCode : AirControlAreaCode
+        - observedAt : Instant
+        - windSpeedMs : double
+        - windDirectionDegrees : double
+        - temperatureC : double
+        - humidityPercent : double
+        - source : WeatherSource
+    }
+
+    class WeatherDataId <<(V,#9ACD32) Value Object>> {
+        - value : UUID
+    }
+
+    class AirControlAreaCode <<(V,#9ACD32) Value Object>> {
+        - value : String
+        + {static} valueOf(raw : String) : AirControlAreaCode
+    }
+
+    class WeatherSource <<(V,#9ACD32) Value Object>> {
+        - value : String
+        + value() : String
+        + {static} csvDefault() : WeatherSource
+        + {static} manualEntry() : WeatherSource
+    }
+
+    WeatherData "1" *-- "1" WeatherDataId
+    WeatherData "1" *-- "1" AirControlAreaCode
+    WeatherData "1" *-- "0..1" WeatherSource
+}
+
+' =================== IMPORT PORT (Strategy) — package importing ===================
+interface WeatherDataImportParser <<(I,#DDA0DD) Strategy>> {
+    + supportedFormat() : String
+    + parse(input : InputStream) : List<WeatherImportRow>
+}
+
+class CsvWeatherDataImportParser <<Strategy Impl>> {
+    + supportedFormat() : String
+    + parse(input : InputStream) : List<WeatherImportRow>
+}
+
+class WeatherImportRow <<record>> {
+    + lineNumber : int
+    + areaCode : String
+    + observedAt : Instant
+    + temperatureC : double
+    + humidityPercent : double
+    + windSpeedMs : double
+    + windDirectionDegrees : double
+    + source : String
+}
+
+class WeatherImportResult <<record>> {
+    + totalRows : int
+    + importedCount : int
+    + rejectedCount : int
+    + errors : List<WeatherImportRowError>
+}
+
+class WeatherImportRowError <<record>> {
+    + lineNumber : int
+    + message : String
+}
+
+class UnsupportedImportFormatException <<exception>>
+class ImportParseException <<exception>>
+
+CsvWeatherDataImportParser ..|> WeatherDataImportParser
+WeatherDataImportParser ..> WeatherImportRow : <<produces>>
+
+' =================== REPOSITORIES ===================
+interface WeatherDataRepository <<(I,#DDA0DD) Repository>> {
+    + save(data : WeatherData) : WeatherData
+}
+
+interface AirControlAreaRepository <<(I,#DDA0DD) Repository>> {
+    + findByCode(code : AirControlAreaCode) : Optional<AirControlArea>
+}
+
+WeatherDataRepository ..> WeatherData
+
+' =================== APPLICATION LAYER ===================
+class ImportWeatherDataController <<(C,#F4A460) UseCaseController>> {
+    - authz : AuthorizationPort
+    - service : ImportWeatherDataService
+    + supportedFormats() : List<String>
+    + importFromFile(format : String, path : Path) : WeatherImportResult
+}
+
+class ImportWeatherDataService <<(C,#F4A460) App Service>> {
+    - weatherRepo : WeatherDataRepository
+    - areaRepo : AirControlAreaRepository
+    - parsers : Map<String, WeatherDataImportParser>
+    + supportedFormats() : List<String>
+    + importFromFile(format : String, path : Path) : WeatherImportResult
+    - persistRow(row : WeatherImportRow) : void
+    - observationExists(code : AirControlAreaCode, observedAt : Instant) : boolean
+}
+
+class ImportWeatherDataUI <<Presentation>> {
+    + doShow() : boolean
+}
+
+ImportWeatherDataUI ..> ImportWeatherDataController
+ImportWeatherDataController ..> ImportWeatherDataService
+ImportWeatherDataService ..> WeatherDataImportParser
+ImportWeatherDataService ..> WeatherDataRepository
+ImportWeatherDataService ..> AirControlAreaRepository
+ImportWeatherDataService ..> WeatherData : <<creates>>
+ImportWeatherDataService ..> WeatherImportResult : <<returns>>
+ImportWeatherDataService ..> UnsupportedImportFormatException : <<throws>>
+ImportWeatherDataService ..> ImportParseException : <<throws>>
+
+note bottom of WeatherDataImportParser
+  **Strategy Pattern (US042):**
+  New parsers (JSON, XML, API adapter)
+  can be added without changing
+  the controller or service contract.
+end note
+
+@enduml

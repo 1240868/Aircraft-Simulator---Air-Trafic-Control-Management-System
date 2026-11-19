@@ -1,0 +1,106 @@
+@startuml SD_US073_CreateFlightRoute
+title Sequence Diagram — US073 Create a Flight Route
+
+skinparam sequenceFontName sans-serif
+
+actor "ATCC" as ATCC
+participant ":CreateFlightRouteUI" as UI <<Presentation>>
+participant ":CreateFlightRouteController" as CTRL <<Application>>
+participant ":CreateFlightRouteService" as SVC <<Application>>
+participant "FleetListing" as HELPER <<helper>>
+participant ":AirTransportCompanyRepository" as COMP_REPO <<Repository>>
+participant ":FlightRouteRepository" as ROUTE_REPO <<Repository>>
+participant ":AirportRepository" as APT_REPO <<Repository>>
+participant "HaversineRouteDistanceCalculator" as CALC <<Domain Service>>
+participant "route:FlightRoute" as ROUTE <<Aggregate Root>>
+
+ATCC -> UI : select create flight route
+activate UI
+
+UI -> CTRL : listOperationalAirports()
+activate CTRL
+CTRL -> CTRL : ensureAuthenticatedUserHasAnyOf(ATCC)
+CTRL -> APT_REPO : findAll()
+APT_REPO --> CTRL : Iterable<Airport>
+CTRL --> UI : List<OperationalAirportDTO>
+deactivate CTRL
+
+UI -> ATCC : show operational airports
+UI -> ATCC : prompt numericSuffix, originIcao, destinationIcao
+ATCC -> UI : numericSuffix, originIcao, destinationIcao
+
+UI -> CTRL : createRoute(numericSuffix, originIcao, destinationIcao)
+activate CTRL
+CTRL -> CTRL : ensureAuthenticatedUserHasAnyOf(ATCC)
+CTRL -> SVC : createRoute(numericSuffix,\n  originIcao, destinationIcao, username)
+activate SVC
+
+SVC -> HELPER : requireCompanyOfUser(companyRepo, username)
+HELPER -> COMP_REPO : findCompanyIdForCollaboratorUsername(username)
+COMP_REPO --> HELPER : Optional<CompanyId>
+HELPER --> SVC : companyId
+
+SVC -> COMP_REPO : ofIdentity(companyId)
+COMP_REPO --> SVC : company
+
+SVC -> SVC : name = FlightRouteName.compose(\n  company.iataCode().value(), numericSuffix)
+
+SVC -> ROUTE_REPO : existsByName(name)
+ROUTE_REPO --> SVC : boolean
+
+alt name already exists
+    SVC --> CTRL : IntegrityViolationException
+    CTRL --> UI : error message
+    UI --> ATCC : display error
+else name available
+
+    SVC -> APT_REPO : findByIcaoCode(originIcao)
+    APT_REPO --> SVC : origin (Airport)
+    SVC -> SVC : check origin.isOperational()
+
+    SVC -> APT_REPO : findByIcaoCode(destinationIcao)
+    APT_REPO --> SVC : destination (Airport)
+    SVC -> SVC : check destination.isOperational()
+
+    alt airport not found or not operational
+        SVC --> CTRL : IllegalArgumentException
+        CTRL --> UI : error message
+        UI --> ATCC : display error
+    else airports valid
+
+        SVC -> CALC : calculateDistance(origin, destination)
+        activate CALC
+        CALC --> SVC : RouteDistance
+        deactivate CALC
+
+        SVC -> CALC : estimateDuration(distance)
+        activate CALC
+        CALC --> SVC : RouteDuration
+        deactivate CALC
+
+        SVC -> ROUTE ** : create(name, companyId,\n  AirportId.forIcaoCode(origin.icaoCode()),\n  AirportId.forIcaoCode(destination.icaoCode()),\n  distance, duration)
+        activate ROUTE
+        note right of ROUTE
+          Invariants enforced:
+          - originId != destinationId
+          - status = ACTIVE
+        end note
+        ROUTE --> SVC : route
+        deactivate ROUTE
+
+        SVC -> ROUTE_REPO : save(route)
+        ROUTE_REPO --> SVC : persisted route
+
+        SVC --> CTRL : FlightRouteDTO
+        deactivate SVC
+
+        CTRL --> UI : FlightRouteDTO
+        deactivate CTRL
+
+        UI --> ATCC : display success confirmation
+    end
+end
+
+deactivate UI
+
+@enduml

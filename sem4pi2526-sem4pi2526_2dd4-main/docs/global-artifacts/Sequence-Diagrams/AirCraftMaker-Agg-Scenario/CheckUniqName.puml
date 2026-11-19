@@ -1,0 +1,56 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Backoffice Operator" as User
+participant ":MakerController" as Ctrl
+participant "svc:MakerRegistryService" as Svc
+participant "repo:MakerRepository" as Repo
+participant "country:OriginCountry" as CountryVO
+participant "maker:AircraftMaker" as AR
+
+'== Criação do Fabricante (AircraftMaker) ==
+User -> Ctrl : createMaker(name, countryCode)
+activate Ctrl
+
+' Validação de Unicidade via Domain Service [2]
+Ctrl -> Svc : validateUniqueness(name)
+activate Svc
+Svc -> Repo : existsByName(name)
+Svc --> Ctrl : isUnique
+deactivate Svc
+
+alt isUnique == true
+    ' Validação do país no Value Object [3, 5]
+    Ctrl -> CountryVO** : new(countryCode)
+
+    ' Criação da Raiz do Agregado [4]
+    Ctrl -> AR** : create(name, country)
+    Ctrl -> Repo : save(maker)
+    Ctrl --> User : sucesso(MakerId)
+else
+    Ctrl --> User : erro("Nome já existe")
+end
+
+'== Criação de Modelo (Dependência de MakerId) ==
+participant ":ModelController" as ModelCtrl
+participant "model:AircraftModel" as ModelAR
+
+User -> ModelCtrl : createAircraftModel(data, makerId)
+activate ModelCtrl
+
+' Garantia de Pré-requisito: MakerId deve existir [6, 7]
+ModelCtrl -> Repo : findById(makerId)
+Repo --> ModelCtrl : maker
+
+alt maker exists
+    ' Referência por Identidade [6, 8]
+    ModelCtrl -> ModelAR** : create(data, makerId)
+    ModelCtrl --> User : sucesso
+else maker not found
+    ModelCtrl --> User : erro("Fabricante obrigatório não encontrado")
+end
+
+deactivate ModelCtrl
+deactivate Ctrl
+@enduml

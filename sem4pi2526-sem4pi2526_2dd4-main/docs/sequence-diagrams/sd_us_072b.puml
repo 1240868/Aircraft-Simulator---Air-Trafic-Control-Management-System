@@ -1,0 +1,66 @@
+@startuml SD_US072b_ListFleetByMaker
+title Sequence Diagram — US072b List Active Fleet by Manufacturer
+
+actor "Company Collaborator" as COLLAB
+participant ":ListFleetByMakerUI" as UI <<Presentation>>
+participant ":ListFleetByMakerController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":ManufacturerNormalizer" as NORM <<Domain>>
+participant ":FleetListing" as LIST <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+participant ":AircraftRepository" as AC_REPO <<Repository>>
+
+COLLAB -> UI : menu "List fleet by manufacturer"
+activate UI
+
+UI -> COLLAB : prompt "Aircraft manufacturer to filter (e.g. Airbus, Boeing):"
+COLLAB -> UI : manufacturerRaw
+
+UI -> CTRL : listFleetByMaker(manufacturerRaw)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+CTRL -> AUTHZ : currentUsername()
+CTRL -> LIST : requireCompanyOfUser(companyRepo, username)
+LIST -> CO_REPO : findCompanyIdForCollaboratorUsername(...)
+LIST --> CTRL : companyId
+
+CTRL -> NORM : normalize(manufacturerRaw)
+NORM --> CTRL : makerKey
+
+CTRL -> LIST : isKnownManufacturer(modelRepo, makerKey)
+LIST -> AM_REPO : findAll() + comparar fabricantes
+LIST --> CTRL : boolean
+
+alt fabricante desconhecido
+    CTRL --> UI : IllegalArgumentException
+    UI -> COLLAB : ex.getMessage()
+else
+    CTRL -> LIST : activeByManufacturer(aircraftRepo,\nmodelRepo, companyId, makerKey)
+    LIST -> AC_REPO : findByOwnerCompanyId(companyId)
+    LIST --> CTRL : List<Aircraft>
+
+    loop each Aircraft a
+        CTRL -> LIST : requireModelForAircraft(modelRepo, a)
+        LIST -> AM_REPO : ofIdentity(a.aircraftModelId())
+        CTRL -> LIST : toRow(a, model)
+    end
+
+    CTRL -> CTRL : sort + FleetListResult.of(...)
+    CTRL --> UI : FleetListResult
+    deactivate CTRL
+
+    alt r.messageWhenEmpty() != null
+        UI -> COLLAB : messageWhenEmpty
+    else
+        UI -> COLLAB : "--- Aircraft (manufacturer match, active fleet) ---"
+        loop each row
+            UI -> COLLAB : printf registration | model | maker | status | seats
+        end
+        UI -> COLLAB : "-----------------------------------------------------"
+    end
+end
+deactivate UI
+
+@enduml

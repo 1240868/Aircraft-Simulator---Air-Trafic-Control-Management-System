@@ -1,0 +1,90 @@
+@startuml SD_US075_AddPilot
+title Sequence Diagram — US075 Add Pilot to Company (Happy Path)
+
+actor "Company Collaborator" as ATCC
+participant ":AddPilotUI" as UI <<Presentation>>
+participant ":AddPilotController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":UserManagementService" as USER_SVC <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":PilotRepository" as PILOT_REPO <<Repository>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+participant "name:FullName" as NAME <<Value Object>>
+participant "email:Email" as EMAIL <<Value Object>>
+participant "cert:PilotCertification" as CERT <<Value Object>>
+participant "license:License" as LIC <<Value Object>>
+participant "pilot:Pilot" as PILOT <<Aggregate Root>>
+
+ATCC -> UI : menu "Add pilot to company"
+activate UI
+
+UI -> CTRL : listAircraftModels()
+activate CTRL
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+CTRL -> AM_REPO : findAll()
+AM_REPO --> CTRL : models
+CTRL --> UI : List<AircraftModelOptionDTO>
+deactivate CTRL
+
+UI -> ATCC : listar modelos certificáveis (num, nome, fabricante, tipo)
+
+UI -> ATCC : prompt "Select certified model numbers (comma-separated)"
+ATCC -> UI : modelNumbers
+UI -> UI : parseModelSelections(modelNumbers) -> certifiedModels
+
+UI -> ATCC : prompt "Username (for system login)"
+ATCC -> UI : username
+UI -> ATCC : prompt "Password"
+ATCC -> UI : password
+UI -> ATCC : prompt "First name"
+ATCC -> UI : firstName
+UI -> ATCC : prompt "Last name"
+ATCC -> UI : lastName
+UI -> ATCC : prompt "Email"
+ATCC -> UI : email
+UI -> ATCC : prompt "Certification (e.g. ATPL, CPL)"
+ATCC -> UI : certification
+UI -> ATCC : prompt "License number"
+ATCC -> UI : licenseNumber
+UI -> ATCC : prompt "License expiration (yyyy-MM-ddTHH:mm)"
+ATCC -> UI : expirationStr
+
+UI -> CTRL : addPilot(username, password, firstName, lastName, email,\ncertification, licenseNumber,\nexpiration, certifiedModels)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+AUTHZ --> CTRL : ok
+
+loop each AircraftModelId in certifiedModels
+    CTRL -> AM_REPO : ofIdentity(modelId)
+    AM_REPO --> CTRL : AircraftModel
+end
+
+CTRL -> PILOT_REPO : findByEmail(email)
+PILOT_REPO --> CTRL : empty
+
+CTRL -> AUTHZ : currentUsername()
+AUTHZ --> CTRL : username
+CTRL -> CO_REPO : findCompanyIdForCollaboratorUsername(username)
+CO_REPO --> CTRL : companyId
+
+CTRL -> NAME ** : new FullName(firstName, lastName)
+CTRL -> EMAIL ** : new Email(email)
+CTRL -> CERT ** : new PilotCertification(certification)
+CTRL -> LIC ** : new License(licenseNumber, expiration)
+
+CTRL -> USER_SVC : registerNewUser(username, password, firstName,\nlastName, email, {PILOT}, now)
+USER_SVC --> CTRL : SystemUser
+
+CTRL -> PILOT ** : new Pilot(PilotId.newId(), name, email,\ncompanyId, cert, license, certifiedModels)
+PILOT --> CTRL : pilot
+
+CTRL -> PILOT_REPO : save(pilot)
+PILOT_REPO --> CTRL : persisted
+
+CTRL --> UI : Pilot
+UI -> ATCC : "Pilot added successfully: name, email, models, status"
+deactivate CTRL
+deactivate UI
+
+@enduml

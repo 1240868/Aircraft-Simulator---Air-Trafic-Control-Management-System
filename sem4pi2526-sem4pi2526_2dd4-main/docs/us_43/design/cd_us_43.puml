@@ -1,0 +1,165 @@
+@startuml CD_US043_ConsultWeatherData
+title Class Diagram — US043 Consult Weather Data
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam packageBackgroundColor #F8F8F8
+hide circle
+
+' =====================================================================
+' PRESENTATION LAYER
+' =====================================================================
+package "Presentation" #EEF0FB {
+
+  class ConsultWeatherDataUI {
+    - controller : ConsultWeatherDataController
+    --
+    + doShow() : boolean
+  }
+}
+
+' =====================================================================
+' APPLICATION LAYER
+' =====================================================================
+package "Application" #E8F5F0 {
+
+  class ConsultWeatherDataController <<UseCaseController>> {
+    - authz : AuthorizationPort
+    - service : ConsultWeatherDataService
+    --
+    + consult(areaCode : String, date : LocalDate) : WeatherConsultationResult
+  }
+
+  class ConsultWeatherDataService {
+    - weatherRepo : WeatherDataRepository
+    - areaRepo : AirControlAreaRepository
+    --
+    + consult(areaCode : String, date : LocalDate) : WeatherConsultationResult
+    - toSummary(wd : WeatherData) : WeatherDataSummary
+  }
+
+  package "consultation (DTOs)" {
+    class WeatherConsultationResult <<record>> {
+      + areaCode : String
+      + date : LocalDate
+      + recordCount : int
+      + records : List<WeatherDataSummary>
+    }
+
+    class WeatherDataSummary <<record>> {
+      + weatherDataId : String
+      + areaCode : String
+      + observedAt : Instant
+      + temperatureC : double
+      + humidityPercent : double
+      + windSpeedMs : double
+      + windDirectionDegrees : double
+      + source : String
+    }
+  }
+}
+
+' =====================================================================
+' DOMAIN LAYER
+' =====================================================================
+package "Domain" #FFF8EC {
+
+  package "WeatherData (AR)" {
+
+    class WeatherData <<AggregateRoot>> {
+      - id : WeatherDataId
+      - areaCode : AirControlAreaCode
+      - observedAt : Instant
+      - windSpeedMs : double
+      - windDirectionDegrees : double
+      - temperatureC : double
+      - humidityPercent : double
+      - source : WeatherSource
+      --
+      + identity() : WeatherDataId
+      + observedAt() : Instant
+      + temperatureC() : double
+      + humidityPercent() : double
+      + windSpeedMs() : double
+      + windDirectionDegrees() : double
+      + source() : WeatherSource
+    }
+
+    class WeatherDataId <<ValueObject>> {
+      - value : UUID
+    }
+
+    class AirControlAreaCode <<ValueObject>> {
+      - value : String
+      + {static} valueOf(raw : String) : AirControlAreaCode
+    }
+
+    class WeatherSource <<ValueObject>> {
+      - value : String
+      + value() : String
+    }
+
+    class WeatherQueryDate <<ValueObject>> {
+      - date : LocalDate
+      --
+      + startOfDayUtc() : Instant
+      + endOfDayExclusiveUtc() : Instant
+      + value() : LocalDate
+    }
+  }
+
+  interface WeatherDataRepository <<Repository>> {
+    + findByAreaCode(areaCode : AirControlAreaCode) : Iterable<WeatherData>
+    + findByAreaCodeBetween(\n  areaCode : AirControlAreaCode,\n  fromInclusive : Instant,\n  toExclusive : Instant) : Iterable<WeatherData>
+    + save(data : WeatherData) : WeatherData
+  }
+
+  interface AirControlAreaRepository <<Repository>> {
+    + findByCode(code : AirControlAreaCode) : Optional<AirControlArea>
+  }
+}
+
+' =====================================================================
+' INFRASTRUCTURE LAYER
+' =====================================================================
+package "Infrastructure / Persistence" #EAF3FB {
+
+  class JpaWeatherDataRepository <<Repository>> {
+    + findByAreaCodeBetween(...) : Iterable<WeatherData>
+  }
+
+  class JpaAirControlAreaRepository <<Repository>> {
+    + findByCode(code : AirControlAreaCode) : Optional<AirControlArea>
+  }
+}
+
+' =====================================================================
+' RELATIONS
+' =====================================================================
+ConsultWeatherDataUI ..> ConsultWeatherDataController : uses
+ConsultWeatherDataUI ..> WeatherConsultationResult : <<reads>>
+
+ConsultWeatherDataController ..> ConsultWeatherDataService : uses
+ConsultWeatherDataController ..> WeatherConsultationResult : <<output>>
+
+ConsultWeatherDataService ..> WeatherDataRepository : <<queries>>
+ConsultWeatherDataService ..> AirControlAreaRepository : <<queries>>
+ConsultWeatherDataService ..> WeatherQueryDate : <<creates>>
+ConsultWeatherDataService ..> WeatherDataSummary : <<maps to>>
+
+WeatherData "1" *-- "1" WeatherDataId
+WeatherData "1" *-- "1" AirControlAreaCode
+WeatherData "1" *-- "0..1" WeatherSource
+
+WeatherDataRepository ..> WeatherData : <<manages>>
+JpaWeatherDataRepository ..|> WeatherDataRepository
+JpaAirControlAreaRepository ..|> AirControlAreaRepository
+
+note bottom of WeatherData
+  **Read-only in US043:**
+  No aggregate mutation.
+  Query filtered by area + UTC day.
+end note
+
+@enduml

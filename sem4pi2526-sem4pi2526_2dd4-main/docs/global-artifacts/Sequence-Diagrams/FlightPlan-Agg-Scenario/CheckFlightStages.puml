@@ -1,0 +1,81 @@
+@startuml CheckFlightStages
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.5
+skinparam participantBorderColor Black
+skinparam participantBackgroundColor White
+skinparam actorBorderColor Black
+
+actor "Pilot" as User
+participant ":FlightPlanController"        as Ctrl
+participant ":AddLegToFlightPlanService"   as SVC
+participant ":FlightPlanRepository"        as Repo
+participant "fp:FlightPlan"                as AR
+participant "newLeg:FlightLeg"             as VO
+
+' ── 1. Entry point ────────────────────────────────────────────────────
+User -> Ctrl : addLeg(planId, legData)
+activate Ctrl
+
+Ctrl -> SVC : addLeg(planId, legData)
+activate SVC
+
+' ── 2. Load aggregate via repository ──────────────────────────────────
+SVC -> Repo : findById(planId)
+activate Repo
+Repo --> SVC : fp
+deactivate Repo
+
+' ── 3. Create Value Object — validates own internal invariants ─────────
+SVC -> VO** : new(legData)
+activate VO
+
+alt departure airport == arrival airport
+    VO --> SVC : throw DomainException("Departure and arrival airports must differ")
+
+else fuel quantity <= 0
+    VO --> SVC : throw DomainException("Leg fuel must be strictly positive")
+
+else segments list is empty
+    VO --> SVC : throw DomainException("A leg must contain at least one segment")
+
+else valid
+    VO --> SVC : newLeg
+end
+deactivate VO
+
+' ── 4. Aggregate root enforces business invariants ────────────────────
+SVC -> AR : addLeg(newLeg)
+activate AR
+
+alt fp.state == LOCKED
+    note right of AR
+      FlightPlanState.LOCKED means at least
+      one Flight has been validated against
+      this plan — it is now immutable.
+    end note
+    AR --> SVC : throw DomainException("FlightPlan is locked — cannot modify legs")
+
+else legs not empty AND arrival(lastLeg).airport != departure(newLeg).airport
+    AR --> SVC : throw DomainException("Leg sequence mismatch: arrival of leg N must match departure of leg N+1")
+
+else valid
+    AR -> AR : this.legs.add(newLeg)
+    AR --> SVC : success
+end
+deactivate AR
+
+' ── 5. Persist changed aggregate ──────────────────────────────────────
+SVC -> Repo : save(fp)
+activate Repo
+Repo --> SVC : ok
+deactivate Repo
+
+SVC --> Ctrl : confirmation / DomainException
+deactivate SVC
+
+Ctrl --> User : confirmation / error
+deactivate Ctrl
+
+@enduml

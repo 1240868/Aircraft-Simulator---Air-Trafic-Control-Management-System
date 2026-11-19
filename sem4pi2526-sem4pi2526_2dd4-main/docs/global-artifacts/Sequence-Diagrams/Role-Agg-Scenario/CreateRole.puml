@@ -1,0 +1,37 @@
+@startuml SSD_CreateRole_Corrected
+skinparam monochrome true
+skinparam shadowing false
+hide footbox
+
+actor "Administrator" as Admin
+participant ":RoleController" as Ctrl
+participant ":RoleService" as AppSvc
+participant "name:RoleName" as NameVO
+participant "role:Role" as AR
+participant "roleRepository:RoleRepository" as Repo
+
+Admin -> Ctrl : createRole(name, description)
+activate Ctrl
+
+Ctrl -> AppSvc : registerRole(name, description)
+activate AppSvc
+
+' 1. O Value Object valida a invariante de estado (não nulo/vazio)
+AppSvc -> NameVO** : new(name)
+
+' 2. A Aggregate Root é instanciada com o estado já validado
+AppSvc -> AR** : create(name, description)
+
+' 3. Persistência através do Repositório do Agregado
+AppSvc -> Repo : save(role)
+activate Repo
+Repo --> AppSvc : success
+deactivate Repo
+
+AppSvc --> Ctrl : roleDTO
+deactivate AppSvc
+
+Ctrl --> Admin : roleCreated(roleId)
+deactivate Ctrl
+
+@enduml

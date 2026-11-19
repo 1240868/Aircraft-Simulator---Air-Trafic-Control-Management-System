@@ -1,0 +1,59 @@
+@startuml
+title US91 — Browse Recent Events (design-level sequence diagram)
+
+actor "Service Administrator" as Admin
+participant "Browser" as Browser
+participant ":RemoteAccessHttpServer" as HttpServer
+participant ":RemoteAccessHttpHandler" as Handler
+participant ":RemoteAccessLogStore" as Store
+
+== Initial Page Load ==
+
+Admin -> Browser : open http://localhost:8080/events
+Browser -> HttpServer : TCP connect + GET /events HTTP/1.1
+activate HttpServer
+HttpServer -> Handler ** : new RemoteAccessHttpHandler(socket, store)
+HttpServer -> Handler : run() [new daemon thread]
+activate Handler
+
+Handler -> Handler : readLine() → "GET /events HTTP/1.1"
+Handler -> Handler : route("/events", out)
+Handler -> Handler : serveStaticFile("www/events.html", ...)
+Handler -> Handler : getResourceAsStream("www/events.html")
+Handler --> Browser : HTTP 200 OK\n  Content-Type: text/html\n  [events.html body]
+deactivate Handler
+deactivate HttpServer
+
+== AJAX Poll (triggered by onload and repeated every 1500 ms) ==
+
+Browser -> Browser : onload → refreshEvents()
+Browser -> HttpServer : TCP connect + GET /api/events HTTP/1.1
+activate HttpServer
+HttpServer -> Handler ** : new RemoteAccessHttpHandler(socket, store)
+HttpServer -> Handler : run() [new daemon thread]
+activate Handler
+
+Handler -> Handler : readLine() → "GET /api/events HTTP/1.1"
+Handler -> Handler : route("/api/events", out)
+Handler -> Handler : serveEventsFragment(out)
+
+Handler -> Store : recentEvents()
+activate Store
+Store --> Handler : List<RemoteAccessLogEntry> (up to 500, oldest first)
+deactivate Store
+
+Handler -> Handler : Collections.reverse(events)\n   build HTML <table>\n   for each entry: append <tr> with\n     timestamp, eventType, username,\n     clientIp, clientPort, serviceId\n   (HTML-escape all string fields)
+Handler --> Browser : HTTP 200 OK\n  Content-Type: text/html\n  [<table>...</table> fragment]
+deactivate Handler
+deactivate HttpServer
+
+Browser -> Browser : events.innerHTML = responseText\n   status = "Last updated: HH:mm:ss"\n   setTimeout(refreshEvents, 1500)
+
+note over Browser
+  After 1500 ms, refreshEvents() is called
+  again and the cycle repeats.
+  On error or timeout the page shows
+  "Still trying..." and retries.
+end note
+
+@enduml

@@ -1,0 +1,148 @@
+@startuml US075-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US075 - Adicionar piloto a companhia aerea\nAddPilotController | aisafe.infrastructure.application + aisafe.core
+
+package pilot_application {
+    class AddPilotController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - pilotRepo : PilotRepository
+        - companyRepo : AirTransportCompanyRepository
+        - modelRepo : AircraftModelRepository
+        --
+        + listAircraftModels() : List<AircraftModelOptionDTO>
+        + resolveCompanyOfAuthenticatedUser() : CompanyId
+        + addPilot(firstName, lastName, email,\n  certificationValue, licenseNumber,\n  licenseExpiration,\n  certifiedModels) : Pilot
+    }
+}
+
+package user_presentation {
+    class AddPilotUI {
+        - controller : AddPilotController
+        --
+        + doShow() : boolean
+        + headline() : String
+        - parseModelSelections(models, input) : List<AircraftModelId>
+    }
+}
+
+package pilot_domain {
+    class Pilot <<AggregateRoot>> {
+        - id : PilotId
+        - name : FullName
+        - email : Email
+        - company : CompanyId
+        - certification : PilotCertification
+        - licenseVoo : License
+        - certifiedModels : List<AircraftModelId>
+        - status : PilotStatus
+        --
+        + identity() : PilotId
+        + getName() : FullName
+        + getEmail() : Email
+        + getCompany() : CompanyId
+        + getCertification() : PilotCertification
+        + getLicenseVoo() : License
+        + getCertifiedModels() : List<AircraftModelId>
+        + getStatus() : PilotStatus
+    }
+
+    class PilotId <<ValueObject>> {
+        + {static} newId() : PilotId
+    }
+
+    class PilotCertification <<ValueObject>> {
+        - value : String
+        --
+        + value() : String
+    }
+
+    class License <<ValueObject>> {
+        - value : String
+        - expirationDate : LocalDateTime
+        --
+        + value() : String
+        + expirationDate() : LocalDateTime
+    }
+
+    enum PilotStatus {
+        ACTIVE
+        INACTIVE
+    }
+}
+
+package sharedkernel {
+    class FullName <<ValueObject>>
+    class Email <<ValueObject>>
+}
+
+package company_domain {
+    class CompanyId <<ValueObject>>
+}
+
+package fleet_domain {
+    class AircraftModel <<AggregateRoot>>
+    class AircraftModelId <<ValueObject>>
+}
+
+package pilot_repositories {
+    interface PilotRepository {
+        + findByEmail(email : Email) : Optional<Pilot>
+        + save(pilot : Pilot) : Pilot
+    }
+}
+
+package company_repositories {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username) : Optional<CompanyId>
+    }
+}
+
+package fleet_repositories {
+    interface AircraftModelRepository {
+        + ofIdentity(id : AircraftModelId) : Optional<AircraftModel>
+        + findAll() : Iterable<AircraftModel>
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+AddPilotUI --> AddPilotController
+AddPilotController --> AuthorizationPort
+AddPilotController --> PilotRepository
+AddPilotController --> AirTransportCompanyRepository
+AddPilotController --> AircraftModelRepository
+AddPilotController ..> Pilot : creates
+AddPilotController ..> FullName : creates
+AddPilotController ..> Email : creates
+AddPilotController ..> PilotCertification : creates
+AddPilotController ..> License : creates
+
+Pilot *-- PilotId
+Pilot *-- FullName
+Pilot *-- Email
+Pilot *-- CompanyId
+Pilot *-- PilotCertification
+Pilot *-- License
+Pilot --> PilotStatus
+Pilot "1" *-- "1..*" AircraftModelId
+
+note bottom of Pilot
+  Invariantes:
+  - email unico no sistema (verificado no controller)
+  - licenca com validade futura (VO License)
+  - companyId = companhia do ATCC autenticado
+  - certifiedModels nao vazio (>= 1 modelo)
+  - cada modelId deve existir no repositorio
+  - apenas Pilot e criado; AirTransportCompany nao e alterado
+end note
+
+@enduml

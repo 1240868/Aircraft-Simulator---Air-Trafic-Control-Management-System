@@ -1,0 +1,114 @@
+@startuml US062-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US062 - Listar colaboradores ativos de um cliente\nListCollaboratorsController | aisafe.infrastructure.application
+
+package company_application {
+    class ListCollaboratorsController <<UseCaseController>> {
+        - authz : AuthorizationService
+        - userSvc : UserManagementService
+        - companyRepo : AirTransportCompanyRepository
+        - areaRepo : AirControlAreaRepository
+        --
+        + listAirTransportCompaniesForSelection()
+        + listAirControlAreasForSelection()
+        + listActiveCollaboratorsForCompany(companyId) : List<CollaboratorDTO>
+        + listActiveCollaboratorsForAirControlArea(areaId) : List<CollaboratorDTO>
+    }
+
+    record CollaboratorDTO {
+        username
+        firstName
+        lastName
+        email
+        phone
+    }
+
+    record AirTransportCompanyOptionDTO {
+        companyId
+        name
+        iataCode
+    }
+
+    record AirControlAreaOptionDTO {
+        areaId
+        name
+        areaCode
+    }
+}
+
+package backoffice_presentation {
+    class ListCollaboratorsUI {
+        - controller : ListCollaboratorsController
+        --
+        + doShow() : boolean
+    }
+
+    class CustomerConsoleHelper {
+        + readCustomerKindOrCancel()
+        + pickAirTransportCompany()
+        + pickAirControlArea()
+        + printActiveCollaborators(list)
+    }
+}
+
+package company_domain {
+    class AirTransportCompany <<AggregateRoot>> {
+        + collaboratorUsernames() : Set<String>
+    }
+}
+
+package aircontrol_domain {
+    class AirControlArea <<AggregateRoot>> {
+        + collaboratorUsernames() : Set<String>
+    }
+}
+
+package company_repositories {
+    interface AirTransportCompanyRepository
+}
+
+package aircontrol_repositories {
+    interface AirControlAreaRepository
+}
+
+package framework_authz {
+    interface AuthorizationService
+    interface UserManagementService
+    class SystemUser
+}
+
+ListCollaboratorsUI --> ListCollaboratorsController
+ListCollaboratorsUI ..> CustomerConsoleHelper
+ListCollaboratorsController o--> AuthorizationService
+ListCollaboratorsController o--> UserManagementService
+ListCollaboratorsController --> AirTransportCompanyRepository
+ListCollaboratorsController --> AirControlAreaRepository
+ListCollaboratorsController ..> CollaboratorDTO
+ListCollaboratorsController ..> AirTransportCompanyOptionDTO
+ListCollaboratorsController ..> AirControlAreaOptionDTO
+
+AirTransportCompanyRepository ..> AirTransportCompany
+AirControlAreaRepository ..> AirControlArea
+ListCollaboratorsController ..> SystemUser
+
+note bottom of ListCollaboratorsController
+  Papeis: ADMIN, BACKOFFICE_OPERATOR.
+  1) Obtem usernames do agregado (collaboratorUsernames).
+  2) Cruza com userSvc.activeUsers() no controller.
+  So aparecem colaboradores com conta ATIVA (US062).
+  O dominio nao filtra utilizadores desativados.
+  Ignora entradas null/blank no aggregate.
+end note
+
+legend bottom
+  company_application     = eapli.aisafe.company.application
+  backoffice_presentation = eapli.aisafe.app.backoffice.console.presentation.company
+  company_domain          = eapli.aisafe.company.domain
+  aircontrol_domain       = eapli.aisafe.aircontrol.domain
+endlegend
+
+@enduml

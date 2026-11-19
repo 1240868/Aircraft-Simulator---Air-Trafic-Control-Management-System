@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1225px" preserveAspectRatio="none" style="width:1536px;height:1225px;" version="1.1" viewBox="0 0 1536 1225" width="1536px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="398" x="572" y="16.708">US056 - Criar modelo de motor de aeronave</text><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="695" x="423.5" y="37.6611">RegisterEngineModelController | aisafe.infrastructure.application + aisafe.core</text><!--MD5=[67c6e09e561b4d3c00cf569b3fa6a364]
+cluster fleet_application--><rect fill="#FFFFFF" height="220" style="stroke: #000000; stroke-width: 1.5;" width="314" x="1057" y="65.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="128" x="1150" y="80.9014">fleet_application</text><!--MD5=[2549100e5a80009690c063f9cf4d4e0c]
+cluster application_security--><rect fill="#FFFFFF" height="117" style="stroke: #000000; stroke-width: 1.5;" width="290" x="437" y="318.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="156" x="504" y="333.9014">application_security</text><!--MD5=[e235ec1b508b78138e486f52afb029e8]
+cluster fleet_domain--><rect fill="#FFFFFF" height="636" style="stroke: #000000; stroke-width: 1.5;" width="888" x="22" y="468.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="100" x="416" y="483.9014">fleet_domain</text><!--MD5=[ab4bb0ef5367fc757d70d373f1a24f13]
+cluster fleet_repositories--><rect fill="#FFFFFF" height="117" style="stroke: #000000; stroke-width: 1.5;" width="522" x="751" y="318.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="139" x="942.5" y="333.9014">fleet_repositories</text><!--MD5=[b762cc7f479e8f3ebb65758dad6f27db]
+class RegisterEngineModelController--><rect fill="#FEFECE" height="169.1797" id="RegisterEngineModelController" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="282" x="1073" y="100.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="128" x="1150" y="117.0449">«UseCaseController»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="193" x="1117.5" y="131.0137">RegisterEngineModelController</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="1074" x2="1354" y1="138.8438" y2="138.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="142" x="1079" y="153.0542">-authz : AuthorizationPort</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="173" x="1079" y="165.8589">-repo : EngineModelRepository</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="1074" x2="1354" y1="172.4531" y2="172.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="261" x="1079" y="186.6636">+registerJet(modelName, manufacturer, type,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="218" x="1087" y="199.4683">seaLevelStaticThrustValue, thrustUnit,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="136" x="1087" y="212.2729">cruiseThrustValue, tsfc,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="262" x="1087" y="225.0776">fuelDensity, fuelSpecificEnergy) : EngineModel</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="256" x="1079" y="237.8823">+registerElectric(modelName, manufacturer,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="196" x="1087" y="250.687">powerValue, powerUnit, efficiency,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="258" x="1087" y="263.4917">energyDensity, specificEnergy) : EngineModel</text><!--MD5=[58d93e9cbb8e32d20b8c614d8381e11d]
+class AuthorizationPort--><rect fill="#FEFECE" height="65.5781" id="AuthorizationPort" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="257" x="453.5" y="353.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="108" x="528" y="370.0449">AuthorizationPort</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="454.5" x2="709.5" y1="377.875" y2="377.875"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="454.5" x2="709.5" y1="385.875" y2="385.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="245" x="459.5" y="400.0854">+ensureAuthenticatedUserHasAnyOf(roles)</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="163" x="459.5" y="412.8901">+currentUsername() : String</text><!--MD5=[7265311c1e16da8bb1069d397414f9e0]
+class EngineModel--><rect fill="#FEFECE" height="207.5938" id="EngineModel" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="284" x="423" y="503.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="109" x="510.5" y="520.0449">«AggregateRoot»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="80" x="525" y="534.0137">EngineModel</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="424" x2="706" y1="541.8438" y2="541.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="118" x="429" y="556.0542">-modelName : String</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="127" x="429" y="568.8589">-manufacturer : String</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="105" x="429" y="581.6636">-type : EngineType</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="424" x2="706" y1="588.2578" y2="588.2578"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="252" x="429" y="602.4683">+createJet(modelName, manufacturer, type,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="200" x="437" y="615.2729">fuelSpecs, jetSpecs) : EngineModel</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="247" x="429" y="628.0776">+createElectric(modelName, manufacturer,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="227" x="437" y="640.8823">fuelSpecs, electricSpecs) : EngineModel</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="151" x="429" y="653.687">+identity() : EngineModelId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="272" x="429" y="666.4917">+isCompatibleWith(type : EngineType) : boolean</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="165" x="429" y="679.2964">+jetSpecs() : JetEngineSpecs</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="219" x="429" y="692.1011">+electricSpecs() : ElectricEngineSpecs</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="143" x="429" y="704.9058">+fuelSpecs() : FuelSpecs</text><!--MD5=[17380d85c9ac0629f46149aba9053261]
+class EngineModelId--><rect fill="#FEFECE" height="92.3516" id="EngineModelId" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="155" x="245.5" y="801.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="279" y="818.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="91" x="277.5" y="832.0137">EngineModelId</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="246.5" x2="399.5" y1="839.8438" y2="839.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="251.5" y="854.0542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="246.5" x2="399.5" y1="860.6484" y2="860.6484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="143" x="251.5" y="874.8589">+newId() : EngineModelId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="95" x="251.5" y="887.6636">+asUuid() : UUID</text><!--MD5=[24e214f4b2561dd8d1b9f1009fffcef5]
+class JetEngineSpecs--><rect fill="#FEFECE" height="105.1563" id="JetEngineSpecs" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="172" x="38" y="795.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="80" y="811.5449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="97" x="75.5" y="825.5137">JetEngineSpecs</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="39" x2="209" y1="833.3438" y2="833.3438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="75" x="44" y="847.5542">-tsfc : double</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="39" x2="209" y1="854.1484" y2="854.1484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="160" x="44" y="868.3589">+atSeaLevelStatic() : Thrust</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="150" x="44" y="881.1636">+atCruiseSpeed() : Thrust</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="88" x="44" y="893.9683">+tsfc() : double</text><!--MD5=[45d4f5e90a3fe27d0557ae8db1544656]
+class ElectricEngineSpecs--><rect fill="#FEFECE" height="92.3516" id="ElectricEngineSpecs" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="133" x="760.5" y="801.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="783" y="818.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="127" x="763.5" y="832.0137">ElectricEngineSpecs</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="761.5" x2="892.5" y1="839.8438" y2="839.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="107" x="766.5" y="854.0542">-efficiency : double</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="761.5" x2="892.5" y1="860.6484" y2="860.6484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="99" x="766.5" y="874.8589">+power() : Power</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="120" x="766.5" y="887.6636">+efficiency() : double</text><!--MD5=[5f4c694baca62aba8b1e362a5e173b88]
+class Thrust--><rect fill="#FEFECE" height="105.1563" id="Thrust" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="109" x="219.5" y="983.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="230" y="1000.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="40" x="254" y="1014.0137">Thrust</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="220.5" x2="327.5" y1="1021.8438" y2="1021.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="84" x="225.5" y="1036.0542">-value : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="71" x="225.5" y="1048.8589">-unit : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="220.5" x2="327.5" y1="1055.4531" y2="1055.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="97" x="225.5" y="1069.6636">+value() : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="84" x="225.5" y="1082.4683">+unit() : String</text><!--MD5=[e5e90b6a3141b1b16fc7804698196da8]
+class Power--><rect fill="#FEFECE" height="105.1563" id="Power" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="109" x="781.5" y="983.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="792" y="1000.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="38" x="817" y="1014.0137">Power</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="782.5" x2="889.5" y1="1021.8438" y2="1021.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="84" x="787.5" y="1036.0542">-value : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="71" x="787.5" y="1048.8589">-unit : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="782.5" x2="889.5" y1="1055.4531" y2="1055.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="97" x="787.5" y="1069.6636">+value() : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="84" x="787.5" y="1082.4683">+unit() : String</text><!--MD5=[d3f36b5736cd321352fcafdb7526977a]
+class FuelSpecs--><rect fill="#FEFECE" height="117.9609" id="FuelSpecs" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="120" x="605" y="788.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="621" y="805.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="64" x="633" y="819.0137">FuelSpecs</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="606" x2="724" y1="826.8438" y2="826.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="95" x="611" y="841.0542">-density : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="93" x="611" y="853.8589">-energy : double</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="606" x2="724" y1="860.4531" y2="860.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="103" x="611" y="874.6636">+type() : FuelType</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="108" x="611" y="887.4683">+density() : double</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="106" x="611" y="900.2729">+energy() : double</text><!--MD5=[1e78618397744444919d60fc3347c2cd]
+class EngineType--><rect fill="#FEFECE" height="103.9922" id="EngineType" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="134" x="436" y="795.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="72" x="467" y="812.0449">EngineType</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="437" x2="569" y1="819.875" y2="819.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="60" x="442" y="834.0854">TURBOFAN</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="69" x="442" y="846.8901">TURBOPROP</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="56" x="442" y="859.6948">TURBOJET</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="40" x="442" y="872.4995">RAMJET</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="122" x="442" y="885.3042">ELECTRIC_PROPELLER</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="437" x2="569" y1="891.8984" y2="891.8984"/><!--MD5=[67db2f544f9fe3d326969dcd7a85dfc9]
+class FuelType--><rect fill="#FEFECE" height="65.5781" id="FuelType" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="82" x="624" y="1003.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="55" x="637.5" y="1019.5449">FuelType</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="625" x2="705" y1="1027.375" y2="1027.375"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="37" x="630" y="1041.5854">JET_A1</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="70" x="630" y="1054.3901">ELECTRICITY</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="625" x2="705" y1="1060.9844" y2="1060.9844"/><!--MD5=[8c87fc2fc1eb17997fcff85e33fdb691]
+class EngineModelRepository--><rect fill="#FEFECE" height="65.5781" id="EngineModelRepository" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="491" x="766.5" y="353.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="146" x="939" y="370.0449">EngineModelRepository</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="767.5" x2="1256.5" y1="377.875" y2="377.875"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="767.5" x2="1256.5" y1="385.875" y2="385.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="479" x="772.5" y="400.0854">+findByModelNameAndManufacturer(name, manufacturer) : Optional&lt;EngineModel&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="162" x="772.5" y="412.8901">+save(model) : EngineModel</text><path d="M929,815.4063 L929,879.9375 A3,3 0 0 0 932,882.9375 L1240,882.9375 A3,3 0 0 0 1243,879.9375 L1243,822.4063 L1233,812.4063 L932,812.4063 A3,3 0 0 0 929,815.4063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M1233,812.4063 L1233,820.9063 A1.5,1.5 0 0 0 1234.5,822.4063 L1243,822.4063 L1233,812.4063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="293" x="935" y="829.4731">Colunas JPA distintas via @AttributeOverrides:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="292" x="935" y="844.606">sea_level_thrust_value / sea_level_thrust_unit</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="262" x="935" y="859.7388">cruise_thrust_value    / cruise_thrust_unit</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="279" x="935" y="874.8716">Invariante: cruiseThrust &lt;= seaLevelThrust.</text><path d="M926,567.9063 L926,603.9063 L707.04,607.9063 L926,611.9063 L926,647.5703 A3,3 0 0 0 929,650.5703 L1255,650.5703 A3,3 0 0 0 1258,647.5703 L1258,574.9063 L1248,564.9063 L929,564.9063 A3,3 0 0 0 926,567.9063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M1248,564.9063 L1248,573.4063 A1.5,1.5 0 0 0 1249.5,574.9063 L1258,574.9063 L1248,564.9063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="259" x="932" y="581.9731">Papeis: BACKOFFICE_OPERATOR, ADMIN.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="259" x="932" y="597.106">Jet: fuelType = JET_A1, jetSpecs nao null.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="206" x="932" y="612.2388">Electric: fuelType = ELECTRICITY,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="143" x="972" y="627.3716">electricSpecs nao null.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="311" x="932" y="642.5044">Rejeita duplicado (modelName + manufacturer).</text><!--MD5=[1a5605ecc0508b45fcb71c2ecae24f94]
+link RegisterEngineModelController to AuthorizationPort--><path d="M1061.3229,221.1546 C1061.3229,221.1546 852.36,275.0263 751,310.9063 C720.68,321.6363 688.21,335.4562 659.92,348.3063 " fill="none" id="RegisterEngineModelController-AuthorizationPort" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="648.06,353.7363,657.9081,353.6132,652.6033,351.6486,654.5679,346.3439,648.06,353.7363" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="652.6033" x2="659.88" y1="351.6486" y2="348.3212"/><polygon fill="#FFFFFF" points="1072.98,218.3062,1066.202,215.8447,1061.3229,221.1546,1068.1009,223.6161,1072.98,218.3062" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[fc20500a9d1ae82766261be1f5a465d2]
+link RegisterEngineModelController to EngineModelRepository--><path d="M1120.6721,278.5786 C1120.6721,278.5786 1073.21,325.4462 1054.07,344.3563 " fill="none" id="RegisterEngineModelController-EngineModelRepository" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1044.76,353.5563,1053.9742,350.0779,1048.3174,350.0427,1048.3526,344.386,1044.76,353.5563" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="1048.3174" x2="1054.01" y1="350.0427" y2="344.4163"/><polygon fill="#FFFFFF" points="1129.21,270.1463,1122.1303,271.5164,1120.6721,278.5786,1127.7518,277.2084,1129.21,270.1463" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[953abdb94ac7619d5604bb30f5abc88e]
+link RegisterEngineModelController to EngineModel--><path d="M1072.82,187.9963 C871.44,193.6063 517.1,216.9462 437,310.9063 C390.62,365.3063 422.35,439.0762 465.81,499.3663 " fill="none" id="RegisterEngineModelController-&gt;EngineModel" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="468.96,503.6763,466.8589,494.0541,466.0013,499.6456,460.4099,498.788,468.96,503.6763" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[5c52e9fdcdacc8e9238194ea0e9e9069]
+link RegisterEngineModelController to JetEngineSpecs--><path d="M1072.73,191.1962 C868.98,200.8863 506.16,229.3563 407,310.9063 C249.59,440.3563 168.38,680.7262 138.16,790.0863 " fill="none" id="RegisterEngineModelController-&gt;JetEngineSpecs" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="136.76,795.1963,143.0101,787.5846,138.0901,790.3764,135.2983,785.4565,136.76,795.1963" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[720fec4344e954ea83650234b1dca384]
+link RegisterEngineModelController to ElectricEngineSpecs--><path d="M1317.91,269.9263 C1325.52,279.9163 1332.11,290.6163 1337,301.9063 C1417.67,488.3162 1475.47,610.3163 1337,758.9063 C1304.73,793.5363 956.71,773.3563 912,788.9063 C904.31,791.5763 896.67,795.1363 889.3,799.1763 " fill="none" id="RegisterEngineModelController-&gt;ElectricEngineSpecs" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="884.75,801.7563,894.5542,800.8195,889.1052,799.3002,890.6245,793.8512,884.75,801.7563" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[e3d841eb2804f9c544aeb627f8ed5c11]
+link RegisterEngineModelController to FuelSpecs--><path d="M1258.25,270.0463 C1311.86,384.2563 1382.59,588.8063 1276,711.9063 C1197.66,802.3763 853.62,743.2462 743,788.9063 C738.44,790.7863 733.9,792.9962 729.44,795.4363 " fill="none" id="RegisterEngineModelController-&gt;FuelSpecs" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="725.01,797.9463,734.8142,797.0095,729.3652,795.4902,730.8845,790.0412,725.01,797.9463" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[9541bdb6b1fdcd5988af807411bd5165]
+link RegisterEngineModelController to Thrust--><path d="M1355.1,246.8663 C1406.84,279.2062 1453,325.0963 1453,385.9063 C1453,385.9063 1453,385.9063 1453,848.9063 C1453,943.2663 1406.85,875.0063 607,983.9063 C511.24,996.9463 400.41,1014.5963 333.82,1025.4863 " fill="none" id="RegisterEngineModelController-&gt;Thrust" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="328.71,1026.3263,338.2405,1028.8101,333.6435,1025.5135,336.9401,1020.9165,328.71,1026.3263" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[cdcb9135babefcaccc0a7195a55594c5]
+link RegisterEngineModelController to Power--><path d="M1355.39,219.7563 C1437.15,248.3763 1524,299.1863 1524,385.9063 C1524,385.9063 1524,385.9063 1524,848.9063 C1524,899.6763 1519.54,923.3463 1479,953.9063 C1387.9,1022.5863 1037.72,1033.5963 896.03,1035.2063 " fill="none" id="RegisterEngineModelController-&gt;Power" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="890.67,1035.2663,899.7151,1039.1631,895.6697,1035.2091,899.6237,1031.1637,890.67,1035.2663" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[17faa9b0149c5ab050e86db355c17922]
+link EngineModelRepository to EngineModel--><path d="M946.52,419.9863 C885.18,450.0363 791.32,496.0263 712.05,534.8563 " fill="none" id="EngineModelRepository-&gt;EngineModel" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="707.33,537.1763,717.1723,536.8169,711.8219,534.9802,713.6586,529.6298,707.33,537.1763" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[290af9d7db958ff9991b9b8430f300f8]
+reverse link EngineModel to EngineModelId--><path d="M450.87,721.1463 C421.86,749.6763 392.32,778.7262 368.96,801.7063 " fill="none" id="EngineModel&lt;-EngineModelId" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="460.26,711.9163,453.1771,713.27,451.7025,720.3287,458.7854,718.975,460.26,711.9163" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="11" x="430" y="754.9731">id</text><!--MD5=[b777282345db7817089a0a22bf7f107c]
+link EngineModel to EngineType--><path d="M538.17,711.9163 C531.11,739.0063 523.76,767.2262 517.61,790.8163 " fill="none" id="EngineModel-&gt;EngineType" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="516.32,795.7763,522.4586,788.0744,517.5798,790.9376,514.7166,786.0588,516.32,795.7763" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[46e7ec2575a13212954bf2abec25335d]
+reverse link EngineModel to FuelSpecs--><path d="M613.35,723.9663 C622.77,746.3963 632.27,769.0063 640.51,788.6163 " fill="none" id="EngineModel&lt;-FuelSpecs" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="608.28,711.9163,606.9127,718.9965,612.9225,722.9818,614.2898,715.9015,608.28,711.9163" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[b289af6771ab51dd04cf8c334a614329]
+reverse link EngineModel to JetEngineSpecs--><path d="M411.08,690.3663 C353.52,721.0263 287.64,756.3463 228,788.9063 C222.19,792.0763 216.21,795.3563 210.19,798.6763 " fill="none" id="EngineModel&lt;-JetEngineSpecs" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="422.86,684.0963,415.6837,683.3885,412.2703,689.7406,419.4466,690.4483,422.86,684.0963" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[1857dc76e1707285d3805e474b0bfbbf]
+reverse link EngineModel to ElectricEngineSpecs--><path d="M688.15,720.7763 C719.69,749.4263 751.84,778.6263 777.25,801.7063 " fill="none" id="EngineModel&lt;-ElectricEngineSpecs" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="678.39,711.9163,680.1431,718.911,687.2741,719.9831,685.521,712.9883,678.39,711.9163" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[5c62c4fc2339f4baa5ad510e73881aea]
+reverse link JetEngineSpecs to Thrust--><path d="M111.05,913.9263 C111.22,927.8863 113.85,941.9963 121,953.9063 C142.22,989.2563 184.55,1010.1163 219.31,1021.8663 " fill="none" id="JetEngineSpecs&lt;-Thrust" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="111.58,900.6763,107.3393,906.5086,111.092,912.6663,115.3327,906.834,111.58,900.6763" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="108" x="122" y="949.9731">atSeaLevelStatic</text><!--MD5=[5c62c4fc2339f4baa5ad510e73881aea]
+reverse link JetEngineSpecs to Thrust--><path d="M210.07,909.3063 C219.19,917.9063 227.76,927.1663 235,936.9063 C245.31,950.7863 253.3,967.7563 259.3,983.6663 " fill="none" id="JetEngineSpecs&lt;-Thrust-1" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="200.39,900.5963,202.1705,907.5841,209.3056,908.6282,207.5251,901.6404,200.39,900.5963" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="94" x="247" y="949.9731">atCruiseSpeed</text><!--MD5=[da79a12f07a0cd307e06d2b3505e3645]
+reverse link ElectricEngineSpecs to Power--><path d="M829.81,907.2262 C831,931.7363 832.36,960.0063 833.51,983.7563 " fill="none" id="ElectricEngineSpecs&lt;-Power" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FFFFFF" points="829.18,894.0563,825.4748,900.2426,829.7602,906.0422,833.4654,899.8558,829.18,894.0563" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[2a0bf1e559e217056b16aa501dd46ad8]
+link FuelSpecs to FuelType--><path d="M665,907.1463 C665,936.9063 665,972.2262 665,998.2663 " fill="none" id="FuelSpecs-&gt;FuelType" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="665,1003.3463,669,994.3463,665,998.3463,661,994.3463,665,1003.3463" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[b2ac2f8d368741c2817a40ad833d3470]
+link JetEngineSpecs to GMN63--><path d="M173.87,795.2163 C194.18,777.4063 219.09,759.6963 245.5,750.4063 C381.14,702.7163 752.62,717.1563 892.5,750.4063 C942.82,762.3663 994.91,789.6063 1032.35,812.2663 " fill="none" id="JetEngineSpecs-GMN63" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><rect fill="#DDDDDD" height="75.1875" rx="5" ry="5" style="stroke: #000000; stroke-width: 1.0;" width="379" x="581" y="1138.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="323" x="587" y="1156.9014">fleet_application  = eapli.aisafe.fleet.application</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="367" x="587" y="1173.1982">application_security = eapli.aisafe.application.security</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="297" x="587" y="1189.4951">fleet_domain       = eapli.aisafe.fleet.domain</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="335" x="587" y="1205.792">fleet_repositories = eapli.aisafe.fleet.repositories</text><!--MD5=[0d9037dd9e623f2603bf57b5005a4d91]
+@startuml US056-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam Roundcorner 6
+hide circle
+
+title US056 - Criar modelo de motor de aeronave\nRegisterEngineModelController | aisafe.infrastructure.application + aisafe.core
+
+package fleet_application {
+    class RegisterEngineModelController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - repo : EngineModelRepository
+        - -
+        + registerJet(modelName, manufacturer, type,\n  seaLevelStaticThrustValue, thrustUnit,\n  cruiseThrustValue, tsfc,\n  fuelDensity, fuelSpecificEnergy) : EngineModel
+        + registerElectric(modelName, manufacturer,\n  powerValue, powerUnit, efficiency,\n  energyDensity, specificEnergy) : EngineModel
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class EngineModel <<AggregateRoot>> {
+        - modelName : String
+        - manufacturer : String
+        - type : EngineType
+        - -
+        + {static} createJet(modelName, manufacturer, type,\n  fuelSpecs, jetSpecs) : EngineModel
+        + {static} createElectric(modelName, manufacturer,\n  fuelSpecs, electricSpecs) : EngineModel
+        + identity() : EngineModelId
+        + isCompatibleWith(type : EngineType) : boolean
+        + jetSpecs() : JetEngineSpecs
+        + electricSpecs() : ElectricEngineSpecs
+        + fuelSpecs() : FuelSpecs
+    }
+
+    class EngineModelId <<ValueObject>> {
+        - value : String
+        - -
+        + {static} newId() : EngineModelId
+        + asUuid() : UUID
+    }
+
+    class JetEngineSpecs <<ValueObject>> {
+        - tsfc : double
+        - -
+        + atSeaLevelStatic() : Thrust
+        + atCruiseSpeed() : Thrust
+        + tsfc() : double
+    }
+
+    class ElectricEngineSpecs <<ValueObject>> {
+        - efficiency : double
+        - -
+        + power() : Power
+        + efficiency() : double
+    }
+
+    class Thrust <<ValueObject>> {
+        - value : double
+        - unit : String
+        - -
+        + value() : double
+        + unit() : String
+    }
+
+    class Power <<ValueObject>> {
+        - value : double
+        - unit : String
+        - -
+        + value() : double
+        + unit() : String
+    }
+
+    class FuelSpecs <<ValueObject>> {
+        - density : double
+        - energy : double
+        - -
+        + type() : FuelType
+        + density() : double
+        + energy() : double
+    }
+
+    enum EngineType {
+        TURBOFAN
+        TURBOPROP
+        TURBOJET
+        RAMJET
+        ELECTRIC_PROPELLER
+    }
+
+    enum FuelType {
+        JET_A1
+        ELECTRICITY
+    }
+}
+
+package fleet_repositories {
+    interface EngineModelRepository {
+        + findByModelNameAndManufacturer(name, manufacturer) : Optional<EngineModel>
+        + save(model) : EngineModel
+    }
+}
+
+RegisterEngineModelController o- -> AuthorizationPort
+RegisterEngineModelController o- -> EngineModelRepository
+RegisterEngineModelController ..> EngineModel
+RegisterEngineModelController ..> JetEngineSpecs
+RegisterEngineModelController ..> ElectricEngineSpecs
+RegisterEngineModelController ..> FuelSpecs
+RegisterEngineModelController ..> Thrust
+RegisterEngineModelController ..> Power
+
+EngineModelRepository ..> EngineModel
+
+EngineModel *- - EngineModelId : id
+EngineModel - -> EngineType
+EngineModel o- - FuelSpecs
+EngineModel o- - JetEngineSpecs
+EngineModel o- - ElectricEngineSpecs
+
+JetEngineSpecs o- - Thrust : atSeaLevelStatic
+JetEngineSpecs o- - Thrust : atCruiseSpeed
+
+ElectricEngineSpecs o- - Power
+
+FuelSpecs - -> FuelType
+
+note right of JetEngineSpecs
+  Colunas JPA distintas via @AttributeOverrides:
+  sea_level_thrust_value / sea_level_thrust_unit
+  cruise_thrust_value    / cruise_thrust_unit
+  Invariante: cruiseThrust <= seaLevelThrust.
+end note
+
+note right of EngineModel
+  Papeis: BACKOFFICE_OPERATOR, ADMIN.
+  Jet: fuelType = JET_A1, jetSpecs nao null.
+  Electric: fuelType = ELECTRICITY,
+            electricSpecs nao null.
+  Rejeita duplicado (modelName + manufacturer).
+end note
+
+legend bottom
+  fleet_application  = eapli.aisafe.fleet.application
+  application_security = eapli.aisafe.application.security
+  fleet_domain       = eapli.aisafe.fleet.domain
+  fleet_repositories = eapli.aisafe.fleet.repositories
+endlegend
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 10:22:07 UTC 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 17.0.19+10
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

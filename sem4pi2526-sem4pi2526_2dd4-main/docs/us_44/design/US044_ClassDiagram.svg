@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="729px" preserveAspectRatio="none" style="width:1722px;height:729px;" version="1.1" viewBox="0 0 1722 729" width="1722px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="546" x="594" y="16.708">US044 - Weather Person Remote TCP Access (Class Diagram)</text><!--MD5=[0fbfd538b390fdd88f00ea9b95973bb8]
+cluster Weather Client (rcomp)--><polygon fill="#EEF0FB" points="1458,44.9531,1648,44.9531,1655,67.25,1700,67.25,1700,354.9531,1458,354.9531,1458,44.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="1458" x2="1655" y1="67.25" y2="67.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="184" x="1462" y="59.9482">Weather Client (rcomp)</text><!--MD5=[62f2fc4fa754c53f5c1d43f62d8defe8]
+cluster Weather Server (rcomp)--><polygon fill="#E8F5F0" points="853,50.9531,1051,50.9531,1058,73.25,1323,73.25,1323,563.9531,853,563.9531,853,50.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="853" x2="1058" y1="73.25" y2="73.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="192" x="857" y="65.9482">Weather Server (rcomp)</text><!--MD5=[064fffcc43babf9782789f3923d20f89]
+cluster EAPLI Application (reused)--><polygon fill="#FFF3E0" points="327,612.9531,541,612.9531,548,635.25,1168,635.25,1168,717.9531,327,717.9531,327,612.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="327" x2="548" y1="635.25" y2="635.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="208" x="331" y="627.9482">EAPLI Application (reused)</text><!--MD5=[9ddaf8ee8bcae11a9a9232f969198262]
+cluster Infrastructure--><polygon fill="#EAF3FB" points="1192,619.9531,1308,619.9531,1315,642.25,1531,642.25,1531,710.9531,1192,710.9531,1192,619.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="1192" x2="1315" y1="642.25" y2="642.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="110" x="1196" y="634.9482">Infrastructure</text><!--MD5=[de18f64800104bae9502f1de2760338a]
+class WeatherClient--><rect fill="#FFFFFF" height="78.3828" id="WeatherClient" style="stroke: #444444; stroke-width: 1.5;" width="185" x="1486.5" y="79.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="88" x="1535" y="96.0918">WeatherClient</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1487.5" x2="1670.5" y1="103.9219" y2="103.9219"/><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1494.5" y="111.9219"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="159" x="1506.5" y="118.1323">HOST : String = "127.0.0.1"</text><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1494.5" y="124.7266"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="101" x="1506.5" y="130.937">PORT : int = 8889</text><line style="stroke: #444444; stroke-width: 1.0;" x1="1487.5" x2="1670.5" y1="137.5313" y2="137.5313"/><ellipse cx="1497.5" cy="148.5313" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="97" x="1506.5" y="151.7417">main(args) : void</text><!--MD5=[00b7dba86d3178bdbd955e51313f6f2a]
+class ServerConnection--><rect fill="#FFFFFF" height="103.9922" id="ServerConnection" style="stroke: #444444; stroke-width: 1.5;" width="210" x="1474" y="234.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="111" x="1523.5" y="251.0918">ServerConnection</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1475" x2="1683" y1="258.9219" y2="258.9219"/><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1482" y="266.9219"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="87" x="1494" y="273.1323">socket : Socket</text><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1482" y="279.7266"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="111" x="1494" y="285.937">in : BufferedReader</text><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1482" y="292.5313"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="89" x="1494" y="298.7417">out : PrintWriter</text><line style="stroke: #444444; stroke-width: 1.0;" x1="1475" x2="1683" y1="305.3359" y2="305.3359"/><ellipse cx="1485" cy="316.3359" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="184" x="1494" y="319.5464">send(command : String) : String</text><ellipse cx="1485" cy="329.1406" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="73" x="1494" y="332.3511">close() : void</text><!--MD5=[e5aba7138baa759e60869cf1e3f07f47]
+class WeatherServer--><rect fill="#FFFFFF" height="65.5781" id="WeatherServer" style="stroke: #444444; stroke-width: 1.5;" width="127" x="1162.5" y="85.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="93" x="1179.5" y="102.0918">WeatherServer</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1163.5" x2="1288.5" y1="109.9219" y2="109.9219"/><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1170.5" y="117.9219"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="101" x="1182.5" y="124.1323">PORT : int = 8889</text><line style="stroke: #444444; stroke-width: 1.0;" x1="1163.5" x2="1288.5" y1="130.7266" y2="130.7266"/><ellipse cx="1173.5" cy="141.7266" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="97" x="1182.5" y="144.937">main(args) : void</text><!--MD5=[5011627591ee4f7a3d58490c0e7112ca]
+class ClientHandler--><rect fill="#FFFFFF" height="78.3828" id="ClientHandler" style="stroke: #444444; stroke-width: 1.5;" width="263" x="1043.5" y="247.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="84" x="1133" y="264.0918">ClientHandler</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1044.5" x2="1305.5" y1="271.9219" y2="271.9219"/><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1051.5" y="279.9219"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="87" x="1063.5" y="286.1323">socket : Socket</text><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="1051.5" y="292.7266"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="237" x="1063.5" y="298.937">sessionHandler : WeatherSessionHandler</text><line style="stroke: #444444; stroke-width: 1.0;" x1="1044.5" x2="1305.5" y1="305.5313" y2="305.5313"/><ellipse cx="1054.5" cy="316.5313" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="62" x="1063.5" y="319.7417">run() : void</text><!--MD5=[e6ac2657cb1e6c72751d9b15fb2d4d31]
+class WeatherSessionHandler--><rect fill="#FFFFFF" height="129.6016" id="WeatherSessionHandler" style="stroke: #444444; stroke-width: 1.5;" width="250" x="869" y="417.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="151" x="918.5" y="434.0918">WeatherSessionHandler</text><line style="stroke: #444444; stroke-width: 1.5;" x1="870" x2="1118" y1="441.9219" y2="441.9219"/><rect fill="none" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="877" y="449.9219"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="172" x="889" y="456.1323">currentSession : UserSession</text><line style="stroke: #444444; stroke-width: 1.0;" x1="870" x2="1118" y1="462.7266" y2="462.7266"/><ellipse cx="880" cy="473.7266" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="224" x="889" y="476.937">processCommand(line : String) : String</text><rect fill="#F24D5C" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="877" y="483.5313"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="152" x="889" y="489.7417">handleLogin(parts) : String</text><rect fill="#F24D5C" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="877" y="496.3359"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="215" x="889" y="502.5464">handleRegisterWeather(parts) : String</text><rect fill="#F24D5C" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="877" y="509.1406"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="205" x="889" y="515.3511">handleImportWeather(parts) : String</text><rect fill="#F24D5C" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="877" y="521.9453"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="211" x="889" y="528.1558">handleConsultWeather(parts) : String</text><rect fill="#F24D5C" height="6" style="stroke: #C82930; stroke-width: 1.0;" width="6" x="877" y="534.75"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="212" x="889" y="540.9604">authorizationPort() : AuthorizationPort</text><!--MD5=[a6bb1027657567fa02a6606aa1a3f8cd]
+class LoggingClientHandler--><rect fill="#FFFFFF" height="52.7734" id="LoggingClientHandler" style="stroke: #444444; stroke-width: 1.5;" width="139" x="869.5" y="260.4531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="133" x="872.5" y="276.5918">LoggingClientHandler</text><line style="stroke: #444444; stroke-width: 1.5;" x1="870.5" x2="1007.5" y1="284.4219" y2="284.4219"/><line style="stroke: #444444; stroke-width: 1.5;" x1="870.5" x2="1007.5" y1="292.4219" y2="292.4219"/><ellipse cx="880.5" cy="303.4219" fill="#84BE84" rx="3" ry="3" style="stroke: #038048; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="62" x="889.5" y="306.6323">run() : void</text><!--MD5=[f3a7e15d45c78ccf17332a8c88a0b542]
+class RegisterWeatherDataController--><rect fill="#FFFFFF" height="53.9375" id="RegisterWeatherDataController" style="stroke: #444444; stroke-width: 1.5;" width="202" x="343" y="647.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="55" x="416.5" y="664.0918">«US041»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="196" x="346" y="678.0605">RegisterWeatherDataController</text><line style="stroke: #444444; stroke-width: 1.5;" x1="344" x2="544" y1="685.8906" y2="685.8906"/><line style="stroke: #444444; stroke-width: 1.5;" x1="344" x2="544" y1="693.8906" y2="693.8906"/><!--MD5=[c3bcd574f221404aa16cc3e131033559]
+class ImportWeatherDataController--><rect fill="#FFFFFF" height="53.9375" id="ImportWeatherDataController" style="stroke: #444444; stroke-width: 1.5;" width="190" x="580" y="647.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="55" x="647.5" y="664.0918">«US042»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="184" x="583" y="678.0605">ImportWeatherDataController</text><line style="stroke: #444444; stroke-width: 1.5;" x1="581" x2="769" y1="685.8906" y2="685.8906"/><line style="stroke: #444444; stroke-width: 1.5;" x1="581" x2="769" y1="693.8906" y2="693.8906"/><!--MD5=[11a83f0c8703f707e08a2c2fdb71a7c6]
+class ConsultWeatherDataController--><rect fill="#FFFFFF" height="53.9375" id="ConsultWeatherDataController" style="stroke: #444444; stroke-width: 1.5;" width="197" x="805.5" y="647.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="55" x="876.5" y="664.0918">«US043»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="191" x="808.5" y="678.0605">ConsultWeatherDataController</text><line style="stroke: #444444; stroke-width: 1.5;" x1="806.5" x2="1001.5" y1="685.8906" y2="685.8906"/><line style="stroke: #444444; stroke-width: 1.5;" x1="806.5" x2="1001.5" y1="693.8906" y2="693.8906"/><!--MD5=[58d93e9cbb8e32d20b8c614d8381e11d]
+class AuthorizationPort--><rect fill="#FFFFFF" height="39.9688" id="AuthorizationPort" style="stroke: #444444; stroke-width: 1.5;" width="114" x="1038" y="654.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="108" x="1041" y="671.0918">AuthorizationPort</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1039" x2="1151" y1="678.9219" y2="678.9219"/><line style="stroke: #444444; stroke-width: 1.5;" x1="1039" x2="1151" y1="686.9219" y2="686.9219"/><!--MD5=[e8c189551b7885b999ad7cefb30fc2a3]
+class PersistenceContext--><rect fill="#FFFFFF" height="39.9688" id="PersistenceContext" style="stroke: #444444; stroke-width: 1.5;" width="128" x="1387" y="654.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="122" x="1390" y="671.0918">PersistenceContext</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1388" x2="1514" y1="678.9219" y2="678.9219"/><line style="stroke: #444444; stroke-width: 1.5;" x1="1388" x2="1514" y1="686.9219" y2="686.9219"/><!--MD5=[b07be2b600772d055921457a51a4b081]
+class AuthenticationService--><rect fill="#FFFFFF" height="39.9688" id="AuthenticationService" style="stroke: #444444; stroke-width: 1.5;" width="143" x="1208.5" y="654.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="137" x="1211.5" y="671.0918">AuthenticationService</text><line style="stroke: #444444; stroke-width: 1.5;" x1="1209.5" x2="1350.5" y1="678.9219" y2="678.9219"/><line style="stroke: #444444; stroke-width: 1.5;" x1="1209.5" x2="1350.5" y1="686.9219" y2="686.9219"/><path d="M6,654.9531 L6,695.2188 L308,695.2188 L308,664.9531 L298,654.9531 L6,654.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M298,654.9531 L298,664.9531 L308,664.9531 L298,654.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="212" x="12" y="672.02">Protocol: COMMAND|arg1|arg2|...</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="281" x="12" y="687.1528">Responses: OK, OK|..., ERROR|..., PONG, BYE</text><!--MD5=[7faa6f6c016cf474ba548493b3b1d765]
+link WeatherClient to ServerConnection--><path d="M1579,158.0331 C1579,179.2131 1579,205.9831 1579,229.5431 " fill="none" id="WeatherClient-&gt;ServerConnection" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="1579,234.8331,1583,225.8331,1579,229.8331,1575,225.8331,1579,234.8331" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="30" x="1580" y="201.02">uses</text><!--MD5=[24dbfb63ceec1514a49fd43c3202030d]
+reverse link WeatherServer to ClientHandler--><path d="M1212.3,164.5431 C1204.3,190.5831 1194.31,223.1031 1186.68,247.9331 " fill="none" id="WeatherServer&lt;-ClientHandler" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1216.17,151.9631,1210.5857,156.5255,1212.6493,163.435,1218.2336,158.8726,1216.17,151.9631" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="47" x="1206" y="201.02">spawns</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="1205.6201" y="171.5502">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="7" x="1181.0859" y="236.9829">*</text><!--MD5=[a232e1f2eaef10ca210b3be209c4d8b3]
+link ClientHandler to WeatherSessionHandler--><path d="M1139.24,326.2831 C1115.97,351.2231 1084.97,384.4531 1057.58,413.8031 " fill="none" id="ClientHandler-&gt;WeatherSessionHandler" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1053.92,417.7331,1062.9856,413.8842,1057.3321,414.0783,1057.1379,408.4248,1053.92,417.7331" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="63" x="1096" y="384.02">delegates</text><!--MD5=[3741fa6ecaee1bea3adb2d5a2d71a48b]
+link LoggingClientHandler to WeatherSessionHandler--><path d="M946.3,313.7131 C953.43,338.8631 964.6,378.2531 974.34,412.5931 " fill="none" id="LoggingClientHandler-&gt;WeatherSessionHandler" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="975.76,417.6231,977.1413,407.8716,974.3902,412.8144,969.4473,410.0633,975.76,417.6231" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="63" x="967" y="384.02">delegates</text><!--MD5=[ddc88b2b566c1d8d79dd4f9c0f8e37f7]
+link WeatherSessionHandler to RegisterWeatherDataController--><path d="M868.57,510.3431 C781.03,530.8631 662.52,562.9231 563,604.9531 C536.91,615.9731 509.45,631.5931 487.5,645.1831 " fill="none" id="WeatherSessionHandler-&gt;RegisterWeatherDataController" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="483.18,647.8731,492.9341,646.5099,487.424,645.2296,488.7043,639.7195,483.18,647.8731" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[3708c764a955c9cef84d4b958ef14fbd]
+link WeatherSessionHandler to ImportWeatherDataController--><path d="M884.21,547.9731 C853.05,566.2731 819.14,586.3031 788,604.9531 C766.09,618.0731 741.92,632.8031 721.57,645.2731 " fill="none" id="WeatherSessionHandler-&gt;ImportWeatherDataController" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="717.29,647.8931,727.0557,646.6159,721.5571,645.287,722.8859,639.7885,717.29,647.8931" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[4bcd14f210025b8eedb31f30633fe813]
+link WeatherSessionHandler to ConsultWeatherDataController--><path d="M963.66,548.0131 C948.47,580.0631 930.8,617.3831 918.65,643.0331 " fill="none" id="WeatherSessionHandler-&gt;ConsultWeatherDataController" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="916.44,647.6831,923.9051,641.2588,918.5786,643.1636,916.6738,637.837,916.44,647.6831" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[0e931153699c306c51480ad180fd5b7c]
+link WeatherSessionHandler to AuthorizationPort--><path d="M1028.05,548.0131 C1046.71,583.1031 1068.72,624.5231 1082.27,650.0031 " fill="none" id="WeatherSessionHandler-&gt;AuthorizationPort" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="1084.7,654.5731,1084.0139,644.7482,1082.356,650.1566,1076.9475,648.4986,1084.7,654.5731" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="129" x="1054" y="593.02">anonymous adapter</text><!--MD5=[e0773424b1ef64478f1a6116e8f61cdd]
+link WeatherServer to PersistenceContext--><path d="M1260.21,152.3231 C1281.27,173.9431 1307.34,204.0031 1324,234.9531 C1402.6,381.0131 1437.52,581.2731 1447.68,649.8131 " fill="none" id="WeatherServer-&gt;PersistenceContext" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="1448.43,654.9031,1451.0748,645.416,1447.7009,649.9566,1443.1603,646.5826,1448.43,654.9031" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="62" x="1387" y="384.02">bootstrap</text><!--MD5=[a7e82011977486ff643f7a46bfd9f952]
+link WeatherSessionHandler to AuthenticationService--><path d="M1119.24,536.0231 C1144.33,548.8031 1169.78,563.5831 1192,579.9531 C1219.67,600.3431 1245.85,630.1431 1262.34,650.7031 " fill="none" id="WeatherSessionHandler-&gt;AuthenticationService" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="1265.51,654.6831,1263.0367,645.1499,1262.397,650.7704,1256.7764,650.1307,1265.51,654.6831" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="40" x="1212" y="593.02">LOGIN</text><!--MD5=[a435373f8b3afd2f535f85f3226380d8]
+link WeatherSessionHandler to PersistenceContext--><path d="M1119.07,530.1731 C1192.98,556.9731 1279.43,587.2831 1318,596.9531 C1340.26,602.5331 1348.12,595.4431 1369,604.9531 C1392.72,615.7631 1415.04,635.4131 1430.39,650.9831 " fill="none" id="WeatherSessionHandler-&gt;PersistenceContext" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="1434.14,654.8531,1430.7538,645.6047,1430.6622,651.2608,1425.0061,651.1692,1434.14,654.8531" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="75" x="1319" y="593.02">repositories</text><!--MD5=[01eb941d07648a1a3a431466aaa1d079]
+link WeatherSessionHandler to GMN29--><path d="M868.99,498.7931 C733.63,516.6731 512.22,551.1931 327,604.9531 C281.42,618.1831 231.31,639.3831 197.38,654.8031 " fill="none" id="WeatherSessionHandler-GMN29" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><!--MD5=[d9179c663d89d6045130614932686576]
+@startuml US044_ClassDiagram
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor #444444
+skinparam packageBackgroundColor #F8F8F8
+hide circle
+
+title US044 - Weather Person Remote TCP Access (Class Diagram)
+
+package "Weather Client (rcomp)" #EEF0FB {
+  class WeatherClient {
+    - HOST : String {static} = "127.0.0.1"
+    - PORT : int {static} = 8889
+    - -
+    + main(args) : void {static}
+  }
+
+  class ServerConnection {
+    - socket : Socket
+    - in : BufferedReader
+    - out : PrintWriter
+    - -
+    + send(command : String) : String
+    + close() : void
+  }
+
+  WeatherClient ..> ServerConnection : uses
+}
+
+package "Weather Server (rcomp)" #E8F5F0 {
+  class WeatherServer {
+    - PORT : int {static} = 8889
+    - -
+    + main(args) : void {static}
+  }
+
+  class ClientHandler {
+    - socket : Socket
+    - sessionHandler : WeatherSessionHandler
+    - -
+    + run() : void
+  }
+
+  class WeatherSessionHandler {
+    - currentSession : UserSession
+    - -
+    + processCommand(line : String) : String
+    - handleLogin(parts) : String
+    - handleRegisterWeather(parts) : String
+    - handleImportWeather(parts) : String
+    - handleConsultWeather(parts) : String
+    - authorizationPort() : AuthorizationPort
+  }
+
+  class LoggingClientHandler {
+    + run() : void
+  }
+
+  WeatherServer "1" *- - "*" ClientHandler : spawns
+  ClientHandler - -> WeatherSessionHandler : delegates
+  LoggingClientHandler - -> WeatherSessionHandler : delegates
+}
+
+package "EAPLI Application (reused)" #FFF3E0 {
+  class RegisterWeatherDataController <<US041>>
+  class ImportWeatherDataController <<US042>>
+  class ConsultWeatherDataController <<US043>>
+  interface AuthorizationPort
+}
+
+WeatherSessionHandler ..> RegisterWeatherDataController
+WeatherSessionHandler ..> ImportWeatherDataController
+WeatherSessionHandler ..> ConsultWeatherDataController
+WeatherSessionHandler ..> AuthorizationPort : anonymous adapter
+
+package "Infrastructure" #EAF3FB {
+  class PersistenceContext
+  class AuthenticationService
+}
+
+WeatherServer ..> PersistenceContext : bootstrap
+WeatherSessionHandler ..> AuthenticationService : LOGIN
+WeatherSessionHandler ..> PersistenceContext : repositories
+
+note bottom of WeatherSessionHandler
+  Protocol: COMMAND|arg1|arg2|...
+  Responses: OK, OK|..., ERROR|..., PONG, BYE
+end note
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 10:22:07 UTC 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 17.0.19+10
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

@@ -1,0 +1,938 @@
+@startuml DomainModel_Full
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor Black
+skinparam classArrowColor Black
+skinparam classFontName sans-serif
+skinparam classFontSize 11
+skinparam packageBackgroundColor #F8F8F8
+skinparam packageBorderColor Black
+hide circle
+
+' =====================================================================
+' AGGREGATE – Role Management (AR)
+' =====================================================================
+package "Role Management (AR)" {
+class Role <<AggregateRoot>> {
+- id : RoleId
+- name : RoleName
+- description : String
+--
++ updateDescription(newDesc: String) : void
+}
+class RoleId <<ValueObject>> {
+- value : UUID
+}
+class RoleName <<ValueObject>> {
+- value : String
+}
+}
+
+Role "1" *-- "1" RoleId
+Role "1" *-- "1" RoleName
+
+' =====================================================================
+' AGGREGATE – User (AR)
+' =====================================================================
+package "User (AR)" {
+class User <<AggregateRoot>> {
+- id : UserId
+- email : Email
+- name : FullName
+- phone : PhoneNumber
+- status : UserStatus
+- clearance : SecurityClearance
+- assignedRoles : Set<RoleId>
+--
++ activate() : void
++ disable() : void
++ assignRole(roleId: RoleId) : void
++ removeRole(roleId: RoleId) : void
++ renewClearance(expiryDate: LocalDate) : void
+}
+class UserId <<ValueObject>> {
+- value : UUID
+}
+class Email <<ValueObject>> {
+- address : String
+}
+class FullName <<ValueObject>> {
+- firstName : String
+- lastName : String
+}
+class PhoneNumber <<ValueObject>> {
+- number : String
+}
+class SecurityClearance <<ValueObject>> {
+- level : ClearanceLevel
+- expiryDate : LocalDate
+}
+class UserStatus <<ValueObject>> {
+- value : Status <<enum: ACTIVE, DISABLED>>
+}
+}
+
+User "1" *-- "1" UserId
+User "1" *-- "1" Email
+User "1" *-- "1" FullName
+User "1" *-- "1" PhoneNumber
+User "1" *-- "1" UserStatus
+User "1" *-- "1" SecurityClearance
+User "1" --> "0.." RoleId : references
+
+' =====================================================================
+' AGGREGATE – Pilot (AR)
+' =====================================================================
+package "Pilot (AR)" {
+class Pilot <<AggregateRoot>> {
+- id : PilotId
+- userId : UserId <<Ref>>
+- companyId : CompanyId <<Ref>>
+- license : License
+- certifications : List<AircraftModelId> <<Ref>>
+--
++ updateLicense(newLicense: License) : void
++ addCertification(modelId: AircraftModelId) : void
+}
+class PilotId <<ValueObject>> {
+- value : UUID
+}
+class License <<ValueObject>> {
+- number : String
+- expiryDate : LocalDate
+}
+}
+
+Pilot "1" *-- "1" PilotId
+Pilot "1" *-- "1" License
+Pilot "1" --> "1" UserId : ref
+
+
+' =====================================================================
+' AGGREGATE – AircraftMaker (AR)
+' =====================================================================
+package "AircraftMaker (AR)" {
+class AircraftMaker <<AggregateRoot>> {
+- id : MakerId
+- name : MakerName
+- country : OriginCountry
+--
++ isOwnerOf(targetMakerId: MakerId) : boolean
+}
+class MakerId <<ValueObject>> {
+- value : UUID
+}
+class MakerName <<ValueObject>> {
+- value : String
+}
+class OriginCountry <<ValueObject>> {
+- name : String
+}
+}
+
+AircraftMaker "1" *-- "1" MakerId
+AircraftMaker "1" *-- "1" MakerName
+AircraftMaker "1" *-- "1" OriginCountry
+
+' =====================================================================
+' AGGREGATE – EngineMaker (AR)
+' =====================================================================
+package "EngineMaker (AR)" {
+class EngineMaker <<AggregateRoot>> {
+- id : EngineMakerId
+- name : EngineMakerName
+- country : EngineOriginCountry
+--
++ isOwnerOf(targetMakerId: EngineMakerId) : boolean
+}
+class EngineMakerId <<ValueObject>> {
+- value : UUID
+}
+class EngineMakerName <<ValueObject>> {
+- value : String
+}
+class EngineOriginCountry <<ValueObject>> {
+- name : String
+}
+}
+
+EngineMaker "1" *-- "1" EngineMakerId
+EngineMaker "1" *-- "1" EngineMakerName
+EngineMaker "1" *-- "1" EngineOriginCountry
+
+' =====================================================================
+' AGGREGATE – EngineModel (AR)
+' =====================================================================
+package "EngineModel (AR)" {
+class EngineModel <<AggregateRoot>> {
+- id : EngineModelId
+- name : EngineModelName
+- makerId : EngineMakerId <<Ref>>
+- type : EngineType
+- fuel : FuelSpecs
+--
++ isCompatibleWith(type: EngineType) : boolean
++ getJetSpecs() : JetEngineSpecs
++ getElectricSpecs() : ElectricEngineSpecs
+}
+class EngineModelId <<ValueObject>> {
+- value : String
+}
+class EngineModelName <<ValueObject>> {
+- value : String
+}
+enum EngineType {
+TURBOPROP
+TURBOFAN
+TURBOJET
+RAMJET
+ELECTRIC_PROPELLER
+}
+class JetEngineSpecs <<ValueObject>> {
+- atSeaLevelStatic : Thrust
+- atCruiseSpeed : Thrust
+- tsfc : Double
+}
+class ElectricEngineSpecs <<ValueObject>> {
+- power : Power
+- efficiency : Double
+}
+class FuelSpecs <<ValueObject>> {
+- type : FuelType <<enum: JET_A1, ELECTRICITY>>
+- density : Double
+- energy : Double
+}
+class Thrust <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class Power <<ValueObject>> {
+- value : Double
+- unit : String
+}
+}
+
+EngineModel "1" *-- "1" EngineModelId
+EngineModel "1" *-- "1" EngineModelName
+EngineModel "1" *-- "1" EngineType
+EngineModel "1" *-- "1" FuelSpecs
+EngineModel "1" *-- "0..1" JetEngineSpecs
+EngineModel "1" *-- "0..1" ElectricEngineSpecs
+JetEngineSpecs "1" *-- "2" Thrust
+ElectricEngineSpecs "1" *-- "1" Power
+EngineModel "1" --> "1" EngineMakerId : ref
+
+' =====================================================================
+' AGGREGATE – AircraftModel (AR)
+' =====================================================================
+package "AircraftModel (AR)" {
+class AircraftModel <<AggregateRoot>> {
+- id : AircraftModelId
+- name : ModelName
+- type : AircraftType
+- motorization : EngineType
+- numberOfEngines : Integer
+- certifiedEngines : Set<EngineModelId>
+--
++ addCertifiedEngine(id: EngineModelId, type: EngineType) : void
++ isEngineCompatible(type: EngineType) : boolean
+}
+class AircraftModelId <<ValueObject>> {
+- value : UUID
+}
+class ModelName <<ValueObject>> {
+- value : String
+}
+class PerformanceSpecs <<ValueObject>> {
+- emptyWeight : Weight
+- mtow : Weight
+- mzfw : Weight
+- maxFuelCapacity : FuelQuantity
+- serviceCeiling : Altitude
+- cruiseSpeed : Speed
+- maxCapacity : Integer
+}
+class AerodynamicData <<ValueObject>> {
+- wingArea : Area
+- dragCoefficient : Double
+- liftCoefficient : Double
+- aspectRatio : Double
+- oswaldFactor : Double
+}
+class Weight <<ValueObject>> {
+- value : Double
+- unit : MeasurementUnit
+}
+class FuelQuantity <<ValueObject>> {
+- value : Double
+- unit : MeasurementUnit
+}
+class Altitude <<ValueObject>> {
+- value : Double
+- unit : MeasurementUnit
+}
+class Speed <<ValueObject>> {
+- value : Double
+- unit : MeasurementUnit
+}
+class Area <<ValueObject>> {
+- value : Double
+- unit : MeasurementUnit
+}
+enum MeasurementUnit {
+KG
+LB
+METERS
+FEET
+KNOTS
+LITERS
+SQUARE_METERS
+}
+enum AircraftType {
+PASSENGER
+CARGO
+MIXED
+}
+}
+
+AircraftModel "1" *-- "1" AircraftModelId
+AircraftModel "1" *-- "1" ModelName
+AircraftModel "1" *-- "1" AircraftType
+AircraftModel "1" *-- "1" PerformanceSpecs
+AircraftModel "1" *-- "1" AerodynamicData
+
+PerformanceSpecs "1" *-- "3" Weight
+PerformanceSpecs "1" *-- "1" FuelQuantity
+PerformanceSpecs "1" *-- "1" Altitude
+PerformanceSpecs "1" *-- "1" Speed
+AerodynamicData "1" *-- "1" Area
+
+Weight "1" *-- "1" MeasurementUnit
+FuelQuantity "1" *-- "1" MeasurementUnit
+Altitude "1" *-- "1" MeasurementUnit
+Speed "1" *-- "1" MeasurementUnit
+Area "1" *-- "1" MeasurementUnit
+
+AircraftModel "1" --> "1" MakerId : ref
+AircraftModel "1" --> "1..*" EngineModelId : ref
+
+Pilot "1" --> "0..*" AircraftModelId : certifications ref
+
+
+' =====================================================================
+' AGGREGATE – AirControlArea (AR)
+' =====================================================================
+package "AirControlArea (AR)" {
+class AirControlArea <<AggregateRoot>> {
+- id : AirControlAreaId
+- areaName : AreaName
+- type : AirControlType
+- horizontalLimits : HorizontalLimits
+- verticalLimits : VerticalLimits
+- minFuelReserve : AirControlAreaFuelQuantity
+--
++ isPointInside(point: Coordinates, alt: Altitude) : boolean
++ updateFuelSafetyPolicy(newReserve: AirControlAreaFuelQuantity) : void
+}
+class AirControlAreaId <<ValueObject>> {
+- value : UUID
+}
+class AreaName <<ValueObject>> {
+- code : String
+}
+class AirControlType <<ValueObject>> {
+- type : Type <<enum: CTR, CTA>>
+}
+class HorizontalLimits <<ValueObject>> {
+- northLatitude : Double
+- southLatitude : Double
+- eastLongitude : Double
+- westLongitude : Double
+}
+class VerticalLimits <<ValueObject>> {
+- upperLimit : Altitude
+- lowerLimit : Altitude
+}
+class AirControlAreaFuelQuantity <<ValueObject>> {
+- litres : Double
+}
+}
+
+AirControlArea "1" *-- "1" AirControlAreaId
+AirControlArea "1" *-- "1" AreaName
+AirControlArea "1" *-- "1" AirControlType
+AirControlArea "1" *-- "1" HorizontalLimits
+AirControlArea "1" *-- "1" VerticalLimits
+AirControlArea "1" *-- "1" AirControlAreaFuelQuantity
+
+' =====================================================================
+' AGGREGATE – Airport (AR)
+' =====================================================================
+package "Airport (AR)" {
+class Airport <<AggregateRoot>> {
+- id : AirportId
+- name : AirportName
+- location : AirportLocation
+- iataCode : AirportIATACode
+- icaoCode : AirportICAOCode
+- coordinates : Coordinates
+- elevation : Elevation
+- areaId : AirControlAreaId <<Ref>>
+- status : OperationalStatus
+--
++ changeArea(newAreaId: AirControlAreaId) : void
++ canHandle(specs: AircraftSpecsVO) : boolean
++ getDistanceTo(destination: Coordinates) : Distance
++ isOpenFor(conditions: WeatherConditionsVO) : boolean
+}
+class AirportId <<ValueObject>> {
+- value : UUID
+}
+class AirportName <<ValueObject>> {
+- value : String
+}
+class AirportLocation <<ValueObject>> {
+- town : String
+- country : String
+}
+class AirportIATACode <<ValueObject>> {
+- value : String <<3 letters>>
+}
+class AirportICAOCode <<ValueObject>> {
+- value : String <<4 letters>>
+}
+class Coordinates <<ValueObject>> {
+- latitude : Double
+- longitude : Double
+}
+class Elevation <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class OperationalStatus <<ValueObject>> {
+- state : Status <<enum>>
+- updateTime : LocalDateTime
+- reason : String
+}
+}
+
+Airport "1" *-- "1" AirportId
+Airport "1" *-- "1" AirportName
+Airport "1" *-- "1" AirportLocation
+Airport "1" *-- "1" AirportIATACode
+Airport "1" *-- "1" AirportICAOCode
+Airport "1" *-- "1" Coordinates
+Airport "1" *-- "1" Elevation
+Airport "1" *-- "1" OperationalStatus
+Airport "1" --> "1" AirControlAreaId : ref
+
+' =====================================================================
+' AGGREGATE – AirTransportCompany (AR)
+' =====================================================================
+package "AirTransportCompany (AR)" {
+class AirTransportCompany <<AggregateRoot>> {
+- id : CompanyId
+- name : CompanyName
+- iataCode : IATACode
+- icaoCode : ICAOCode
+- certificate : AirOperatorCertificate
+--
++ updateName(newName: CompanyName) : void
++ updateCertificate(newCert: AirOperatorCertificate) : void
+}
+class CompanyId <<ValueObject>> {
+- value : UUID
+}
+class CompanyName <<ValueObject>> {
+- value : String
+}
+class IATACode <<ValueObject>> {
+- value : String <<2 letters>>
+}
+class ICAOCode <<ValueObject>> {
+- value : String <<3 letters>>
+}
+class AirOperatorCertificate <<ValueObject>> {
+- number : String
+- expiryDate : LocalDate
+}
+}
+
+AirTransportCompany "1" *-- "1" CompanyId
+AirTransportCompany "1" *-- "1" CompanyName
+AirTransportCompany "1" *-- "1" IATACode
+AirTransportCompany "1" *-- "1" ICAOCode
+AirTransportCompany "1" *-- "1" AirOperatorCertificate
+
+Pilot "1" --> "1" CompanyId : ref
+
+' =====================================================================
+' AGGREGATE – Aircraft (AR)
+' =====================================================================
+package "Aircraft (AR)" {
+class Aircraft <<AggregateRoot>> {
+- id : AircraftId
+- registration : RegistrationNumber
+- companyId : CompanyId <<Ref>>
+- modelId : AircraftModelId <<Ref>>
+- engineModelId : EngineModelId <<Ref>>
+- cabinConfiguration : CabinConfiguration
+- crewSize : CrewSize
+- status : AircraftStatus
+--
++ decommission() : void
++ isOperational() : boolean
++ reconfigureCabin(newConfig: CabinConfiguration, modelSpecs: ModelSpecsVO) : void
++ updateEngine(newEngineId: EngineModelId) : void
+}
+class AircraftId <<ValueObject>> {
+- value : UUID
+}
+class RegistrationNumber <<ValueObject>> {
+- value : String
+}
+class CabinConfiguration <<ValueObject>> {
+- firstClassSeats : Integer
+- businessClassSeats : Integer
+- economyClassSeats : Integer
++ totalSeats() : Integer
+}
+class CrewSize <<ValueObject>> {
+- number : Integer
+}
+class AircraftStatus <<ValueObject>> {
+- value : Status <<enum: OPERATIONAL, RETIRED>>
+}
+}
+
+Aircraft "1" *-- "1" AircraftId
+Aircraft "1" *-- "1" RegistrationNumber
+Aircraft "1" *-- "1" CabinConfiguration
+Aircraft "1" *-- "1" AircraftStatus
+Aircraft "1" *-- "1" CrewSize
+Aircraft "1" --> "1" CompanyId : ref
+Aircraft "1" --> "1" AircraftModelId : ref
+Aircraft "1" --> "1" EngineModelId : ref
+
+' =====================================================================
+' AGGREGATE – FlightRoute (AR)
+' =====================================================================
+package "FlightRoute (AR)" {
+class FlightRoute <<AggregateRoot>> {
+- id : FlightRouteId
+- name : FlightRouteName
+- companyId : CompanyId <<Ref>>
+- originAirportId : AirportId <<Ref>>
+- destinationAirportId : AirportId <<Ref>>
+- status : RouteActivationStatus
+- duration : RouteDuration
+- distance : RouteDistance
+--
++ deactivate(fromDate: LocalDate) : void
++ isActive(onDate: LocalDate) : boolean
++ calculateRequiredFuel(specs: AircraftPerformanceSpecsVO) : FuelQuantity
++ isCompatibleWith(specs: AircraftPerformanceSpecsVO) : boolean
+- validateRouteCoherence() : void
+}
+class FlightRouteId <<ValueObject>> {
+- value : UUID
+}
+class FlightRouteName <<ValueObject>> {
+- value : String <<2 letters + up to 4 digits>>
+}
+class RouteActivationStatus <<ValueObject>> {
+- activeUntil : LocalDate
+- isDeactivated : boolean
+}
+class RouteDistance <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class RouteDuration <<ValueObject>> {
+- value : Double
+}
+}
+
+FlightRoute "1" *-- "1" FlightRouteId
+FlightRoute "1" *-- "1" FlightRouteName
+FlightRoute "1" *-- "1" RouteDistance
+FlightRoute "1" *-- "1" RouteDuration
+FlightRoute "1" *-- "1" RouteActivationStatus
+FlightRoute "1" --> "1" CompanyId : ref
+FlightRoute "1" --> "1" AirportId : origin ref
+FlightRoute "1" --> "1" AirportId : destination ref
+
+' =====================================================================
+' AGGREGATE – FlightPlan (AR)
+' =====================================================================
+package "FlightPlan (AR)" {
+class FlightPlan <<AggregateRoot>> {
+- id : FlightPlanId
+- designator : FlightPlanDesignator
+- type : FlightType
+- routeId : FlightRouteId <<Ref>>
+- aircraftId : AircraftId <<Ref>>
+- legs : List<FlightLeg>
+- fuelPlan : FuelPlan
+--
++ addLeg(leg: FlightLeg) : void
++ validate() : ValidationResult
++ totalFuel() : FuelQuantity
++ isCompatibleWithSpecs(specs: AircraftSpecsVO) : boolean
++ enforceLegsCoherence() : void
+}
+class FlightPlanId <<ValueObject>> {
+- value : UUID
+}
+class FlightPlanDesignator <<ValueObject>> {
+- airlineCode : String
+- flightNumber : Integer
+- suffix : String
+}
+class FlightLeg <<ValueObject>> {
+- sequence : Integer
+- departureAirportCode : AirportCode
+- arrivalAirportCode : AirportCode
+- legFuel : LegFuelLoad
+- segments : List<FlightSegment>
+}
+class FlightSegment <<ValueObject>> {
+- startNode : FlightCoordinates
+- endNode : FlightCoordinates
+- allowedAltitudeSlots : List<AltitudeSlot>
+- wind : FlightWind
+}
+class AltitudeSlot <<ValueObject>> {
+- altitude : FlightAltitude
+- width : Double
+}
+class AirportCode <<ValueObject>> {
+- value : String
+- format : CodeFormat <<enum: IATA, ICAO>>
+}
+class FlightWind <<ValueObject>> {
+- directionDegrees : Double
+- speedMs : Double
+}
+class FlightCoordinates <<ValueObject>> {
+- latitude : Double
+- longitude : Double
+}
+class FlightAltitude <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class LegFuelLoad <<ValueObject>> {
+- quantity : Double
+- unit : String
+}
+class FuelPlan <<ValueObject>> {
+- taxiFuel : Double
+- tripFuel : Double
+- contingencyFuel : Double
+- alternateFuel : Double
+- finalReserveFuel : Double
+}
+enum FlightType {
+REGULAR
+CHARTER
+}
+}
+
+FlightPlan "1" *-- "1" FlightPlanId
+FlightPlan "1" *-- "1" FlightPlanDesignator
+FlightPlan "1" *-- "1" FuelPlan
+FlightPlan "1" *-- "1" FlightType
+FlightPlan "1" -- "1.." FlightLeg
+
+FlightLeg "1" -- "1.." FlightSegment
+FlightLeg "1" *-- "1" AirportCode : departure
+FlightLeg "1" *-- "1" AirportCode : arrival
+FlightLeg "1" *-- "1" LegFuelLoad
+
+FlightSegment "1" *-- "1" FlightCoordinates : start
+FlightSegment "1" *-- "1" FlightCoordinates : end
+FlightSegment "1" -- "1.." AltitudeSlot
+FlightSegment "1" *-- "1" FlightWind
+
+AltitudeSlot "1" *-- "1" FlightAltitude
+
+FlightPlan "1" --> "1" FlightRouteId : ref
+FlightPlan "1" --> "1" AircraftId : ref
+
+' =====================================================================
+' AGGREGATE – WeatherData (AR)
+' =====================================================================
+package "WeatherData (AR)" {
+class WeatherData <<AggregateRoot>> {
+- id : WeatherDataId
+- areaId : AirControlAreaId <<Ref>>
+- date : LocalDateTime
+- source : WeatherSource
+- readings : List<WeatherReading>
+--
++ addReading(reading: WeatherReading) : void
++ getReadingForAltitude(alt: WeatherAltitude) : WeatherReading
+}
+class WeatherDataId <<ValueObject>> {
+- value : UUID
+}
+class WeatherSource <<ValueObject>> {
+- name : String
+}
+class WeatherReading <<ValueObject>> {
+- altitude : WeatherAltitude
+- airDensity : AirDensity
+- wind : WeatherWind
+- temperature : Temperature
+- visibility : Visibility
+- cloudCeiling : WeatherAltitude
+- precipitation : PrecipitationType
+}
+class WeatherAltitude <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class WeatherWind <<ValueObject>> {
+- direction : WindAngle
+- speed : WindSpeed
+}
+class WindAngle <<ValueObject>> {
+- value : Double
+}
+class WindSpeed <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class AirDensity <<ValueObject>> {
+- value : Double
+}
+class Temperature <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class Visibility <<ValueObject>> {
+- value : Double
+}
+enum PrecipitationType {
+SNOW
+RAIN
+HAIL
+NONE
+}
+}
+
+WeatherData "1" *-- "1" WeatherDataId
+WeatherData "1" *-- "1" WeatherSource
+WeatherData "1" -- "1.." WeatherReading
+
+WeatherReading "1" *-- "2" WeatherAltitude
+WeatherReading "1" *-- "1" AirDensity
+WeatherReading "1" *-- "1" WeatherWind
+WeatherReading "1" *-- "1" Temperature
+WeatherReading "1" *-- "1" Visibility
+WeatherReading "1" *-- "1" PrecipitationType
+
+WeatherWind "1" *-- "1" WindAngle
+WeatherWind "1" *-- "1" WindSpeed
+
+WeatherData "1" --> "1" AirControlAreaId : ref
+
+' =====================================================================
+' AGGREGATE – Simulation (AR)
+' =====================================================================
+package "Simulation (AR)" {
+class Simulation <<AggregateRoot>> {
+- id : SimulationId
+- areaId : AirControlAreaId <<Ref>>
+- requestedBy : UserId <<Ref>>
+- requestedAt : LocalDateTime
+- status : SimulationStatus
+- result : SimulationResult
+--
++ recordFlightResult(r: FlightSimulationResult) : void
++ recordViolation(v: SafetyViolation) : void
++ finalise(minFuelReserve: Double) : void
+- assertNotFinalised() : void
+}
+class SimulationId <<ValueObject>> {
+- value : UUID
+}
+class SimulationResult <<ValueObject>> {
+- overallOutcome : SimulationOutcome
+- flightResults : List<FlightSimulationResult>
+- violations : List<SafetyViolation>
+- fileRef : ReportFileRef
+- finalisedAt : LocalDateTime
+}
+class FlightSimulationResult <<ValueObject>> {
+- flightPlanId : FlightPlanId <<Ref>>
+- status : FlightExecutionStatus
+- fuelRemaining : SimFuelQuantity
+- snapshots : List<SimulationSnapshot>
+}
+class SimulationSnapshot <<ValueObject>> {
+- timestamp : LocalDateTime
+- position : SimCoordinates
+- altitude : SimAltitude
+- fuelRemaining : SimFuelQuantity
+- velocity : VelocityVector
+}
+class SafetyViolation <<ValueObject>> {
+- type : ViolationType
+- timestamp : LocalDateTime
+- position : SimCoordinates
+- involvedFlights : List<FlightPlanId>
+}
+class VelocityVector <<ValueObject>> {
+- speed : SimSpeed
+- direction : SimAngle
+}
+class ReportFileRef <<ValueObject>> {
+- filename : String
+- format : ReportFormat
+}
+class SimFuelQuantity <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class SimCoordinates <<ValueObject>> {
+- latitude : Double
+- longitude : Double
+}
+class SimAltitude <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class SimSpeed <<ValueObject>> {
+- value : Double
+- unit : String
+}
+class SimAngle <<ValueObject>> {
+- value : Double
+}
+enum SimulationStatus {
+PENDING
+RUNNING
+COMPLETED
+FAILED
+}
+enum SimulationOutcome {
+PASS
+FAIL
+}
+enum FlightExecutionStatus {
+COMPLETED
+DIVERTED
+TERMINATED
+}
+enum ViolationType {
+PROXIMITY
+ALTITUDE_CONFLICT
+FUEL_RESERVE
+}
+enum ReportFormat {
+TXT
+JSON
+}
+}
+
+Simulation "1" *-- "1" SimulationId
+Simulation "1" *-- "1" SimulationStatus
+Simulation "1" *-- "0..1" SimulationResult
+
+SimulationResult "1" *-- "1" SimulationOutcome
+SimulationResult "1" -- "0.." FlightSimulationResult
+SimulationResult "1" -- "0.." SafetyViolation
+SimulationResult "1" *-- "0..1" ReportFileRef
+
+FlightSimulationResult "1" *-- "1" FlightExecutionStatus
+FlightSimulationResult "1" *-- "1" SimFuelQuantity
+FlightSimulationResult "1" -- "0.." SimulationSnapshot
+
+SimulationSnapshot "1" *-- "1" SimCoordinates
+SimulationSnapshot "1" *-- "1" SimAltitude
+SimulationSnapshot "1" *-- "1" SimFuelQuantity
+SimulationSnapshot "1" *-- "1" VelocityVector
+
+SafetyViolation "1" *-- "1" SimCoordinates
+SafetyViolation "1" *-- "1" ViolationType
+
+VelocityVector "1" *-- "1" SimSpeed
+VelocityVector "1" *-- "1" SimAngle
+
+Simulation "1" --> "1" AirControlAreaId : ref
+Simulation "1" --> "1" UserId : requestedBy ref
+FlightSimulationResult "1" --> "1" FlightPlanId : ref
+SafetyViolation "1" --> "1..*" FlightPlanId : ref
+
+' =====================================================================
+' AGGREGATE – Flight (AR)
+' =====================================================================
+package "Flight (AR)" {
+class Flight <<AggregateRoot>> {
+- id : FlightId
+- designator : FlightDesignator
+- routeId : FlightRouteId <<Ref>>
+- flightPlanId : FlightPlanId <<Ref>>
+- pilotId : PilotId <<Ref>>
+- schedule : FlightSchedule
+- payload : Payload
+- validationStatus : FlightValidationStatus
+- weatherDataIds : List<WeatherDataId> <<Ref>>
+- operationalStatus : FlightStatus
+--
++ reschedule(newSchedule: FlightSchedule) : void
++ cancel(reason: String) : void
++ attachWeatherData(weatherDataId: WeatherDataId) : void
++ markValidated() : void
++ voidValidation() : void
+- validateScheduleCoherence() : void
+}
+class Payload <<ValueObject>> {
+- passengerCount : Integer
+- cargoWeightKg : Double
+- averagePassengerWeight : Double
++ totalWeightKg() : Double
+}
+enum FlightValidationStatus {
+DRAFT
+VALIDATED
+VOID
+REJECTED
+}
+class FlightId <<ValueObject>> {
+- value : UUID
+}
+class FlightDesignator <<ValueObject>> {
+- value : String <<xxn(n)(n)(n)(a)>>
+}
+class FlightSchedule <<ValueObject>> {
+- type : FlightType <<Regular/Charter>>
+- scheduledDept : LocalDateTime
+- scheduledArr : LocalDateTime
+- daysOfWeek : Set<DayOfWeek>
+}
+enum FlightStatus {
+SCHEDULED
+BOARDING
+IN_FLIGHT
+ARRIVED
+CANCELLED
+}
+}
+
+Flight "1" *-- "1" FlightId
+Flight "1" *-- "1" FlightDesignator
+Flight "1" *-- "1" FlightSchedule
+Flight "1" *-- "1" Payload
+Flight "1" *-- "1" FlightValidationStatus
+Flight "1" *-- "1" FlightStatus
+Flight "0.." --> "1" FlightRouteId : ref
+Flight "0.." --> "1" FlightPlanId : instancia
+Flight "0.." --> "1" PilotId : ref
+Flight "0.." --> "0..*" WeatherDataId : ref
+
+@enduml

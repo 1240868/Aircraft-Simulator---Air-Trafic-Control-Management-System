@@ -1,0 +1,48 @@
+@startuml SD_US060_RegisterAirTransportCompany
+title Sequence Diagram — US060 Register Air Transport Company (Happy Path)
+
+actor "Backoffice Operator" as BO
+participant ":RegisterAirTransportCompanyUI" as UI <<Presentation>>
+participant ":RegisterAirTransportCompanyController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AirTransportCompanyRepository" as REPO <<Repository>>
+participant "company:AirTransportCompany" as CO <<Aggregate Root>>
+
+BO -> UI : menu "Register air transport company"
+activate UI
+
+UI -> BO : prompt "Company name"
+BO -> UI : name
+UI -> BO : prompt "IATA code (2 letters)"
+BO -> UI : iata
+UI -> BO : prompt "ICAO code (2 or 3 letters)"
+BO -> UI : icao
+UI -> BO : prompt "Air operator certificate number"
+BO -> UI : certNumber
+UI -> BO : prompt "Certificate expiry (yyyy-MM-dd)"
+BO -> UI : expiryStr
+
+UI -> UI : LocalDate.parse(expiryStr)
+
+UI -> CTRL : register(name, iata, icao, certNumber, expiry)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(ADMIN, BACKOFFICE_OPERATOR)
+AUTHZ --> CTRL : ok
+
+CTRL -> REPO : findByIataCode(iata)
+REPO --> CTRL : empty
+CTRL -> REPO : findByIcaoCode(icao)
+REPO --> CTRL : empty
+
+CTRL -> CO ** : new AirTransportCompany(...)
+CO --> CTRL : company
+CTRL -> REPO : save(company)
+REPO --> CTRL : persisted
+
+CTRL --> UI : AirTransportCompany
+UI -> BO : "Registered: " + name + IATA + ICAO + id
+deactivate CTRL
+deactivate UI
+
+@enduml

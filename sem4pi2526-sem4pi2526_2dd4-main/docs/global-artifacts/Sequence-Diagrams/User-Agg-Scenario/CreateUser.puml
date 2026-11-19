@@ -1,0 +1,48 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+hide footbox
+
+actor "Administrador" as Admin
+participant ":UserController" as Ctrl
+participant ":UserService" as AppSvc
+participant "email:Email" as EmailVO
+participant "name:FullName" as NameVO
+participant "pwd:Password" as PwdVO
+participant "user:User" as AR
+participant "userRepository:UserRepository" as Repo
+
+Admin -> Ctrl : criarUtilizador(dados)
+activate Ctrl
+
+Ctrl -> AppSvc : registerUser(dados)
+activate AppSvc
+
+' 1. Criação de VOs (Auto-validação)
+' As fontes dizem que VOs devem ser "sempre construídos num estado válido"
+AppSvc -> EmailVO** : new(dados.email)
+
+
+AppSvc -> NameVO** : new(dados.primeiro, dados.ultimo)
+
+AppSvc -> PwdVO** : new(dados.password)
+
+' 2. Instanciação da Aggregate Root (Invariante Complexa)
+AppSvc -> AR** : create(email, name, pwd, dados.role)
+activate AR
+AR -> AR : validateStatusRoleConsistency(initialStatus, role)
+AR --> AppSvc : userInstance
+deactivate AR
+
+' 3. Persistência (Regra de Ouro: Um repositório por agregado)
+AppSvc -> Repo : save(user)
+activate Repo
+Repo --> AppSvc : success
+deactivate Repo
+
+AppSvc --> Ctrl : userDTO
+deactivate AppSvc
+
+Ctrl --> Admin : confirmação
+deactivate Ctrl
+@enduml

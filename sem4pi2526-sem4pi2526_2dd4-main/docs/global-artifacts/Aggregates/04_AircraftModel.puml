@@ -1,0 +1,122 @@
+@startuml AircraftModel_Aggregate_Detailed_Refactored
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "AircraftModel Aggregate (AR)" {
+  class AircraftModel <<AggregateRoot>> {
+    - id : AircraftModelId
+    - name : ModelName
+    - type : AircraftType
+    - motorization : EngineType
+    - numberOfEngines : Integer
+    - certifiedEngines : Set<EngineModelId>
+    --
+    + addCertifiedEngine(id: EngineModelId, type: EngineType) : void
+    + isEngineCompatible(type: EngineType) : boolean
+  }
+
+  ' Value Objects Compostos
+  class PerformanceSpecs <<ValueObject>> {
+    - emptyWeight : Weight
+    - mtow : Weight
+    - mzfw : Weight
+    - maxFuelCapacity : FuelQuantity
+    - serviceCeiling : Altitude
+    - cruiseSpeed : Speed
+    - maxCapacity : Integer
+  }
+
+  class AerodynamicData <<ValueObject>> {
+    - wingArea : Area
+    - dragCoefficient : Double
+    - liftCoefficient : Double
+    - aspectRatio : Double
+    - oswaldFactor : Double
+  }
+
+  ' Value Objects Granulares Refatorados
+  class ModelName <<ValueObject>> {
+    - value : String
+  }
+
+  class Weight <<ValueObject>> {
+    - value : Double
+    - unit : MeasurementUnit
+  }
+  class FuelQuantity <<ValueObject>> {
+    - value : Double
+    - unit : MeasurementUnit
+  }
+  class Altitude <<ValueObject>> {
+    - value : Double
+    - unit : MeasurementUnit
+  }
+  class Speed <<ValueObject>> {
+    - value : Double
+    - unit : MeasurementUnit
+  }
+  class Area <<ValueObject>> {
+    - value : Double
+    - unit : MeasurementUnit
+  }
+
+  ' Novo VO/Enum para garantir validade das unidades
+  enum MeasurementUnit <<ValueObject>> {
+    KG
+    LB
+    METERS
+    FEET
+    KNOTS
+    LITERS
+    SQUARE_METERS
+  }
+
+  enum AircraftType <<ValueObject>> {
+    PASSENGER
+    CARGO
+    MIXED
+  }
+  enum EngineType <<ValueObject>> {
+    TURBOPROP
+    TURBOFAN
+    JET
+  }
+}
+
+' Referências para IDs Externos
+class MakerId <<ValueObject>>
+class EngineModelId <<ValueObject>>
+
+' Relações de Composição (Internas ao Agregado)
+AircraftModel "1" *-- "1" PerformanceSpecs
+AircraftModel "1" *-- "1" AerodynamicData
+AircraftModel "1" *-- "1" ModelName
+AircraftModel "1" *-- "1" AircraftType
+AircraftModel "1" *-- "1" EngineType
+
+PerformanceSpecs "1" *-- "3" Weight
+PerformanceSpecs "1" *-- "1" FuelQuantity
+PerformanceSpecs "1" *-- "1" Altitude
+PerformanceSpecs "1" *-- "1" Speed
+AerodynamicData  "1" *-- "1" Area
+
+' VOs granulares agora compõem a unidade validada
+Weight "1" *-- "1" MeasurementUnit
+FuelQuantity "1" *-- "1" MeasurementUnit
+Altitude "1" *-- "1" MeasurementUnit
+Speed "1" *-- "1" MeasurementUnit
+Area "1" *-- "1" MeasurementUnit
+
+' Referências de Identidade (Externas)
+AircraftModel "1" --> "1" MakerId : "ref"
+AircraftModel "1" --> "1..*" EngineModelId : "ref (US055)"
+
+note bottom of AircraftModel
+  Refatoração: 'unit' agora usa o VO 'MeasurementUnit'
+  para garantir segurança de tipos e conformidade com
+  as regras de negócio do domínio [1-3].
+end note
+
+@enduml

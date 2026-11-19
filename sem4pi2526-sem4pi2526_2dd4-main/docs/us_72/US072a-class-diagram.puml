@@ -1,0 +1,75 @@
+@startuml US072a-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US072a - Listar frota ativa por modelo\nListFleetByModelController
+
+package fleet_application {
+    class ListFleetByModelController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftRepository
+        - modelRepo : AircraftModelRepository
+        - companyRepo : AirTransportCompanyRepository
+        --
+        + listFleetByModel(aircraftModelIdRaw : String) : FleetListResult
+    }
+
+    class FleetListResult <<record>> {
+        + aircraft : List<AircraftFleetListItemDTO>
+        + messageWhenEmpty : String
+    }
+
+    class AircraftFleetListItemDTO <<record>> {
+        + registrationNumber : String
+        + modelName : String
+        + manufacturer : String
+        + operationalStatus : String
+        + numberOfSeats : int
+        + ageInCompleteYears : Integer
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class Aircraft <<AggregateRoot>> {
+        + isListedForActiveFleetByModel(companyId, modelId) : boolean
+        + totalConfiguredSeats() : int
+    }
+
+    class AircraftModel <<Entity>> {
+        + identity() : AircraftModelId
+    }
+
+    interface AircraftRepository {
+        + findActiveByOwnerCompanyAndModel(companyId, modelId)
+    }
+
+    interface AircraftModelRepository {
+        + findByIdentity(id) : Optional<AircraftModel>
+    }
+}
+
+package company_domain {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username) : Optional<CompanyId>
+    }
+}
+
+ListFleetByModelController o--> AuthorizationPort
+ListFleetByModelController --> AircraftRepository
+ListFleetByModelController --> AircraftModelRepository
+ListFleetByModelController --> AirTransportCompanyRepository
+ListFleetByModelController ..> FleetListResult
+FleetListResult *-- AircraftFleetListItemDTO
+AircraftRepository ..> Aircraft
+AircraftModelRepository ..> AircraftModel
+
+@enduml

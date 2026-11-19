@@ -1,0 +1,49 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+hide footbox
+
+actor "Backoffice Operator" as User
+participant ":AircraftModelController" as Ctrl
+participant ":AircraftModelService" as AppSvc
+participant "speed:Speed" as SpeedVO
+participant "fuel:FuelQuantity" as FuelVO
+participant "specs:PerformanceSpecs" as SpecsVO
+participant "model:AircraftModel" as AR
+participant ":AircraftModelRepository" as Repo
+
+User -> Ctrl : createAircraftModel(data)
+activate Ctrl
+
+Ctrl -> AppSvc : registerAircraftModel(data)
+activate AppSvc
+
+' 1. Auto-validação de Objetos de Valor (Strictly Positive)
+' VOs devem ser "sempre construídos num estado válido" [1]
+AppSvc -> SpeedVO** : new(data.cruiseSpeed)
+
+AppSvc -> FuelVO** : new(data.maxFuelCapacity)
+
+' 2. Criação do agrupador de performance
+AppSvc -> SpecsVO** : new(speed, fuel, data.maxCapacity)
+
+' 3. Proteção da Raiz do Agregado (Invariante de Coerência)
+' A Raiz é responsável por garantir a consistência do grupo [2, 3]
+AppSvc -> AR** : create(data.name, data.type, specs, data.numEngines)
+activate AR
+AR -> AR : validateSpecsCoherenceWithType(specs, type)
+AR --> AppSvc : modelInstance
+deactivate AR
+
+' 4. Persistência [4, 5]
+AppSvc -> Repo : save(model)
+activate Repo
+Repo --> AppSvc : success
+deactivate Repo
+
+AppSvc --> Ctrl : modelDTO
+deactivate AppSvc
+
+Ctrl --> User : confirmação(sucesso)
+deactivate Ctrl
+@enduml

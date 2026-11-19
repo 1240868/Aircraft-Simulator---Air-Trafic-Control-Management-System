@@ -1,0 +1,52 @@
+@startuml AirTransportCompany_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "AirTransportCompany Aggregate (AR)" {
+  class AirTransportCompany <<AggregateRoot>> {
+    - id              : CompanyId
+    - name            : CompanyName
+    - iataCode        : IATACode
+    - icaoCode        : ICAOCode
+    - certificate     : AirOperatorCertificate
+    --
+    + updateName(newName: CompanyName) : void
+    + updateCertificate(newCert: AirOperatorCertificate) : void
+    ' A frota e colaboradores ativos são geridos via repositórios externos
+    ' para manter este agregado pequeno e escalável.
+  }
+
+  class CompanyId <<ValueObject>> {
+    - value : UUID
+  }
+  class CompanyName <<ValueObject>> {
+    - value : String
+  }
+  class IATACode <<ValueObject>> {
+    - value : String <<2 letters>>
+  }
+  class ICAOCode <<ValueObject>> {
+    - value : String <<3 letters>>
+  }
+  class AirOperatorCertificate <<ValueObject>> {
+    - number : String
+    - expiryDate : LocalDate
+  }
+}
+
+' Composições Internas
+AirTransportCompany "1" *-- "1" CompanyId
+AirTransportCompany "1" *-- "1" CompanyName
+AirTransportCompany "1" *-- "1" IATACode
+AirTransportCompany "1" *-- "1" ICAOCode
+AirTransportCompany "1" *-- "1" AirOperatorCertificate
+
+note bottom of AirTransportCompany
+  **Mudança de Design:** A lista de aeronaves (fleet) foi
+  removida para garantir a escalabilidade do sistema.
+  A relação é mantida pelo lado da aeronave (Aircraft.companyId).
+end note
+
+@enduml

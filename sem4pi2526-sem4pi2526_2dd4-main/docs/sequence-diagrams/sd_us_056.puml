@@ -1,0 +1,91 @@
+@startuml SD_US056_RegisterEngineModel
+title Sequence Diagram — US056 Register Engine Model
+
+actor "Backoffice Operator" as BO
+participant ":RegisterEngineModelUI" as UI <<Presentation>>
+participant ":RegisterEngineModelController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":EngineModelRepository" as REPO <<Repository>>
+participant "fuel:FuelSpecs" as FUEL <<Value Object>>
+participant "thrust:Thrust" as THR <<Value Object>>
+participant "jet:JetEngineSpecs" as JET <<Value Object>>
+participant "power:Power" as PWR <<Value Object>>
+participant "elec:ElectricEngineSpecs" as ELEC <<Value Object>>
+participant "em:EngineModel" as EM <<Aggregate Root>>
+
+BO -> UI : menu "Register engine model"
+activate UI
+
+UI -> BO : prompt "Engine kind: 1 = Jet..., 2 = Electric..., 0 = cancel"
+BO -> UI : kind
+
+alt kind == 0
+    UI --> BO : doShow returns false
+else kind == 1 (registerJet)
+    UI -> BO : prompt "Engine model name"
+    BO -> UI : modelName
+    UI -> BO : prompt "Manufacturer"
+    BO -> UI : manufacturer
+    UI -> BO : prompt "Engine type (TURBOPROP, TURBOFAN...)"
+    BO -> UI : typeStr
+    UI -> UI : EngineType.valueOf(typeStr)
+    UI -> BO : prompt "Sea-level static thrust (numeric value)"
+    BO -> UI : seaStatic
+    UI -> BO : prompt "Thrust unit (e.g. kN)"
+    BO -> UI : thrustUnit
+    UI -> BO : prompt "Thrust at cruise (same unit)"
+    BO -> UI : cruiseThrust
+    UI -> BO : prompt "TSFC (positive)"
+    BO -> UI : tsfc
+    UI -> BO : prompt "Fuel density (e.g. kg/l for JET A-1)"
+    BO -> UI : density
+    UI -> BO : prompt "Specific energy (e.g. MJ/kg)"
+    BO -> UI : energy
+
+    UI -> CTRL : registerJet(modelName, manufacturer, type,\nseaStatic, thrustUnit, cruiseThrust,\ntsfc, density, energy)
+    activate CTRL
+
+    CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nBACKOFFICE_OPERATOR, ADMIN)
+    CTRL -> REPO : findByModelNameAndManufacturer(name, maker)
+    REPO --> CTRL : empty
+    CTRL -> FUEL ** : new FuelSpecs(JET_A1, density, energy)
+    CTRL -> THR ** : new Thrust(seaStatic, thrustUnit)
+    CTRL -> THR ** : new Thrust(cruiseThrust, thrustUnit)
+    CTRL -> JET ** : new JetEngineSpecs(...)
+    CTRL -> EM : createJet(...)
+    EM --> CTRL : engineModel
+
+else kind == 2 (registerElectric)
+    UI -> BO : prompts modelName, manufacturer,\npower, powerUnit, efficiency,\nenergy density, specific energy
+    BO -> UI : valores
+
+    UI -> CTRL : registerElectric(modelName, manufacturer,\npower, powerUnit, efficiency,\ndensity, energy)
+    activate CTRL
+
+    CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nBACKOFFICE_OPERATOR, ADMIN)
+    CTRL -> REPO : findByModelNameAndManufacturer(name, maker)
+    REPO --> CTRL : empty
+    CTRL -> FUEL ** : new FuelSpecs(ELECTRICITY, ...)
+    CTRL -> PWR ** : new Power(power, powerUnit)
+    CTRL -> ELEC ** : new ElectricEngineSpecs(power, efficiency)
+    CTRL -> EM : createElectric(...)
+    EM --> CTRL : engineModel
+
+else kind inválido
+    UI -> BO : "Invalid option."
+end
+
+opt kind == 1 ou 2 e registo OK
+    CTRL -> REPO : save(engineModel)
+    REPO --> CTRL : persisted
+    CTRL --> UI : EngineModel
+    UI -> BO : "Engine model registered: ... id=..."
+end
+
+opt IntegrityViolationException | IllegalArgumentException
+    UI -> BO : "Could not register:" / "Invalid value:"
+end
+deactivate CTRL
+deactivate UI
+
+@enduml

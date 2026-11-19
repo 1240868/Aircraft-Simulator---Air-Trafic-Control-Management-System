@@ -1,0 +1,69 @@
+@startuml
+title US90 — Logout (design-level sequence diagram)
+
+actor "Pilot Client" as Client
+participant ":PilotLoggingClientHandler" as Handler
+participant "PilotSessionHandler" as SessionHandler
+participant "RemoteAccessCommandObserver" as Observer
+participant "RemoteAccessSessionTracker" as Tracker
+participant "RemoteAccessUdpLogger" as Logger
+participant "RemoteAccessUdpReceiver" as Receiver
+participant "RemoteAccessDatagramParser" as Parser
+participant "RemoteAccessLogStore" as Store
+
+Client -> Handler: LOGOUT
+activate Handler
+
+Handler -> SessionHandler: processCommand("LOGOUT")
+activate SessionHandler
+SessionHandler --> Handler: "BYE"
+deactivate SessionHandler
+
+Handler -> Observer: observe(command, "BYE", clientIp, clientPort, logger, tracker)
+activate Observer
+
+group cmd is "LOGOUT"
+  Observer -> Tracker: loggedInUsername()
+  activate Tracker
+  Tracker --> Observer: "pilot1"
+  deactivate Tracker
+
+  Observer -> Logger: logLogout("pilot1", clientIp, clientPort)
+  activate Logger
+
+  Logger -> Logger: "LOGOUT|2026-06-14T18:30:00Z|\npilot1|192.168.1.10|54321|PILOT"
+
+  Logger -> Logger: send UDP datagram
+  deactivate Logger
+
+  Observer -> Tracker: onLogout()
+  activate Tracker
+  Tracker -> Tracker: set loggedInUsername = null\n   set disconnectLogged = true
+  Tracker --> Observer
+  deactivate Tracker
+end
+
+Observer --> Handler
+deactivate Observer
+
+Handler --> Client: "BYE"
+deactivate Handler
+
+== Logging Server (dedicated UDP node) ==
+
+Logger -> Receiver : UDP datagram
+
+Receiver -> Parser: parse(payload)
+activate Parser
+Parser --> Receiver: RemoteAccessLogEntry
+deactivate Parser
+
+Receiver -> Store: add(entry)
+activate Store
+Store -> Store: store event\n   remove session from active sessions
+Store --> Receiver
+deactivate Store
+
+Receiver -> Receiver: appendToFile(entry)
+
+@enduml

@@ -1,0 +1,62 @@
+@startuml US071-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US071 - Desativar aeronave da frota\nDecommissionAircraftController
+
+package fleet_application {
+    class DecommissionAircraftController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftRepository
+        - companyRepo : AirTransportCompanyRepository
+        - pendingFlights : PendingFlightsChecker
+        --
+        + decommission(registrationRaw : String) : void
+    }
+
+    interface PendingFlightsChecker {
+        + hasPendingFlights(registration) : boolean
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class Aircraft <<AggregateRoot>> {
+        + ownerCompanyId() : CompanyId
+        + markRetired() : void
+        + isRetired() : boolean
+    }
+
+    class RegistrationNumber <<ValueObject>> {
+        + {static} valueOf(value) : RegistrationNumber
+    }
+
+    interface AircraftRepository {
+        + findByRegistration(reg) : Optional<Aircraft>
+        + save(aircraft) : Aircraft
+    }
+}
+
+package company_domain {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username) : Optional<CompanyId>
+    }
+}
+
+DecommissionAircraftController o--> AuthorizationPort
+DecommissionAircraftController --> AircraftRepository
+DecommissionAircraftController --> AirTransportCompanyRepository
+DecommissionAircraftController --> PendingFlightsChecker
+DecommissionAircraftController ..> Aircraft
+DecommissionAircraftController ..> RegistrationNumber
+AircraftRepository ..> Aircraft
+
+@enduml

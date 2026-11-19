@@ -1,0 +1,42 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Operador de Backoffice" as User
+participant ":AirportController" as Ctrl
+participant ":AirportRepository" as Repo
+participant "airport:Airport" as AR
+participant "newRunway:RunwayConfiguration" as VO
+
+User -> Ctrl : adicionarPista(airportId, runwayData)
+activate Ctrl
+
+' Recupera o Agregado da Base de Dados
+Ctrl -> Repo : findById(airportId)
+activate Repo
+Repo --> Ctrl : airport
+deactivate Repo
+
+' Cria o Value Object da Pista
+Ctrl -> VO** : new(runwayData)
+
+' A Raiz do Agregado protege o invariante
+Ctrl -> AR : addRunway(newRunway)
+activate AR
+
+
+alt identificação já existe
+    AR --> Ctrl : throw DomainException("Duplicate Runway Identification")
+    Ctrl --> User : erro("Identificação de pista já existente")
+else identificação única
+    AR -> AR : this.runways.add(newRunway)
+    AR --> Ctrl : sucesso
+
+    ' Persiste o estado alterado do agregado
+    Ctrl -> Repo : save(airport)
+    Ctrl --> User : confirmação(sucesso)
+end
+
+deactivate AR
+deactivate Ctrl
+@enduml

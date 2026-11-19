@@ -1,0 +1,56 @@
+@startuml US052_RegisterAirport
+
+package "presentation" {
+    class RegisterAirportUI {
+        +doShow()
+    }
+}
+
+package "application" {
+    class RegisterAirportController <<Controller>> {
+        -authz: AuthorizationService
+        -airportRepo: AirportRepository
+        -areaRepo: AirControlAreaRepository
+        +registerAirport(icao, iata, name, town, country, lat, lon, elev, areaCode): Airport
+        +listAirControlAreas(): Iterable<AirControlArea>
+    }
+}
+
+package "domain" {
+    class Airport <<Entity>> <<AggregateRoot>> {
+        -icaoCode: String
+        -iataCode: String
+        -name: String
+        -town: String
+        -country: String
+        -latitude: double
+        -longitude: double
+        -elevationMeters: double
+        -airControlArea: AirControlArea
+        +identity(): String
+        +sameAs(other): boolean
+    }
+
+    interface AirportRepository {
+        +findByIcaoCode(icaoCode): Optional<Airport>
+        +findByIataCode(iataCode): Optional<Airport>
+        +save(airport): Airport
+    }
+
+    class AirControlArea <<Entity>> <<AggregateRoot>> {
+        -code: AirControlAreaCode
+        -name: String
+    }
+
+    interface AirControlAreaRepository {
+        +findByCode(code): Optional<AirControlArea>
+    }
+}
+
+RegisterAirportUI --> RegisterAirportController : uses
+RegisterAirportController --> AirportRepository : uses
+RegisterAirportController --> AirControlAreaRepository : uses
+RegisterAirportController ..> Airport : creates
+Airport --> AirControlArea : belongs to
+
+@enduml

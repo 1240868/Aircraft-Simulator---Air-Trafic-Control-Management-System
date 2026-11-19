@@ -1,0 +1,87 @@
+@startuml
+title US91 — HTTP Monitoring Dashboard (design-level class diagram)
+
+skinparam classAttributeIconSize 0
+
+package "aisafe.app.remote.logging.common" as common {
+  class RemoteAccessLoggingConfig {
+    {static} {method} + host() : String
+    {static} {method} + port() : int
+    {static} {method} + httpPort() : int
+    {static} {method} + loadClasspathProperties(resourceName : String)
+  }
+}
+
+package "aisafe.app.remote.logging.server" as server {
+
+  class RemoteAccessLoggingServer {
+    {static} {method} + main(args : String[])
+    {method} - resolveLogFile() : Path
+  }
+
+  class RemoteAccessLogStore {
+    - recentEvents : Deque<RemoteAccessLogEntry>
+    - activeSessions : Map<String, ActiveSession>
+    {method} + add(entry : RemoteAccessLogEntry)
+    {method} + recentEvents() : List<RemoteAccessLogEntry>
+    {method} + activeSessions() : List<ActiveSession>
+    {method} - applySessionRules(entry : RemoteAccessLogEntry)
+  }
+
+  record ActiveSession {
+    + username : String
+    + clientIp : String
+    + clientPort : int
+    + serviceId : String
+    + since : Instant
+  }
+
+  class RemoteAccessHttpServer {
+    - port : int
+    - store : RemoteAccessLogStore
+    {method} + {constructor}(port : int, store : RemoteAccessLogStore)
+    {method} + run()
+    .. accepts browser connections ..
+    .. spawns RemoteAccessHttpHandler ..
+    .. per connection (daemon thread) ..
+  }
+
+  class RemoteAccessHttpHandler {
+    - client : Socket
+    - store : RemoteAccessLogStore
+    - DISPLAY : DateTimeFormatter
+    {method} + {constructor}(client : Socket, store : RemoteAccessLogStore)
+    {method} + run()
+    {method} - route(path : String, out : OutputStream)
+    {method} - serveStaticFile(resource : String, contentType : String, out : OutputStream)
+    {method} - serveEventsFragment(out : OutputStream)
+    {method} - serveActiveUsersFragment(out : OutputStream)
+    {method} - send(out, status, statusText, contentType, body : String)
+    {method} - sendBytes(out, status, statusText, contentType, body : byte[])
+    {static} {method} - esc(s : String) : String
+  }
+}
+
+' Static HTML resources (classpath)
+note as StaticFiles
+  Classpath resources (src/main/resources/www/):
+    index.html         — landing page + navigation
+    events.html        — AJAX page (polls /api/events every 1500 ms)
+    active-users.html  — AJAX page (polls /api/active-users every 1500 ms)
+end note
+
+' ============ Relationships ============
+
+RemoteAccessLoggingServer --> RemoteAccessLogStore : <<create>>
+RemoteAccessLoggingServer --> RemoteAccessHttpServer : <<create>>
+RemoteAccessLoggingServer --> RemoteAccessLoggingConfig : reads httpPort()
+
+RemoteAccessHttpServer --> RemoteAccessLogStore : holds reference
+RemoteAccessHttpServer ..> RemoteAccessHttpHandler : <<create>> per connection
+
+RemoteAccessHttpHandler --> RemoteAccessLogStore : recentEvents()\n activeSessions()
+RemoteAccessLogStore .. ActiveSession : contains
+
+RemoteAccessHttpHandler .. StaticFiles : loads via ClassLoader
+
+@enduml

@@ -1,0 +1,78 @@
+@startuml SD_US042_ImportBulkWeatherData
+title Sequence Diagram — US042 Import Bulk Weather Data
+
+actor "Weather Person" as WP
+participant ":ImportWeatherDataUI" as UI <<Presentation>>
+participant ":ImportWeatherDataController" as CTRL <<Application>>
+participant ":ImportWeatherDataService" as SVC <<Application>>
+participant ":WeatherDataImportParser" as PARSER <<Strategy>>
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant ":WeatherDataRepository" as WD_REPO <<Repository>>
+participant "wd:WeatherData" as WD <<Aggregate Root>>
+
+WP -> UI : select import bulk weather data
+activate UI
+
+UI -> WP : prompt format and file path
+WP -> UI : format, filePath
+
+UI -> CTRL : importFromFile(format, filePath)
+activate CTRL
+
+CTRL -> CTRL : ensureAuthenticatedUserHasAnyOf(WEATHER_PERSON)
+
+CTRL -> SVC : importFromFile(format, filePath)
+activate SVC
+
+SVC -> SVC : parser = parsers.get(normalizeFormat(format))
+note right of SVC
+  if parser == null -> UnsupportedImportFormatException
+  if file not readable/empty -> ImportParseException
+end note
+
+SVC -> PARSER : parse(inputStream)
+activate PARSER
+PARSER --> SVC : List<WeatherImportRow>
+deactivate PARSER
+
+loop for each row (persistRow)
+
+    SVC -> SVC : code = AirControlAreaCode.valueOf(row.areaCode)
+
+    SVC -> AREA_REPO : findByCode(code)
+    activate AREA_REPO
+    AREA_REPO --> SVC : Optional<AirControlArea>
+    deactivate AREA_REPO
+
+    SVC -> WD_REPO : findByAreaCodeBetween(code, observedAt, observedAt+1ns)
+    activate WD_REPO
+    WD_REPO --> SVC : Iterable<WeatherData> (duplicate check)
+    deactivate WD_REPO
+
+    alt area exists AND not duplicate
+        SVC -> WD ** : new WeatherData(..., WeatherSource)
+        WD --> SVC : wd
+
+        SVC -> WD_REPO : save(wd)
+        activate WD_REPO
+        WD_REPO --> SVC : persisted wd
+        deactivate WD_REPO
+
+        SVC -> SVC : importedCount++
+
+    else unknown area OR duplicate OR invalid values
+        SVC -> SVC : errors.add(WeatherImportRowError\n  (lineNumber, message))
+    end
+
+end
+
+SVC --> CTRL : WeatherImportResult\n(totalRows, importedCount,\n rejectedCount, errors)
+deactivate SVC
+
+CTRL --> UI : WeatherImportResult
+deactivate CTRL
+
+UI --> WP : display import summary\nand per-row errors (if any)
+deactivate UI
+
+@enduml

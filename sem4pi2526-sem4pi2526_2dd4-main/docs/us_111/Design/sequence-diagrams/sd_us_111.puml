@@ -1,0 +1,66 @@
+@startuml SD_US111_GenerateSimulationReport
+title Sequence Diagram — US111 Generate Simulation Report (Happy Path)
+
+actor "Flight Control Operator" as FCO
+participant ":GenerateSimulationReportUI" as UI <<Presentation>>
+participant ":GenerateSimulationReportController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":SimulationReportService" as SVC <<Application>>
+participant "pb:ProcessBuilder" as PB <<Java>>
+participant "process:Process" as PROC <<OS>>
+participant ":FileSystem" as FS <<Infrastructure>>
+
+FCO -> UI : selects "Generate simulation report"
+activate UI
+
+UI -> FCO : "Proceed with simulation? (yes/no)"
+FCO -> UI : "yes"
+
+UI -> CTRL : generateReport()
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(FLIGHT_CONTROL_OPERATOR)
+AUTHZ --> CTRL : ok
+
+CTRL -> SVC : generateReport()
+activate SVC
+
+SVC -> FS : check scompBaseDir.isDirectory()
+FS --> SVC : true
+
+SVC -> FS : check flight_sim.canExecute()
+FS --> SVC : true
+
+SVC -> PB : new ProcessBuilder("./flight_sim")
+SVC -> PB : directory(scompBaseDir)
+SVC -> PB : redirectErrorStream(true)
+SVC -> PB : start()
+PB --> SVC : process
+
+activate PROC
+
+loop stdout lines while process runs
+    PROC --> SVC : stdout line
+    SVC -> UI : println("[SIM] " + line)
+    UI -> FCO : [SIM] <simulation output>
+end
+
+PROC --> SVC : exit code 0
+deactivate PROC
+
+SVC -> FS : Files.readString("logs/simulation_report.txt")
+FS --> SVC : reportContent
+
+SVC --> CTRL : SimulationReportResult.success(content, path)
+deactivate SVC
+
+CTRL --> UI : SimulationReportResult
+deactivate CTRL
+
+UI -> FCO : "Simulation completed."
+UI -> FCO : "Report saved to: <absolute path>"
+UI -> FCO : <report content>
+
+deactivate UI
+
+@enduml

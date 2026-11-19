@@ -1,0 +1,183 @@
+name: Java, C and PlantUML CI with Maven and Make
+
+on:
+  push:
+    branches: ["main", "master"]
+    paths-ignore:
+      - "**.svg"
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  # ─── Compilar e testar Java (EAPLI e LPROG) ──────────────────────────────
+  build-java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Debug project structure
+        run: |
+          echo "=== Root directory ==="
+          ls -la
+          echo ""
+          echo "=== All pom.xml files ==="
+          find . -name "pom.xml" -type f -not -path "./scomp.base/*"
+          echo ""
+          echo "=== Java source files ==="
+          find . -name "*.java" -type f -not -path "./scomp.base/*" | head -20
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and Test with Maven
+        run: |
+          # eapli.base depends on lprog.base / lapr.base, and those modules have the
+          # root pom.xml (sem4pi-2526-base) as their parent. Building only eapli.base
+          # makes Maven try to fetch that parent from JitPack, which fails.
+          # Building the root reactor first installs the parent POM + lprog/lapr/rcomp
+          # into the local repository so the EAPLI build can resolve everything offline.
+          echo "=== Building all modules (skip tests) ==="
+          mvn -B clean install -DskipTests -f pom.xml
+
+          # Then run the EAPLI build with tests
+          echo "=== Running EAPLI build with tests ==="
+          mvn -B clean install -f eapli.base/pom.xml
+
+      # NFR03 – cobertura mínima 90% em controller e domain
+      - name: Check test coverage (JaCoCo)
+        run: |
+          POM_FILE=$(find . -name "pom.xml" -type f -not -path "./scomp.base/*" | head -1)
+          PROJECT_DIR=$(dirname "$POM_FILE")
+          cd "$PROJECT_DIR"
+          
+          # Verifica se o JaCoCo está configurado
+          if grep -q "jacoco" pom.xml; then
+            echo "JaCoCo plugin found, running coverage check..."
+            mvn -B jacoco:check
+          else
+            echo "WARNING: JaCoCo plugin not configured in pom.xml"
+            echo "Skipping coverage check - add JaCoCo plugin to enable this"
+            exit 0
+          fi
+        continue-on-error: true
+
+      # NFR05 – publicar resultados de testes
+      - name: Publish test results
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: "**/target/surefire-reports/*.xml"
+
+      # NFR05 – publicar relatório de cobertura como artefacto
+      - name: Upload JaCoCo report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: |
+            **/target/site/jacoco/
+            **/target/jacoco/
+          if-no-files-found: warn
+
+  # ─── Compilar código C (SCOMP) ───────────────────────────────────────────
+  build-c:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Debug C project structure
+        run: |
+          echo "=== Checking scomp.base ==="
+          if [ -d "scomp.base" ]; then
+            echo "scomp.base found!"
+            echo ""
+            echo "=== Header files in include/ ==="
+            ls -la scomp.base/include/ 2>/dev/null || echo "No include/ directory"
+            echo ""
+            echo "=== Source files in src/ ==="
+            ls -la scomp.base/src/ 2>/dev/null || echo "No src/ directory"
+            echo ""
+            echo "=== Makefile content ==="
+            cat scomp.base/Makefile 2>/dev/null || echo "No Makefile found"
+          else
+            echo "ERROR: scomp.base/ not found!"
+          fi
+
+      - name: Compile C code with Make
+        run: |
+          if [ ! -d "scomp.base" ]; then
+            echo "ERROR: scomp.base/ directory not found!"
+            exit 1
+          fi
+          
+          cd scomp.base
+          
+          if [ ! -f Makefile ]; then
+            echo "ERROR: Makefile not found in scomp.base/"
+            exit 1
+          fi
+          
+          echo "=== Starting C compilation ==="
+          make clean
+          make all
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ C compilation successful!"
+          else
+            echo "❌ C compilation failed!"
+            echo ""
+            echo "=== Troubleshooting tips ==="
+            echo "1. Check if all header files exist in include/"
+            echo "2. Make sure conflict.h is created in include/"
+            echo "3. Verify that all .c files include the correct headers"
+            exit 1
+          fi
+
+  # ─── Gerar diagramas PlantUML ─────────────────────────────────────────────
+  gen-plantuml:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed UML files
+        id: getfile
+        run: |
+          FILES=$(git diff-tree -r --no-commit-id --name-only ${{ github.sha }} \
+                  | grep '\.puml$' | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: UML files to process
+        run: echo "${{ steps.getfile.outputs.files }}"
+
+      - name: Generate SVG Diagrams
+        if: steps.getfile.outputs.files != ''
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq plantuml
+          plantuml -v -tsvg ${{ steps.getfile.outputs.files }}
+
+      - name: Push Local Changes
+        if: steps.getfile.outputs.files != ''
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          commit_message: "Generate SVG images for PlantUML diagrams"
+          branch: ${{ github.ref_name }}

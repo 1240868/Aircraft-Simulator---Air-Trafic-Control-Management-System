@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Backoffice Operator" as User
+participant ":EngineModelController" as Ctrl
+participant "sfc:SFC" as VO
+participant "specs:JetEngineSpecs" as Specs
+participant "model:EngineModel" as AR
+participant ":EngineModelRepository" as Repo
+
+User -> Ctrl : createEngineModel(data)
+activate Ctrl
+
+' 1. Proteção contra valores negativos (Value Object)
+Ctrl -> VO** : new(data.tsfc)
+
+' 2. Criação das especificações técnicas (VO)
+Ctrl -> Specs** : new(sfc, thrustData)
+activate Specs
+Specs --> Ctrl : specsInstance
+deactivate Specs
+
+' 3. Validação de limites operacionais pela Raiz (Invariante de Agregado)
+Ctrl -> AR** : create(data.name, data.makerId, data.type, specsInstance)
+activate AR
+
+AR -> AR : validateOperationalLimits(specsInstance)
+
+AR --> Ctrl : engineModelInstance
+deactivate AR
+
+' 4. Persistência
+Ctrl -> Repo : save(model)
+activate Repo
+Repo --> Ctrl : success
+deactivate Repo
+
+Ctrl --> User : confirmação(sucesso)
+deactivate Ctrl
+@enduml

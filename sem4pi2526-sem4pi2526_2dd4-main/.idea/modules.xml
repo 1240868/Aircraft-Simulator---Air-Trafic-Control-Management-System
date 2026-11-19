@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/aisafe.bootstrappers/aisafe.bootstrappers.iml" filepath="$PROJECT_DIR$/eapli.base/aisafe.bootstrappers/aisafe.bootstrappers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/aisafe.core/aisafe.core.iml" filepath="$PROJECT_DIR$/eapli.base/aisafe.core/aisafe.core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/aisafe.infrastructure.application/aisafe.infrastructure.application.iml" filepath="$PROJECT_DIR$/eapli.base/aisafe.infrastructure.application/aisafe.infrastructure.application.iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.backoffice.console/exemplo.app.backoffice.console (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.backoffice.console/exemplo.app.backoffice.console (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.bootstrap/exemplo.app.bootstrap (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.bootstrap/exemplo.app.bootstrap (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.common.console/exemplo.app.common.console (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.common.console/exemplo.app.common.console (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.other.console/exemplo.app.other.console (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.other.console/exemplo.app.other.console (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.user.console/exemplo.app.utente.console (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.app.user.console/exemplo.app.utente.console (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.bootstrappers/exemplo.bootstrappers (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.bootstrappers/exemplo.bootstrappers (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.core/exemplo.core (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.core/exemplo.core (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.infrastructure.application/exemplo.infrastructure.application (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.infrastructure.application/exemplo.infrastructure.application (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/eapli.base/Exemplos/exemplo.persistence.impl/exemplo.persistence.impl (1).iml" filepath="$PROJECT_DIR$/eapli.base/Exemplos/exemplo.persistence.impl/exemplo.persistence.impl (1).iml" />
+      <module fileurl="file://$PROJECT_DIR$/lprog.base/lprog.base.iml" filepath="$PROJECT_DIR$/lprog.base/lprog.base.iml" />
+    </modules>
+  </component>
+</project>

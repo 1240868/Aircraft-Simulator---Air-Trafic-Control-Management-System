@@ -1,0 +1,200 @@
+@startuml
+title US90 — Remote Access Logging (design-level class diagram)
+
+skinparam classAttributeIconSize 0
+
+package "aisafe.app.remote.logging.common" as common {
+  enum RemoteAccessServiceId {
+    WEATHER
+    ATC
+    PILOT
+    {method} + code() : String
+  }
+
+  class RemoteAccessLogEntry {
+    - eventType : String
+    - timestamp : Instant
+    - username : String
+    - clientIp : String
+    - clientPort : int
+    - serviceId : String
+    {method} + {constructor}(eventType, timestamp, username, clientIp, clientPort, serviceId)
+    {method} + eventType() : String
+    {method} + timestamp() : Instant
+    {method} + username() : String
+    {method} + clientIp() : String
+    {method} + clientPort() : int
+    {method} + serviceId() : String
+    {method} + isLoginSuccess() : boolean
+    {method} + isLogoutOrDisconnect() : boolean
+    {method} + toString() : String
+  }
+
+  class RemoteAccessDatagramParser {
+    {static} {method} + parse(payload : String) : RemoteAccessLogEntry
+  }
+
+  class RemoteAccessUdpLogger {
+    - host : String
+    - port : int
+    - serviceId : RemoteAccessServiceId
+    {method} + {constructor}(serviceId : RemoteAccessServiceId)
+    {method} + {constructor}(host : String, port : int, serviceId : RemoteAccessServiceId)
+    {method} + logLoginSuccess(username : String, clientIp : String, clientPort : int)
+    {method} + logLoginFailure(username : String, clientIp : String, clientPort : int)
+    {method} + logLogout(username : String, clientIp : String, clientPort : int)
+    {method} + logDisconnect(username : String, clientIp : String, clientPort : int)
+    {method} - send(eventType : String, username : String, clientIp : String, clientPort : int)
+  }
+
+  class RemoteAccessCommandObserver {
+    {static} {method} + observe(commandLine : String, response : String, clientIp : String, clientPort : int, logger : RemoteAccessUdpLogger, tracker : RemoteAccessSessionTracker)
+    {static} {method} + observeDisconnect(clientIp : String, clientPort : int, logger : RemoteAccessUdpLogger, tracker : RemoteAccessSessionTracker)
+  }
+
+  class RemoteAccessSessionTracker {
+    - loggedInUsername : String
+    - disconnectLogged : boolean
+    {method} + onLoginSuccess(username : String)
+    {method} + onLogout()
+    {method} + loggedInUsername() : String
+    {method} + shouldLogDisconnect() : boolean
+    {method} + markDisconnectLogged()
+  }
+
+  class RemoteAccessLoggingConfig {
+    {static} {method} + host() : String
+    {static} {method} + port() : int
+    {static} {method} + httpPort() : int
+    {static} {method} + loadClasspathProperties(resourceName : String)
+  }
+}
+
+package "aisafe.app.remote.logging.server" as server {
+  class RemoteAccessLoggingServer {
+    {static} {method} + main(args : String[])
+  }
+
+  class RemoteAccessUdpReceiver {
+    - listenPort : int
+    - store : RemoteAccessLogStore
+    - logFile : Path
+    {method} + {constructor}(listenPort : int, store : RemoteAccessLogStore, logFile : Path)
+    {method} + run()
+    {method} - handlePacket(packet : DatagramPacket)
+    {method} - appendToFile(entry : RemoteAccessLogEntry)
+  }
+
+  class RemoteAccessLogStore {
+    - recentEvents : Deque<RemoteAccessLogEntry>
+    - activeSessions : Map<String, ActiveSession>
+    {method} + add(entry : RemoteAccessLogEntry)
+    {method} + recentEvents() : List<RemoteAccessLogEntry>
+    {method} + activeSessions() : List<ActiveSession>
+    {method} - applySessionRules(entry : RemoteAccessLogEntry)
+  }
+
+  record ActiveSession {
+    + username : String
+    + clientIp : String
+    + clientPort : int
+    + serviceId : String
+    + since : Instant
+  }
+
+  class RemoteAccessHttpServer {
+    - port : int
+    - store : RemoteAccessLogStore
+    {method} + {constructor}(port : int, store : RemoteAccessLogStore)
+    {method} + run()
+  }
+
+  class RemoteAccessHttpHandler {
+    - client : Socket
+    - store : RemoteAccessLogStore
+    {method} + {constructor}(client : Socket, store : RemoteAccessLogStore)
+    {method} + run()
+    {method} - route(path : String, out : OutputStream)
+    {method} - serveStaticFile(resource : String, contentType : String, out : OutputStream)
+    {method} - serveEventsFragment(out : OutputStream)
+    {method} - serveActiveUsersFragment(out : OutputStream)
+  }
+}
+
+package "aisafe.app.pilot.server" as pilot {
+  class PilotLoggingClientHandler {
+    - socket : Socket
+    - sessionHandler : PilotSessionHandler
+    - accessLogger : RemoteAccessUdpLogger
+    - sessionTracker : RemoteAccessSessionTracker
+    {method} + {constructor}(socket : Socket)
+    {method} + run()
+    {static} {method} + bootstrapRemoteLoggingConfig()
+  }
+}
+
+package "aisafe.app.atc.server" as atc {
+  class AtcLoggingClientHandler {
+    - socket : Socket
+    - accessLogger : RemoteAccessUdpLogger
+    - sessionTracker : RemoteAccessSessionTracker
+    - currentSession : UserSession
+    {method} + {constructor}(socket : Socket)
+    {method} + run()
+    {method} - processCommand(line : String) : String
+    {static} {method} + bootstrapRemoteLoggingConfig()
+  }
+}
+
+package "aisafe.app.weather.server" as weather {
+  class LoggingClientHandler {
+    - socket : Socket
+    - sessionHandler : WeatherSessionHandler
+    - accessLogger : RemoteAccessUdpLogger
+    - sessionTracker : RemoteAccessSessionTracker
+    {method} + {constructor}(socket : Socket)
+    {method} + run()
+    {static} {method} + bootstrapRemoteLoggingConfig()
+  }
+}
+
+' ============ Relationships ============
+
+' Common -> Common
+RemoteAccessUdpLogger --> RemoteAccessServiceId : uses
+RemoteAccessUdpLogger --> RemoteAccessLoggingConfig : config via
+RemoteAccessCommandObserver --> RemoteAccessUdpLogger : parameter
+RemoteAccessCommandObserver --> RemoteAccessSessionTracker : parameter
+RemoteAccessDatagramParser --> RemoteAccessLogEntry : <<create>>
+
+' Server -> Common
+RemoteAccessUdpReceiver --> RemoteAccessDatagramParser : <<uses>>
+RemoteAccessUdpReceiver --> RemoteAccessLogStore : stores into
+RemoteAccessLogStore --> RemoteAccessLogEntry : contains
+RemoteAccessLogStore .. ActiveSession : contains
+
+' Server internal
+RemoteAccessLoggingServer --> RemoteAccessLogStore : <<create>>
+RemoteAccessLoggingServer --> RemoteAccessUdpReceiver : <<create>>
+RemoteAccessLoggingServer --> RemoteAccessHttpServer : <<create>>
+RemoteAccessHttpServer ..> RemoteAccessHttpHandler : <<create>> per request
+RemoteAccessHttpHandler --> RemoteAccessLogStore : queries
+
+' TCP handlers -> Common
+PilotLoggingClientHandler --> RemoteAccessUdpLogger : uses
+PilotLoggingClientHandler --> RemoteAccessSessionTracker : uses
+PilotLoggingClientHandler --> RemoteAccessCommandObserver : <<uses>>
+
+AtcLoggingClientHandler --> RemoteAccessUdpLogger : uses
+AtcLoggingClientHandler --> RemoteAccessSessionTracker : uses
+AtcLoggingClientHandler --> RemoteAccessCommandObserver : <<uses>>
+
+LoggingClientHandler --> RemoteAccessUdpLogger : uses
+LoggingClientHandler --> RemoteAccessSessionTracker : uses
+LoggingClientHandler --> RemoteAccessCommandObserver : <<uses>>
+
+' Handler -> per-service session
+PilotLoggingClientHandler --> pilot..PilotSessionHandler : delegates to
+LoggingClientHandler --> weather..WeatherSessionHandler : delegates to
+
+@enduml

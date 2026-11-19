@@ -1,0 +1,156 @@
+@startuml US056-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam Roundcorner 6
+hide circle
+
+title US056 - Criar modelo de motor de aeronave\nRegisterEngineModelController | aisafe.infrastructure.application + aisafe.core
+
+package fleet_application {
+    class RegisterEngineModelController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - repo : EngineModelRepository
+        --
+        + registerJet(modelName, manufacturer, type,\n  seaLevelStaticThrustValue, thrustUnit,\n  cruiseThrustValue, tsfc,\n  fuelDensity, fuelSpecificEnergy) : EngineModel
+        + registerElectric(modelName, manufacturer,\n  powerValue, powerUnit, efficiency,\n  energyDensity, specificEnergy) : EngineModel
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class EngineModel <<AggregateRoot>> {
+        - modelName : String
+        - manufacturer : String
+        - type : EngineType
+        --
+        + {static} createJet(modelName, manufacturer, type,\n  fuelSpecs, jetSpecs) : EngineModel
+        + {static} createElectric(modelName, manufacturer,\n  fuelSpecs, electricSpecs) : EngineModel
+        + identity() : EngineModelId
+        + isCompatibleWith(type : EngineType) : boolean
+        + jetSpecs() : JetEngineSpecs
+        + electricSpecs() : ElectricEngineSpecs
+        + fuelSpecs() : FuelSpecs
+    }
+
+    class EngineModelId <<ValueObject>> {
+        - value : String
+        --
+        + {static} newId() : EngineModelId
+        + asUuid() : UUID
+    }
+
+    class JetEngineSpecs <<ValueObject>> {
+        - tsfc : double
+        --
+        + atSeaLevelStatic() : Thrust
+        + atCruiseSpeed() : Thrust
+        + tsfc() : double
+    }
+
+    class ElectricEngineSpecs <<ValueObject>> {
+        - efficiency : double
+        --
+        + power() : Power
+        + efficiency() : double
+    }
+
+    class Thrust <<ValueObject>> {
+        - value : double
+        - unit : String
+        --
+        + value() : double
+        + unit() : String
+    }
+
+    class Power <<ValueObject>> {
+        - value : double
+        - unit : String
+        --
+        + value() : double
+        + unit() : String
+    }
+
+    class FuelSpecs <<ValueObject>> {
+        - density : double
+        - energy : double
+        --
+        + type() : FuelType
+        + density() : double
+        + energy() : double
+    }
+
+    enum EngineType {
+        TURBOFAN
+        TURBOPROP
+        TURBOJET
+        RAMJET
+        ELECTRIC_PROPELLER
+    }
+
+    enum FuelType {
+        JET_A1
+        ELECTRICITY
+    }
+}
+
+package fleet_repositories {
+    interface EngineModelRepository {
+        + findByModelNameAndManufacturer(name, manufacturer) : Optional<EngineModel>
+        + save(model) : EngineModel
+    }
+}
+
+RegisterEngineModelController o--> AuthorizationPort
+RegisterEngineModelController o--> EngineModelRepository
+RegisterEngineModelController ..> EngineModel
+RegisterEngineModelController ..> JetEngineSpecs
+RegisterEngineModelController ..> ElectricEngineSpecs
+RegisterEngineModelController ..> FuelSpecs
+RegisterEngineModelController ..> Thrust
+RegisterEngineModelController ..> Power
+
+EngineModelRepository ..> EngineModel
+
+EngineModel *-- EngineModelId : id
+EngineModel --> EngineType
+EngineModel o-- FuelSpecs
+EngineModel o-- JetEngineSpecs
+EngineModel o-- ElectricEngineSpecs
+
+JetEngineSpecs o-- Thrust : atSeaLevelStatic
+JetEngineSpecs o-- Thrust : atCruiseSpeed
+
+ElectricEngineSpecs o-- Power
+
+FuelSpecs --> FuelType
+
+note right of JetEngineSpecs
+  Colunas JPA distintas via @AttributeOverrides:
+  sea_level_thrust_value / sea_level_thrust_unit
+  cruise_thrust_value    / cruise_thrust_unit
+  Invariante: cruiseThrust <= seaLevelThrust.
+end note
+
+note right of EngineModel
+  Papeis: BACKOFFICE_OPERATOR, ADMIN.
+  Jet: fuelType = JET_A1, jetSpecs nao null.
+  Electric: fuelType = ELECTRICITY,
+            electricSpecs nao null.
+  Rejeita duplicado (modelName + manufacturer).
+end note
+
+legend bottom
+  fleet_application  = eapli.aisafe.fleet.application
+  application_security = eapli.aisafe.application.security
+  fleet_domain       = eapli.aisafe.fleet.domain
+  fleet_repositories = eapli.aisafe.fleet.repositories
+endlegend
+
+@enduml

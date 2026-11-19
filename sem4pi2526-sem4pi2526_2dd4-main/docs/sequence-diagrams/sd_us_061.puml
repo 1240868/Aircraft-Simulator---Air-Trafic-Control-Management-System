@@ -1,0 +1,120 @@
+@startuml SD_US061_RegisterCustomerCollaborator
+title Sequence Diagram — US061 Register Customer Collaborator (Happy Path)
+
+actor "Backoffice Operator" as BO
+participant ":AddCollaboratorUI" as UI <<Presentation>>
+participant ":CustomerConsoleHelper" as H <<Presentation>>
+participant ":AddCollaboratorController" as CTRL <<Application>>
+participant ":ListCollaboratorsController" as CATALOG <<Application>>
+participant ":AuthorizationService" as AUTHZ <<Framework>>
+participant ":CollaboratorUserFactory" as FACT <<Domain Factory>>
+participant ":UserManagementService" as UMS <<Framework>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant "company:AirTransportCompany" as CO <<Aggregate Root>>
+participant "area:AirControlArea" as AREA <<Aggregate Root>>
+
+BO -> UI : menu "Register customer collaborator"
+activate UI
+
+UI -> H : readCustomerKindOrCancel()
+activate H
+H -> BO : prompt "Customer type: 1 = company, 2 = area, 0 = cancel"
+BO -> H : kind
+H --> UI : Optional<kind>
+deactivate H
+
+alt kind empty (0 ou inválido)
+    H -> BO : "Cancelled."
+    UI --> BO : doShow returns false
+else kind == KIND_COMPANY (1)
+    UI -> CTRL : listAirTransportCompaniesForSelection()
+    activate CTRL
+    CTRL -> CATALOG : listAirTransportCompaniesForSelection()
+    CATALOG -> CO_REPO : findAll()
+    CATALOG --> CTRL : options
+    CTRL --> UI : Iterable<AirTransportCompanyOptionDTO>
+    deactivate CTRL
+
+    UI -> H : pickAirTransportCompany(options)
+    activate H
+    H -> BO : tabela Nº / IATA / Company
+    H -> BO : prompt "Select company nº (0 = cancel)"
+    BO -> H : choice
+    H --> UI : Optional<selected> (companyId)
+    deactivate H
+
+    alt seleção cancelada
+        UI --> BO : doShow returns false
+    else empresa escolhida
+        UI -> BO : prompt "Username"
+        BO -> UI : username
+        UI -> BO : prompt "Password"
+        BO -> UI : password
+        UI -> BO : prompt "Email"
+        BO -> UI : email
+        UI -> BO : prompt "First name"
+        BO -> UI : firstName
+        UI -> BO : prompt "Last name"
+        BO -> UI : lastName
+        UI -> BO : prompt "Phone"
+        BO -> UI : phone
+
+        UI -> UI : new RegisterCustomerCollaboratorDTO(\ncompanyId, username, password,\nemail, firstName, lastName, phone)
+
+        UI -> CTRL : registerCollaboratorForAirTransportCompany(dto)
+        activate CTRL
+
+        CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(ADMIN, BACKOFFICE_OPERATOR)
+        CTRL -> FACT : newCollaboratorUser(email, firstName, lastName, phone)
+        FACT --> CTRL : CollaboratorUserData
+        CTRL -> CO_REPO : ofIdentity(CompanyId)
+        CO_REPO --> CTRL : company
+        CTRL -> UMS : allUsers() [emailAlreadyRegistered]
+        UMS --> CTRL : users
+        CTRL -> UMS : registerNewUser(..., AIR_TRANSPORT_COMPANY_COLLABORATOR, now)
+        UMS --> CTRL : SystemUser
+        CTRL -> CO : addCollaborator(username, phone)
+        CTRL -> CO_REPO : save(company)
+        CO_REPO --> CTRL : persisted
+        CTRL --> UI : SystemUser
+        UI -> BO : "Registered collaborator: @" + username
+        deactivate CTRL
+    end
+
+else kind == KIND_AREA (2)
+    UI -> CTRL : listAirControlAreasForSelection()
+    CTRL -> CATALOG : listAirControlAreasForSelection()
+    CATALOG -> AREA_REPO : findAll()
+    CTRL --> UI : options
+
+    UI -> H : pickAirControlArea(options)
+    H -> BO : tabela + prompt "Select area nº (0 = cancel)"
+    BO -> H : choice
+    H --> UI : Optional<selected> (areaId)
+
+    alt seleção cancelada
+        UI --> BO : false
+    else área escolhida
+        UI -> BO : prompts Username, Password, Email,\nFirst name, Last name, Phone
+        BO -> UI : credenciais
+        UI -> UI : new RegisterAreaCollaboratorDTO(...)
+
+        UI -> CTRL : registerCollaboratorForAirControlArea(dto)
+        activate CTRL
+        CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(...)
+        CTRL -> FACT : newCollaboratorUser(...)
+        CTRL -> AREA_REPO : ofIdentity(AirControlAreaCode)
+        AREA_REPO --> CTRL : area
+        CTRL -> UMS : registerNewUser(..., AIR_CONTROL_AREA_COLLABORATOR, now)
+        UMS --> CTRL : SystemUser
+        CTRL -> AREA : addCollaborator(username, phone)
+        CTRL -> AREA_REPO : save(area)
+        CTRL --> UI : SystemUser
+        UI -> BO : "Registered collaborator: @" + username
+        deactivate CTRL
+    end
+end
+deactivate UI
+
+@enduml

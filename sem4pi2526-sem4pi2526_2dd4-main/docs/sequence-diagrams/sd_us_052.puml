@@ -1,0 +1,67 @@
+@startuml SD_US052_RegisterAirport
+title Sequence Diagram — US052 Register Airport (Happy Path)
+
+actor "Backoffice Operator" as BO
+participant ":RegisterAirportUI" as UI <<Presentation>>
+participant ":RegisterAirportController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AirportRepository" as AP_REPO <<Repository>>
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant "airport:Airport" as AP <<Aggregate Root>>
+
+BO -> UI : menu "Register Airport"
+activate UI
+
+UI -> CTRL : listAirControlAreas()
+activate CTRL
+note right of CTRL : sem authz neste método
+CTRL -> AREA_REPO : findAll()
+AREA_REPO --> CTRL : areas
+CTRL --> UI : Iterable<AirControlArea>
+deactivate CTRL
+
+UI -> BO : println "Available Air Control Areas:" + listar cada área
+
+UI -> BO : prompt "ICAO Code (4 letters)"
+BO -> UI : icaoCode
+UI -> BO : prompt "IATA Code (3 letters)"
+BO -> UI : iataCode
+UI -> BO : prompt "Airport Name"
+BO -> UI : name
+UI -> BO : prompt "Town"
+BO -> UI : town
+UI -> BO : prompt "Country"
+BO -> UI : country
+UI -> BO : prompt "Latitude (-90 to 90)"
+BO -> UI : latitude
+UI -> BO : prompt "Longitude (-180 to 180)"
+BO -> UI : longitude
+UI -> BO : prompt "Elevation (meters above sea level)"
+BO -> UI : elevation
+UI -> BO : prompt "Air Control Area Code"
+BO -> UI : areaCode
+
+UI -> CTRL : registerAirport(icao, iata, name, town,\ncountry, lat, lon, elevation, areaCode)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nBACKOFFICE_OPERATOR, ADMIN)
+AUTHZ --> CTRL : ok
+
+CTRL -> AP_REPO : findByIcaoCode(icao)
+AP_REPO --> CTRL : empty
+CTRL -> AP_REPO : findByIataCode(iata)
+AP_REPO --> CTRL : empty
+CTRL -> AREA_REPO : findByCode(AirControlAreaCode.valueOf(areaCode))
+AREA_REPO --> CTRL : area
+
+CTRL -> AP ** : new Airport(...)
+AP --> CTRL : airport
+CTRL -> AP_REPO : save(airport)
+AP_REPO --> CTRL : persisted
+
+CTRL --> UI : Airport
+UI -> BO : "Airport registered successfully."
+deactivate CTRL
+deactivate UI
+
+@enduml

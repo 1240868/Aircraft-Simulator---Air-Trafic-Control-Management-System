@@ -1,0 +1,100 @@
+@startuml SD_US030_AuthenticationAndAuthorization
+title Sequence Diagram — US030 Authentication & Authorization
+
+actor User
+participant ":LoginUI" as UI <<Presentation>>
+participant ":AuthenticationCredentialHandler" as CH <<Infrastructure>>
+participant ":AuthzRegistry" as REG <<Framework>>
+participant ":Authenticator" as AUTH <<Framework>>
+participant ":RegisterWeatherDataUI" as UCUI <<Presentation>>
+participant ":RegisterWeatherDataController" as CTRL <<Application>>
+participant ":AuthorizationPort" as PORT <<Application>>
+participant ":FrameworkAuthorizationAdapter" as ADPT <<Infrastructure>>
+participant ":AuthorizationService" as AUTHZ <<Framework>>
+
+== A) Login — interação consola (LoginUI.doShow) ==
+
+User -> UI : abrir ecrã Login
+activate UI
+
+loop attempt = 1 .. maxAttempts (3)
+    UI -> User : prompt "Username:" (readNonEmptyLine)
+    User -> UI : userName
+
+    UI -> User : prompt "Password:"
+    User -> UI : password
+
+    UI -> CH : authenticated(userName, password, onlyWithThis)
+    activate CH
+    CH -> REG : authenticationService()
+    REG --> CH : Authenticator
+    CH -> AUTH : authenticate(userName, password, onlyWithThis)
+    AUTH --> CH : Optional<Session>
+    deactivate CH
+
+    alt sessão criada
+        CH --> UI : true
+        UI --> User : login OK (doShow returns true)
+        break
+    else falha
+        CH --> UI : false
+        UI -> User : "Wrong username or password. You have N attempts left."
+    end
+end
+
+alt esgotou tentativas
+    UI -> User : "Sorry, unable to authenticate. Please contact your administrator."
+    UI --> User : doShow returns false
+end
+deactivate UI
+
+== B) Autorização — exemplo US041 após login ==
+
+User -> UCUI : menu "Register weather data"
+activate UCUI
+
+UCUI -> User : prompt "Air control area code:"
+User -> UCUI : areaCode
+UCUI -> User : prompt "Observed at (yyyy-MM-ddTHH:mm, UTC):"
+User -> UCUI : observedAtStr
+UCUI -> UCUI : LocalDateTime.parse → Instant (UTC)
+
+alt DateTimeParseException
+    UCUI -> User : "Invalid date/time..."
+    UCUI --> User : doShow returns false
+else data válida
+    UCUI -> User : prompt "Temperature (C):"
+    User -> UCUI : temperatureC
+    UCUI -> User : prompt "Humidity (%):"
+    User -> UCUI : humidityPercent
+    UCUI -> User : prompt "Wind speed (m/s):"
+    User -> UCUI : windSpeed
+    UCUI -> User : prompt "Wind direction (degrees 0-359):"
+    User -> UCUI : windDirection
+
+    UCUI -> CTRL : register(areaCode, observedAt,\ntemperatureC, humidityPercent,\nwindSpeed, windDirection)
+    activate CTRL
+
+    CTRL -> PORT : ensureAuthenticatedUserHasAnyOf(WEATHER_PERSON)
+    PORT -> ADPT : ensureAuthenticatedUserHasAnyOf(...)
+    ADPT -> REG : authorizationService()
+    ADPT -> AUTHZ : ensureAuthenticatedUserHasAnyOf(WEATHER_PERSON)
+    AUTHZ --> CTRL : ok
+
+    note over CTRL
+      Continua US041 (repositórios, WeatherData, save)
+      — ver sd_us_041.puml
+    end note
+
+    CTRL --> UCUI : WeatherData
+    UCUI -> User : "Weather data registered: " + wd.identity()
+end
+deactivate CTRL
+deactivate UCUI
+
+note over PORT
+  US031 / US061 / US062: AuthorizationService
+  via AuthzRegistry (sem AuthorizationPort)
+end note
+
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+skinparam maxMessageSize 180
+autonumber
+actor "Admin" as Actor
+
+
+participant ":AddUserUI" as UI
+
+
+participant "theController\n:AddUserController" as Controller
+
+
+
+participant "authz\n:AuthorizationService" as Authz
+participant "userSvc\n:UserManagementService" as UserSvc
+
+
+Actor -> UI : Inicia a funcionalidade (doShow)
+activate UI
+
+' 1. Preenchimento de Dados Base
+UI --> Actor : Pede dados base (username, password, firstName, lastName, email)
+Actor -> UI : Insere os dados
+
+' 2. Construção do Menu de Roles
+UI -> Controller : getRoleTypes()
+activate Controller
+Controller --> UI : Role[] (ADMIN, BACKOFFICE_OPERATOR, etc.)
+deactivate Controller
+
+UI --> Actor : Apresenta menu de seleção de Roles
+Actor -> UI : Seleciona os roles desejados
+
+' 3. Registo do Utilizador
+UI -> Controller : addUser(username, password, firstName, lastName, email, roleTypes)
+activate Controller
+
+' 4. Validação de Segurança
+Controller -> Authz : ensureAuthenticatedUserHasAnyOf(ADMIN)
+activate Authz
+Authz --> Controller : (Sucesso)
+deactivate Authz
+
+' 5. Delegação ao Framework
+Controller -> UserSvc : registerNewUser(username, password, firstName, lastName, email, roles, now())
+activate UserSvc
+
+
+alt Username já existe
+    UserSvc --> Controller : throws IntegrityViolationException \n(ou ConcurrencyException)
+    Controller --> UI : throws
+    UI --> Actor : "That username is already in use."
+else Criação com Sucesso
+    UserSvc --> Controller : newSystemUser
+    Controller --> UI : newSystemUser
+end
+deactivate UserSvc
+deactivate Controller
+
+UI --> Actor : (Conclui a operação)
+deactivate UI
+
+@enduml

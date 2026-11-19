@@ -1,0 +1,169 @@
+@startuml Simulation_Aggregate
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "Simulation Aggregate (AR)" {
+
+  class Simulation <<AggregateRoot>> {
+    - id          : SimulationId
+    - areaId      : AirControlAreaId <<Ref>>
+    - requestedBy : UserId <<Ref>>
+    - requestedAt : LocalDateTime
+    - status      : SimulationStatus
+    - result      : SimulationResult
+    --
+    + recordFlightResult(r: FlightSimulationResult) : void
+    + recordViolation(v: SafetyViolation) : void
+    + finalise(minFuelReserve: Double) : void
+    - assertNotFinalised() : void
+  }
+
+  class SimulationId <<ValueObject>> {
+    - value : UUID
+  }
+
+  ' Null enquanto status != COMPLETED.
+  ' Criado atomicamente por finalise() — imutável após isso.
+  class SimulationResult <<ValueObject>> {
+    - overallOutcome : SimulationOutcome
+    - flightResults  : List<FlightSimulationResult>
+    - violations     : List<SafetyViolation>
+    - fileRef        : ReportFileRef
+    - finalisedAt    : LocalDateTime
+  }
+
+  class FlightSimulationResult <<ValueObject>> {
+    - flightPlanId  : FlightPlanId <<Ref>>
+    - status        : FlightExecutionStatus
+    - fuelRemaining : SimFuelQuantity
+    - snapshots     : List<SimulationSnapshot>
+  }
+
+  class SimulationSnapshot <<ValueObject>> {
+    - timestamp     : LocalDateTime
+    - position      : SimCoordinates
+    - altitude      : SimAltitude
+    - fuelRemaining : SimFuelQuantity
+    - velocity      : VelocityVector
+  }
+
+  class SafetyViolation <<ValueObject>> {
+    - type            : ViolationType
+    - timestamp       : LocalDateTime
+    - position        : SimCoordinates
+    - involvedFlights : List<FlightPlanId>
+  }
+
+  class VelocityVector <<ValueObject>> {
+    - speed     : SimSpeed
+    - direction : SimAngle
+  }
+
+  class ReportFileRef <<ValueObject>> {
+    - filename : String
+    - format   : ReportFormat
+  }
+
+  class SimFuelQuantity <<ValueObject>> {
+    - value : Double
+    - unit  : String
+  }
+
+  class SimCoordinates <<ValueObject>> {
+    - latitude  : Double
+    - longitude : Double
+  }
+
+  class SimAltitude <<ValueObject>> {
+    - value : Double
+    - unit  : String
+  }
+
+  class SimSpeed <<ValueObject>> {
+    - value : Double
+    - unit  : String
+  }
+
+  class SimAngle <<ValueObject>> {
+    - value : Double
+  }
+
+  enum SimulationStatus {
+    PENDING
+    RUNNING
+    COMPLETED
+    FAILED
+  }
+
+  enum SimulationOutcome {
+    PASS
+    FAIL
+  }
+
+  enum FlightExecutionStatus {
+    COMPLETED
+    DIVERTED
+    TERMINATED
+  }
+
+  enum ViolationType {
+    PROXIMITY
+    ALTITUDE_CONFLICT
+    FUEL_RESERVE
+  }
+
+  enum ReportFormat {
+    TXT
+    JSON
+  }
+}
+
+' ── Referências externas (só IDs) ─────────────────────────────────────
+class AirControlAreaId <<ValueObject>>
+class FlightPlanId     <<ValueObject>>
+class UserId           <<ValueObject>>
+
+' ── Composições internas ───────────────────────────────────────────────
+Simulation "1" *-- "1"    SimulationId
+Simulation "1" *-- "1"    SimulationStatus
+Simulation "1" *-- "0..1" SimulationResult
+
+SimulationResult "1" *-- "1"    SimulationOutcome
+SimulationResult "1" *-- "0..*" FlightSimulationResult
+SimulationResult "1" *-- "0..*" SafetyViolation
+SimulationResult "1" *-- "0..1" ReportFileRef
+
+FlightSimulationResult "1" *-- "1"    FlightExecutionStatus
+FlightSimulationResult "1" *-- "1"    SimFuelQuantity
+FlightSimulationResult "1" *-- "0..*" SimulationSnapshot
+
+SimulationSnapshot "1" *-- "1" SimCoordinates
+SimulationSnapshot "1" *-- "1" SimAltitude
+SimulationSnapshot "1" *-- "1" SimFuelQuantity
+SimulationSnapshot "1" *-- "1" VelocityVector
+
+SafetyViolation "1" *-- "1" SimCoordinates
+SafetyViolation "1" *-- "1" ViolationType
+
+VelocityVector "1" *-- "1" SimSpeed
+VelocityVector "1" *-- "1" SimAngle
+
+' ── Referências por ID a outros agregados ─────────────────────────────
+Simulation             "1"   --> "1"    AirControlAreaId : ref
+Simulation             "1"   --> "1"    UserId           : requestedBy ref
+FlightSimulationResult "1"   --> "1"    FlightPlanId     : ref
+SafetyViolation        "1"   --> "1..*" FlightPlanId     : ref
+
+note bottom of Simulation
+  Invariante: result == null enquanto status != COMPLETED.
+  finalise(minFuelReserve) só pode ser chamado uma vez:
+    - verifica status != COMPLETED (DomainException se já finalizado)
+    - computa overallOutcome:
+        PASS — sem violações do tipo FUEL_RESERVE
+        FAIL — caso contrário
+    - cria SimulationResult imutável e transita para COMPLETED.
+end note
+
+@enduml

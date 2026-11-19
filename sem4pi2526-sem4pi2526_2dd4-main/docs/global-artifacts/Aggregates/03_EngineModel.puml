@@ -1,0 +1,92 @@
+@startuml EngineModel_Aggregate_Final
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "EngineModel Aggregate (AR)" {
+  class EngineModel <<AggregateRoot>> {
+    - id      : EngineModelId
+    - name    : ModelName
+    - makerId : MakerId
+    - type    : EngineType
+    - fuel    : FuelSpecs
+    --
+    + isCompatibleWith(type: EngineType) : boolean
+    + getJetSpecs() : JetEngineSpecs
+    + getElectricSpecs() : ElectricEngineSpecs
+  }
+
+  ' Tipos de motorização completos conforme o enunciado [1]
+  enum EngineType <<ValueObject>> {
+    TURBOPROP
+    TURBOFAN
+    TURBOJET
+    RAMJET
+    ELECTRIC_PROPELLER
+  }
+
+  ' Especificações para motores a jato (Impulso e TSFC) [3, 4]
+  class JetEngineSpecs <<ValueObject>> {
+    - atSeaLevelStatic : Thrust
+    - atCruiseSpeed    : Thrust
+    - tsfc             : Double
+  }
+
+  ' Especificações para motores elétricos/hélice [5]
+  class ElectricEngineSpecs <<ValueObject>> {
+    - power      : Power
+    - efficiency : Double
+  }
+
+  ' Detalhes do combustível/energia [6]
+  class FuelSpecs <<ValueObject>> {
+    - type    : FuelType <<enum: JET_A1, ELECTRICITY>>
+    - density : Double
+    - energy  : Double
+  }
+
+  class ModelName <<ValueObject>> {
+    - value : String
+  }
+  class EngineModelId {
+    - value : String
+  }
+}
+
+' Value Objects de Grandeza Física (Encapsulam valor e unidade)
+class Thrust <<ValueObject>> {
+  - value : Double
+  - unit  : String
+}
+class Power <<ValueObject>> {
+  - value : Double
+  - unit  : String
+}
+
+' Referências externas
+class MakerId <<ValueObject>>
+
+' Relações Internas
+EngineModel "1" *-- "1" EngineModelId
+EngineModel "1" *-- "1" EngineType
+EngineModel "1" *-- "1" FuelSpecs
+EngineModel "1" *-- "0..1" JetEngineSpecs
+EngineModel "1" *-- "0..1" ElectricEngineSpecs
+EngineModel "1" *-- "1" ModelName
+
+JetEngineSpecs "1" *-- "2" Thrust
+ElectricEngineSpecs "1" *-- "1" Power
+
+' Referência para Fabricante
+EngineModel "1" --> "1" EngineMakerId : ref
+
+note bottom of EngineModel
+  **Invariantes e Regras de Negócio:**
+  1. Nome + Fabricante deve ser único (US056) [5].
+  2. Motores a jato devem ter JetEngineSpecs.
+  3. Motores elétricos devem ter ElectricEngineSpecs.
+  4. Impulso varia linearmente e desce com a altitude [3].
+end note
+
+@enduml

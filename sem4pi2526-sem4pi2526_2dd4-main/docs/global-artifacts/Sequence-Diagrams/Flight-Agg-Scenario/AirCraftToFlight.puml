@@ -1,0 +1,49 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Pilot" as User
+participant ":FlightPlanController" as Ctrl
+participant "svc:FlightAssignmentService" as Svc
+participant "repoA:AircraftRepository" as RepoA
+participant "repoM:AircraftModelRepository" as RepoM
+participant "repoR:FlightRouteRepository" as RepoR
+participant "aircraft:Aircraft" as Aircraft
+participant "plan:FlightPlan" as AR
+
+User -> Ctrl : assignAircraftToPlan(planId, aircraftId)
+activate Ctrl
+
+Ctrl -> Svc : validateAndAssign(planId, aircraftId)
+activate Svc
+
+' 1. Verificar Estado da Aeronave (US071)
+Svc -> RepoA : findById(aircraftId)
+RepoA --> Svc : aircraft
+Svc -> Aircraft : isOperational()
+activate Aircraft
+Aircraft --> Svc : statusOk
+deactivate Aircraft
+
+' 2. Obter Alcance do Modelo (US055) e Distância da Rota (US073)
+Svc -> RepoM : findById(aircraft.modelId)
+RepoM --> Svc : model
+Svc -> RepoR : findById(plan.routeId)
+RepoR --> Svc : route
+
+' 3. Validação Cruzada (Invariante de Segurança)
+alt statusOk == true AND model.range > route.distance
+    Svc -> AR : setAircraft(aircraftId)
+    activate AR
+AR --> Svc : success
+    deactivate AR
+    Svc --> Ctrl : success
+    Ctrl --> User : aeronave atribuída com sucesso
+else
+    Svc --> Ctrl : error("Aeronave inválida ou alcance insuficiente")
+    Ctrl --> User : erro na atribuição
+end
+
+deactivate Svc
+deactivate Ctrl
+@enduml

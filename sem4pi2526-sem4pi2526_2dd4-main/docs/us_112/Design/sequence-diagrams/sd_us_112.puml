@@ -1,0 +1,70 @@
+@startuml SD_US112_GenerateMonthlyReport
+title Sequence Diagram — US112 Generate Monthly Report (Happy Path)
+
+actor "Flight Control Operator" as FCO
+participant ":GenerateMonthlyReportUI" as UI <<Presentation>>
+participant ":GenerateMonthlyReportController" as CTRL <<UseCaseController>>
+participant ":AuthorizationPort" as AUTHZ
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant ":AirportRepository" as AIRPORT_REPO <<Repository>>
+participant ":MonthlyReportDataCollector" as COLLECTOR <<Strategy>>
+participant ":FlightPlanRepository" as FP_REPO <<Repository>>
+participant "report:MonthlyStatisticsReport" as REPORT <<Domain>>
+participant ":TextFileReportExporter" as EXPORTER <<Infrastructure>>
+
+FCO -> UI : menu "Generate monthly report"
+activate UI
+
+UI -> FCO : prompt "Year (e.g. 2026)"
+FCO -> UI : year
+UI -> FCO : prompt "Month (1-12)"
+FCO -> UI : month
+
+UI -> UI : validate month range [1..12]
+
+UI -> CTRL : generate(year, month)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(FLIGHT_CONTROL_OPERATOR)
+AUTHZ --> CTRL : ok
+
+CTRL -> AUTHZ : currentUsername()
+AUTHZ --> CTRL : username
+
+CTRL -> AREA_REPO : findByCollaboratorUsername(username)
+AREA_REPO --> CTRL : area
+
+CTRL -> COLLECTOR ** : new MonthlyReportDataCollector(flightPlanRepo, airportRepo, area.areaCode(), year, month)
+
+CTRL -> COLLECTOR : collect()
+activate COLLECTOR
+
+COLLECTOR -> AIRPORT_REPO : findByAirControlAreaCode(areaCode)
+AIRPORT_REPO --> COLLECTOR : airports
+
+COLLECTOR -> COLLECTOR : extract ICAO codes -> areaAirportCodes
+
+COLLECTOR -> FP_REPO : findByDepartureYearMonth(year, month)
+FP_REPO --> COLLECTOR : flightPlans
+
+COLLECTOR -> COLLECTOR : filter by departsFromArea(areaAirportCodes)\n+ count by FlightPlanStatus (9 values)\n+ count by FlightType (6 values)\n+ collect distinct pilots & aircraft
+COLLECTOR --> CTRL : MonthlyReportStats
+deactivate COLLECTOR
+
+CTRL -> REPORT ** : new MonthlyStatisticsReport(areaCode, areaName, period, stats)
+REPORT --> CTRL : report
+
+CTRL -> EXPORTER : export(report)
+activate EXPORTER
+EXPORTER -> EXPORTER : report.render()
+EXPORTER -> EXPORTER : writeFile("reports/monthly_report_*.txt")
+EXPORTER --> CTRL : Path
+deactivate EXPORTER
+
+CTRL --> UI : MonthlyReportResult.success(path)
+deactivate CTRL
+
+UI -> FCO : "Report saved to: <path>"
+deactivate UI
+
+@enduml

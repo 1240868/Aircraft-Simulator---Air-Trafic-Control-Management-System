@@ -1,0 +1,74 @@
+@startuml FuelQtyState
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.5
+skinparam participantBorderColor Black
+skinparam participantBackgroundColor White
+skinparam actorBorderColor Black
+
+actor "Flight Control Operator" as User
+participant ":SimulationController"         as Ctrl
+participant ":FinaliseSimulationService"    as SVC
+participant ":SimulationRepository"         as SimRepo
+participant ":AirControlAreaRepository"     as AreaRepo
+participant "area:AirControlArea"           as AreaAR
+participant "sim:Simulation"                as AR
+
+' ── 1. Entry point ────────────────────────────────────────────────────
+User -> Ctrl : finaliseSimulation(simulationId)
+activate Ctrl
+
+Ctrl -> SVC : finalise(simulationId)
+activate SVC
+
+' ── 2. Carregar o agregado Simulation ─────────────────────────────────
+SVC -> SimRepo : findById(simulationId)
+activate SimRepo
+SimRepo --> SVC : sim
+deactivate SimRepo
+
+' ── 3. Resolver referência externa — AirControlArea ───────────────────
+' A área alvo já está guardada em sim.areaId (referência por identidade)
+SVC -> AreaRepo : findById(sim.areaId)
+activate AreaRepo
+AreaRepo --> SVC : area
+deactivate AreaRepo
+
+SVC -> AreaAR : getMinFuelReserve()
+activate AreaAR
+AreaAR --> SVC : minReserve
+deactivate AreaAR
+
+' ── 4. Agregado protege o invariante de finalização ───────────────────
+SVC -> AR : finalise(minReserve)
+activate AR
+
+alt status == COMPLETED
+
+    AR --> SVC : throw DomainException("Simulation already finalised")
+
+else status != RUNNING
+    AR --> SVC : throw DomainException("Simulation not in RUNNING state")
+
+else válido
+    AR -> AR : computa overallOutcome\n(FAIL se violações FUEL_RESERVE)
+    AR -> AR : cria SimulationResult\n(imutável)
+    AR -> AR : status = COMPLETED
+    AR --> SVC : ok
+end
+deactivate AR
+
+' ── 5. Persistir o agregado finalizado ────────────────────────────────
+SVC -> SimRepo : save(sim)
+activate SimRepo
+SimRepo --> SVC : ok
+deactivate SimRepo
+
+SVC --> Ctrl : SimulationResult / DomainException
+deactivate SVC
+
+Ctrl --> User : resultado final / erro
+deactivate Ctrl
+
+@enduml

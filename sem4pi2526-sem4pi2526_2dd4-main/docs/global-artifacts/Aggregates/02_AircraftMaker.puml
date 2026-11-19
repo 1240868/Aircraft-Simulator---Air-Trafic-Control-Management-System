@@ -1,0 +1,35 @@
+@startuml AircraftMaker_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "AircraftMaker (AR)" {
+  class AircraftMaker <<AggregateRoot>> {
+    - id      : MakerId
+    - name    : MakerName
+    - country : OriginCountry
+    --
+    + isOwnerOf(targetMakerId: MakerId) : boolean
+  }
+  class MakerId <<ValueObject>> {
+    - value : UUID
+  }
+  class MakerName <<ValueObject>> {
+    - value : String
+  }
+  class OriginCountry <<ValueObject>> {
+    - name : String
+  }
+}
+
+AircraftMaker "1" *-- "1" MakerId
+AircraftMaker "1" *-- "1" MakerName
+AircraftMaker "1" *-- "1" OriginCountry
+
+note bottom of AircraftMaker
+  A validação de unicidade de nome deve ser feita
+  por um Domain Service antes da criação.
+end note
+
+@enduml

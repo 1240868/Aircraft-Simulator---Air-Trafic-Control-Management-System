@@ -1,0 +1,30 @@
+@startuml EngineMaker_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "EngineMaker (AR)" {
+  class EngineMaker <<AggregateRoot>> {
+    - id      : EngineMakerId
+    - name    : EngineMakerName
+    - country : EngineOriginCountry
+    --
+    + isOwnerOf(targetMakerId: EngineMakerId) : boolean
+  }
+  class EngineMakerId <<ValueObject>> {
+    - value : UUID
+  }
+  class EngineMakerName <<ValueObject>> {
+    - value : String
+  }
+  class EngineOriginCountry <<ValueObject>> {
+    - name : String
+  }
+}
+
+EngineMaker "1" *-- "1" EngineMakerId
+EngineMaker "1" *-- "1" EngineMakerName
+EngineMaker "1" *-- "1" EngineOriginCountry
+
+@enduml

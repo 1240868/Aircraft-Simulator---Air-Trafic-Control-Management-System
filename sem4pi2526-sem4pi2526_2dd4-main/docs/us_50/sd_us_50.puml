@@ -1,0 +1,80 @@
+@startuml
+skinparam maxMessageSize 150
+autonumber
+actor "Backoffice Operator\n(ou Admin)" as Actor
+
+
+participant ":RegisterAirControlAreaUI" as UI
+
+
+
+participant "controller\n:RegisterAirControlAreaController" as Controller
+participant "authz\n:AuthorizationPort" as Authz
+
+
+
+participant "AirControlAreaCode" as VO <<Value Object>>
+participant "area\n:AirControlArea" as Aggregate <<Aggregate Root>>
+participant "repo\n:AirControlAreaRepository" as Repo <<Repository Interface>>
+
+
+Actor -> UI : Inicia a funcionalidade (doShow)
+activate UI
+
+UI --> Actor : Pede dados (code, name, latMin, latMax, lonMin, lonMax)
+Actor -> UI : Insere os dados
+
+UI -> Controller : registerAirControlArea(code, name, latMin, latMax, lonMin, lonMax)
+activate Controller
+
+' 1. Verificação de Segurança
+Controller -> Authz : ensureAuthenticatedUserHasAnyOf(BACKOFFICE_OPERATOR, ADMIN)
+activate Authz
+Authz --> Controller : (Sucesso)
+deactivate Authz
+
+' 2. Verificação de Unicidade
+Controller -> VO : valueOf(code)
+activate VO
+VO --> Controller : codeVO
+deactivate VO
+
+Controller -> Repo : findByCode(codeVO)
+activate Repo
+Repo --> Controller : Optional<AirControlArea>
+deactivate Repo
+
+alt Optional.isPresent() == true (Código já existe)
+    Controller --> UI : throws IntegrityViolationException
+    UI --> Actor : "Error: Air control area code already exists..."
+else Optional.isPresent() == false (Código válido)
+
+    ' 3. Criação e Validação do Agregado (Domain)
+    Controller -> Aggregate ** : new AirControlArea(code, name, latMin, latMax, lonMin, lonMax)
+    activate Aggregate
+
+
+    alt Preconditions falham (ex: latMin >= latMax)
+        Aggregate --> Controller : throws IllegalArgumentException
+        Controller --> UI : throws IllegalArgumentException
+        UI --> Actor : "Invalid data: [mensagem de erro]"
+    else Validações com sucesso
+        Aggregate -> VO ** : valueOf(code)
+        Aggregate --> Controller : area
+    end
+    deactivate Aggregate
+
+    ' 4. Persistência
+    Controller -> Repo : save(area)
+    activate Repo
+    Repo --> Controller : savedArea
+    deactivate Repo
+
+    Controller --> UI : savedArea
+    deactivate Controller
+
+    UI --> Actor : "Air control area registered successfully."
+end
+
+deactivate UI
+@enduml

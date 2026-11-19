@@ -1,0 +1,217 @@
+@startuml US085_SequenceDiagram
+title US085 — Test / Validate Flight Plan (Full Flow)
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam sequenceArrowThickness 1.2
+skinparam sequenceParticipantBackgroundColor #FAFAFA
+skinparam sequenceParticipantBorderColor #444444
+
+actor "Pilot" as PILOT
+participant ":TestFlightPlanUI" as UI #EEF0FB
+participant ":TestFlightPlanController" as CTRL #E8F5F0
+participant ":AuthorizationPort" as AUTH #F5F5F5
+participant ":FlightPlanRepository" as FREPO #FFF8EC
+participant ":PilotRepository" as PR #FFF8EC
+participant ":FlightPlanDslValidationPort" as DSLV #FCE4EC
+participant ":FlightPlanTestPayloadWriter" as PAYLOAD #E3F2FD
+participant ":FlightPlanPhysicsTestPort" as PHTEST #F3E5F5
+participant "fp:FlightPlan" as FP #FFF8EC
+participant "flight_plan_validator\n(C executable)" as CEXE #FFF0F0
+
+== Step 1 — Pilot selects test option ==
+
+PILOT -> UI : select "Test / Validate Flight Plan"
+activate UI
+
+UI -> CTRL : listTestablePlansForCurrentPilot()
+activate CTRL
+
+CTRL -> AUTH : ensureAuthenticatedUserHasAnyOf(PILOT)
+activate AUTH
+AUTH --> CTRL : void
+deactivate AUTH
+
+CTRL -> CTRL : resolvePilotIdForCurrentUser()
+note right of CTRL
+  Looks up authenticated session,
+  finds Pilot by email via PilotRepository
+end note
+
+CTRL -> FREPO : findAll()
+activate FREPO
+FREPO --> CTRL : all flight plans
+deactivate FREPO
+
+CTRL -> CTRL : filter by pilotId + isTestable(status)
+note right of CTRL
+  isTestable = DRAFT, PENDING_TEST, or REJECTED
+end note
+
+CTRL --> UI : List<FlightPlan>
+deactivate CTRL
+
+UI --> PILOT : show testable flight plans\n(designator, id, status)
+
+== Step 2 — Pilot selects a flight plan ==
+
+PILOT -> UI : selects flight plan
+
+UI -> CTRL : testForCurrentPilot(flightPlanId)
+activate CTRL
+
+CTRL -> AUTH : ensureAuthenticatedUserHasAnyOf(PILOT)
+activate AUTH
+AUTH --> CTRL : void
+deactivate AUTH
+
+CTRL -> CTRL : resolvePilotIdForCurrentUser()
+
+CTRL -> FREPO : findById(flightPlanId)
+activate FREPO
+FREPO --> CTRL : Optional<FlightPlan>
+deactivate FREPO
+
+alt flight plan not found
+    CTRL --> UI : throws IllegalArgumentException
+    UI --> PILOT : "Flight plan not found"
+    deactivate CTRL
+else found
+    CTRL -> FP : getPilot()
+    activate FP
+    FP --> CTRL : pilotId
+    deactivate FP
+
+    alt pilot does not match
+        CTRL --> UI : throws IllegalArgumentException
+        UI --> PILOT : "Not your flight plan"
+        deactivate CTRL
+    else pilot matches
+
+        CTRL -> FP : getStatus()
+        activate FP
+        FP --> CTRL : status
+        deactivate FP
+
+        alt status is not testable
+            CTRL --> UI : throws IllegalStateException
+            UI --> PILOT : "Plan cannot be tested in current status"
+            deactivate CTRL
+        else status is testable
+
+            == Step 3 — DSL Validation ==
+
+            CTRL -> DSLV : validate(fp)
+            activate DSLV
+            note right of DSLV
+              Re-imports DSL source file,
+              runs lexical/syntactic/semantic
+              checks via LPROG FlightPlanImporter
+            end note
+            DSLV --> CTRL : List<String> dslErrors
+            deactivate DSLV
+
+            alt DSL validation failed
+                CTRL -> FP : markTestFailed()
+                activate FP
+                FP --> CTRL : void
+                deactivate FP
+
+                CTRL -> FREPO : save(fp)
+                activate FREPO
+                FREPO --> CTRL : persisted
+                deactivate FREPO
+
+                CTRL --> UI : FlightPlanTestResult\n{passed: false, dslErrors: [...],\n physicsErrors: [],\n newStatus: REJECTED}
+                deactivate CTRL
+                UI --> PILOT : "Flight plan FAILED validation"\n + DSL errors
+
+            else DSL validation passed
+
+                == Step 4 — C Physics Validation ==
+
+                CTRL -> PAYLOAD : writePayload(fp)
+                activate PAYLOAD
+
+                PAYLOAD -> PAYLOAD : totalFuelKg(fp)
+                PAYLOAD -> PAYLOAD : resolveAirport(lastLeg.arrivalAirport())
+                PAYLOAD -> PAYLOAD : readSegmentAltitudesMeters(fp)
+
+                note right of PAYLOAD
+                  Builds JSON:
+                  {fuelOnBoardKg, reserveFuelKg,
+                   minFuelKg, serviceCeilingM,
+                   minAltitudeM, segmentAltitudesM}
+                end note
+
+                PAYLOAD --> CTRL : Path payloadJson
+                deactivate PAYLOAD
+
+                CTRL -> PHTEST : run(payloadJson)
+                activate PHTEST
+
+                PHTEST -> CEXE : ProcessBuilder("./flight_plan_validator", payloadJson)
+                activate CEXE
+
+                note right of CEXE
+                  C reads JSON, validates:
+                  1. fuel remaining >= minFuel
+                  2. each segment altitude <= ceiling
+                  3. each segment altitude >= dest elevation
+                  Output: "PASS" or "FAIL|code|msg"
+                  Exit: 0 PASS, 1 FAIL, 2 ERR
+                end note
+
+                CEXE --> PHTEST : stdout lines
+                deactivate CEXE
+
+                PHTEST --> CTRL : List<String> physicsErrors
+                deactivate PHTEST
+
+                == Step 5 — Cleanup Temp File ==
+
+                CTRL -> CTRL : Files.deleteIfExists(payloadJson)
+
+                alt physics validation failed
+                    CTRL -> FP : markTestFailed()
+                    activate FP
+                    FP --> CTRL : void
+                    deactivate FP
+
+                    CTRL -> FREPO : save(fp)
+                    activate FREPO
+                    FREPO --> CTRL : persisted
+                    deactivate FREPO
+
+                    CTRL --> UI : FlightPlanTestResult\n{passed: false, dslErrors: [],\n physicsErrors: [...],\n newStatus: REJECTED}
+                    deactivate CTRL
+                    UI --> PILOT : "Flight plan FAILED validation"\n + physics errors
+
+                else physics passed
+
+                    CTRL -> FP : markTestPassed()
+                    activate FP
+                    note right of FP
+                      status = TESTED
+                    end note
+                    FP --> CTRL : void
+                    deactivate FP
+
+                    CTRL -> FREPO : save(fp)
+                    activate FREPO
+                    FREPO --> CTRL : persisted
+                    deactivate FREPO
+
+                    CTRL --> UI : FlightPlanTestResult\n{passed: true, dslErrors: [],\n physicsErrors: [],\n newStatus: TESTED}
+                    deactivate CTRL
+                    UI --> PILOT : "Flight plan PASSED validation.\nStatus: TESTED"
+
+                end ' physics pass/fail
+            end ' DSL pass/fail
+        end ' testable status
+    end ' ownership
+end ' flight plan found
+
+deactivate UI
+
+@enduml

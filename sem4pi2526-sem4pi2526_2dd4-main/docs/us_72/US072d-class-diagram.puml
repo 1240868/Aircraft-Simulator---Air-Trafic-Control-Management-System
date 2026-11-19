@@ -1,0 +1,74 @@
+@startuml US072d-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US072d - Listar frota ativa por idade (anos completos)\nListFleetByAgeController
+
+package fleet_application {
+    class ListFleetByAgeController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftRepository
+        - modelRepo : AircraftModelRepository
+        - companyRepo : AirTransportCompanyRepository
+        - today : Supplier<LocalDate>
+        --
+        + listFleetByAge(ageYearsRaw : String) : FleetListResult
+    }
+
+    class FleetListResult <<record>> {
+        + aircraft : List<AircraftFleetListItemDTO>
+        + messageWhenEmpty : String
+    }
+
+    class AircraftFleetListItemDTO <<record>> {
+        + registrationNumber : String
+        + modelName : String
+        + manufacturer : String
+        + operationalStatus : String
+        + numberOfSeats : int
+        + ageInCompleteYears : Integer
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class Aircraft <<AggregateRoot>> {
+        + ageInCompleteYears(asOf : LocalDate) : int
+        + isListedForActiveFleetByAge(companyId, ageYears, asOf) : boolean
+    }
+
+    class AircraftModel <<Entity>> {
+        + identity() : AircraftModelId
+    }
+
+    interface AircraftRepository {
+        + findActiveByOwnerCompanyAndAge(companyId, completeYears, asOf)
+    }
+
+    interface AircraftModelRepository {
+        + findByIdentity(id) : Optional<AircraftModel>
+    }
+}
+
+package company_domain {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username) : Optional<CompanyId>
+    }
+}
+
+ListFleetByAgeController o--> AuthorizationPort
+ListFleetByAgeController --> AircraftRepository
+ListFleetByAgeController --> AircraftModelRepository
+ListFleetByAgeController --> AirTransportCompanyRepository
+ListFleetByAgeController ..> FleetListResult
+FleetListResult *-- AircraftFleetListItemDTO
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+
+actor "Colaborador Companhia" as User
+participant ":AircraftController" as Ctrl
+participant ":AircraftRepository" as RepoA
+participant ":AircraftModelRepository" as RepoM
+participant "aircraft:Aircraft" as AR
+participant "newConfig:CabinConfiguration" as VO
+
+User -> Ctrl : reconfigurarCabine(aircraftId, seatsConfig)
+activate Ctrl
+
+Ctrl -> RepoA : findById(aircraftId)
+activate RepoA
+RepoA --> Ctrl : aircraft
+deactivate RepoA
+
+' Vernon recomenda carregar dependências externas antes [4]
+Ctrl -> RepoM : findSpecsByModelId(aircraft.modelId)
+activate RepoM
+RepoM --> Ctrl : modelSpecs
+deactivate RepoM
+
+Ctrl -> VO : new(seatsConfig)
+activate VO
+VO --> Ctrl : newConfig
+deactivate VO
+
+Ctrl -> AR : reconfigureCabin(newConfig, modelSpecs)
+activate AR
+
+' A Raiz do Agregado protege o invariante [1, 3]
+
+alt valid configuration
+    AR -> AR : updateState(newConfig)
+    AR --> Ctrl : success
+else invalid (exceeds capacity)
+    AR --> Ctrl : throw DomainException("Capacity Exceeded")
+end
+deactivate AR
+
+Ctrl -> RepoA : save(aircraft)
+Ctrl --> User : confirmação
+
+deactivate Ctrl
+@enduml

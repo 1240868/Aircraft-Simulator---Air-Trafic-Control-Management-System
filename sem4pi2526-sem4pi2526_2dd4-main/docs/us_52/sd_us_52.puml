@@ -1,0 +1,114 @@
+@startuml
+skinparam maxMessageSize 180
+autonumber
+actor "Backoffice Operator\n(ou Admin)" as Actor
+
+
+participant ":RegisterAirportUI" as UI
+
+
+
+participant "controller\n:RegisterAirportController" as Controller
+participant "authz\n:AuthorizationPort" as Authz
+
+
+
+participant "acaCode\n:AirControlAreaCode" as VO <<Value Object>>
+participant "airport\n:Airport" as Aggregate <<Aggregate Root>>
+participant "areaRepo\n:AirControlAreaRepository" as AreaRepo <<Repository Interface>>
+participant "airportRepo\n:AirportRepository" as AirportRepo <<Repository Interface>>
+
+
+Actor -> UI : Inicia a funcionalidade (doShow)
+activate UI
+
+' 1. Apresentação das Áreas Disponíveis
+UI -> Controller : listAirControlAreas()
+activate Controller
+Controller -> AreaRepo : findAll()
+activate AreaRepo
+AreaRepo --> Controller : Iterable<AirControlArea>
+deactivate AreaRepo
+Controller --> UI : Iterable<AirControlArea>
+deactivate Controller
+
+UI --> Actor : Mostra áreas disponíveis e pede dados (ICAO, IATA, nome, etc.)
+Actor -> UI : Insere os dados
+
+' 2. Registo do Aeroporto
+UI -> Controller : registerAirport(icaoCode, iataCode, name, town, country, latitude, longitude, elevation, areaCode)
+activate Controller
+
+' 3. Segurança
+Controller -> Authz : ensureAuthenticatedUserHasAnyOf(BACKOFFICE_OPERATOR, ADMIN)
+activate Authz
+Authz --> Controller : (Sucesso)
+deactivate Authz
+
+' 4. Validação de Unicidade ICAO
+Controller -> AirportRepo : findByIcaoCode(icaoCode)
+activate AirportRepo
+AirportRepo --> Controller : Optional<Airport>
+deactivate AirportRepo
+
+alt Optional.isPresent() == true (ICAO duplicado)
+    Controller --> UI : throws IntegrityViolationException("ICAO code already exists...")
+    UI --> Actor : "Error: ICAO code already exists..."
+else Optional.isEmpty() == true
+
+    ' 5. Validação de Unicidade IATA
+    Controller -> AirportRepo : findByIataCode(iataCode)
+    activate AirportRepo
+    AirportRepo --> Controller : Optional<Airport>
+    deactivate AirportRepo
+
+    alt Optional.isPresent() == true (IATA duplicado)
+        Controller --> UI : throws IntegrityViolationException("IATA code already exists...")
+        UI --> Actor : "Error: IATA code already exists..."
+    else Optional.isEmpty() == true
+
+        ' 6. Verificação da Área de Controlo
+        Controller -> VO ** : valueOf(areaCode)
+        Controller -> AreaRepo : findByCode(acaCode)
+        activate AreaRepo
+        AreaRepo --> Controller : Optional<AirControlArea>
+        deactivate AreaRepo
+
+        alt Optional.isEmpty() == true (Área não existe)
+            Controller --> UI : throws IllegalArgumentException("Air control area not found...")
+            UI --> Actor : "Invalid data: Air control area not found..."
+        else Optional.isPresent() == true
+            Controller -> AreaRepo : area = get()
+
+
+            ' 7. Criação e Validação no Domínio
+            Controller -> Aggregate ** : new Airport(icaoCode, iataCode, name, town, country, latitude, longitude, elevation, area)
+            activate Aggregate
+
+
+
+            alt Preconditions falham
+                Aggregate --> Controller : throws IllegalArgumentException
+                Controller --> UI : throws IllegalArgumentException
+                UI --> Actor : "Invalid data: [mensagem da precondition]"
+            else Validações com sucesso
+                Aggregate --> Controller : airport
+            end
+            deactivate Aggregate
+
+            ' 8. Persistência
+            Controller -> AirportRepo : save(airport)
+            activate AirportRepo
+            AirportRepo --> Controller : savedAirport
+            deactivate AirportRepo
+
+            Controller --> UI : savedAirport
+            deactivate Controller
+
+            UI --> Actor : "Airport registered successfully."
+        end
+    end
+end
+
+deactivate UI
+@enduml

@@ -1,0 +1,76 @@
+@startuml CheckWeatherReadings
+skinparam monochrome true
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.5
+skinparam participantBorderColor Black
+skinparam participantBackgroundColor White
+skinparam actorBorderColor Black
+
+actor "Weather Person" as User
+participant ":WeatherDataController"      as Ctrl
+participant ":AddWeatherReadingService"   as SVC
+participant ":WeatherDataRepository"      as Repo
+participant "data:WeatherData"            as AR
+participant "reading:WeatherReading"      as ReadingVO
+
+' ── 1. Entry point ────────────────────────────────────────────────────
+User -> Ctrl : addReading(dataId, readingData)
+activate Ctrl
+
+Ctrl -> SVC : addReading(dataId, readingData)
+activate SVC
+
+' ── 2. Carregar o agregado via repositório ────────────────────────────
+SVC -> Repo : findById(dataId)
+activate Repo
+Repo --> SVC : data
+deactivate Repo
+
+' ── 3. Construção do Value Object — valida limites físicos absolutos ──
+SVC -> ReadingVO** : new(readingData)
+activate ReadingVO
+
+alt windSpeed < 0
+    ReadingVO --> SVC : throw DomainException("Wind speed cannot be negative")
+
+else visibility < 0
+    ReadingVO --> SVC : throw DomainException("Visibility cannot be negative")
+
+else altitude fora dos limites físicos
+    ReadingVO --> SVC : throw DomainException("Altitude out of valid range")
+
+else válido
+    ReadingVO --> SVC : reading
+end
+deactivate ReadingVO
+
+' ── 4. Agregado protege os invariantes de domínio ─────────────────────
+SVC -> AR : addReading(reading)
+activate AR
+
+alt altitude já registada neste WeatherData
+    AR --> SVC : throw DomainException("Duplicate altitude reading")
+
+else valores mutuamente incoerentes
+    AR --> SVC : throw DomainException("Incoherent reading values")
+
+else válido
+    AR -> AR : this.readings.add(reading)
+    AR --> SVC : ok
+end
+deactivate AR
+
+' ── 5. Persistir o agregado alterado ─────────────────────────────────
+SVC -> Repo : save(data)
+activate Repo
+Repo --> SVC : ok
+deactivate Repo
+
+SVC --> Ctrl : confirmação / DomainException
+deactivate SVC
+
+Ctrl --> User : confirmação / erro
+deactivate Ctrl
+
+@enduml

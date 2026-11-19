@@ -1,0 +1,67 @@
+@startuml
+title US90 — Login Success (design-level sequence diagram)
+
+actor "Pilot Client" as Client
+participant ":PilotLoggingClientHandler" as Handler
+participant "PilotSessionHandler" as SessionHandler
+participant "RemoteAccessCommandObserver" as Observer
+participant "RemoteAccessSessionTracker" as Tracker
+participant "RemoteAccessUdpLogger" as Logger
+participant "RemoteAccessUdpReceiver" as Receiver
+participant "RemoteAccessDatagramParser" as Parser
+participant "RemoteAccessLogStore" as Store
+
+Client -> Handler: LOGIN|pilot1|password
+activate Handler
+
+Handler -> SessionHandler: processCommand("LOGIN|pilot1|password")
+activate SessionHandler
+SessionHandler --> Handler: "OK"
+deactivate SessionHandler
+
+Handler -> Observer: observe(command, "OK", clientIp, clientPort, logger, tracker)
+activate Observer
+
+Observer -> Tracker: onLoginSuccess("pilot1")
+activate Tracker
+Tracker --> Observer
+deactivate Tracker
+
+Observer -> Logger: logLoginSuccess("pilot1", clientIp, clientPort)
+activate Logger
+
+Logger -> Logger: "LOGIN_SUCCESS|2026-06-14T16:00:00Z|\npilot1|192.168.1.10|54321|PILOT"
+note right
+  UDP payload format:
+  eventType|timestamp|username|
+  clientIp|clientPort|serviceId
+end note
+
+Logger -> Logger: send UDP datagram via DatagramSocket
+deactivate Logger
+
+Observer --> Handler
+deactivate Observer
+
+Handler --> Client: "OK"
+deactivate Handler
+
+== Logging Server (dedicated UDP node) ==
+
+Logger -> Receiver : UDP datagram
+
+Receiver -> Parser: parse(payload)
+activate Parser
+Parser -> Parser: validate fields\n   parse Instant\n   parse port
+Parser --> Receiver: RemoteAccessLogEntry
+deactivate Parser
+
+Receiver -> Store: add(entry)
+activate Store
+Store -> Store: store in Deque\n   apply session rules
+Store --> Receiver
+deactivate Store
+
+Receiver -> Receiver: appendToFile(entry)
+
+@enduml

@@ -1,0 +1,67 @@
+@startuml AirControlArea_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "AirControlArea Aggregate (AR)" {
+  class AirControlArea <<AggregateRoot>> {
+    - id               : AirControlAreaId
+    - areaName         : AreaName
+    - type             : AirControlType
+    - horizontalLimits : HorizontalLimits
+    - verticalLimits   : VerticalLimits
+    - minFuelReserve   : FuelQuantity
+    --
+    ' Verifica se uma aeronave em certas coordenadas está dentro da área
+    + isPointInside(point: Coordinates, alt: Altitude) : boolean
+    + updateFuelSafetyPolicy(newReserve: FuelQuantity) : void
+  }
+
+  class AirControlAreaId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class AreaName <<ValueObject>> {
+    - code : String
+    ' Valida a unicidade e o formato do código da área (US050)
+  }
+
+  class AirControlType <<ValueObject>> {
+    - type : Type <<enum: CTR, CTA>>
+  }
+
+  class HorizontalLimits <<ValueObject>> {
+    - northLatitude : Double
+    - southLatitude : Double
+    - eastLongitude : Double
+    - westLongitude : Double
+    ' O construtor garante que North > South e East > West
+  }
+
+  class VerticalLimits <<ValueObject>> {
+    - upperLimit : Altitude
+    - lowerLimit : Altitude
+  }
+
+  class FuelQuantity <<ValueObject>> {
+    - litres : Double
+    ' Invariante: Não pode ser negativo (US105)
+  }
+}
+
+' Composições internas (Value Objects)
+AirControlArea "1" *-- "1" AirControlAreaId
+AirControlArea "1" *-- "1" AreaName
+AirControlArea "1" *-- "1" AirControlType
+AirControlArea "1" *-- "1" HorizontalLimits
+AirControlArea "1" *-- "1" VerticalLimits
+AirControlArea "1" *-- "1" FuelQuantity
+
+note bottom of AirControlArea
+  **Invariante (US050):**
+  Os limites geográficos devem ser válidos.
+  O código da área (areaName) deve ser único.
+end note
+
+@enduml

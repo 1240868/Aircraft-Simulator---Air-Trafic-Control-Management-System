@@ -1,0 +1,390 @@
+@startuml US085_Design_CD
+title US085 — Design Class Diagram (Design Level)
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+' ====================================================================
+' PRESENTATION LAYER
+' ====================================================================
+package "Presentation" #EEF0FB {
+    class TestFlightPlanUI {
+        - controller : TestFlightPlanController
+        + doShow() : boolean
+        + headline() : String
+    }
+}
+
+' ====================================================================
+' APPLICATION LAYER
+' ====================================================================
+package "Application" #E8F5F0 {
+
+    class TestFlightPlanController {
+        - authz : AuthorizationPort
+        - flightPlanRepo : FlightPlanRepository
+        - pilotRepo : PilotRepository
+        - dslValidator : FlightPlanDslValidationPort
+        - payloadWriter : FlightPlanTestPayloadWriter
+        - physicsTester : FlightPlanPhysicsTestPort
+        + {constructor} TestFlightPlanController()
+        + {constructor} TestFlightPlanController(authz, flightPlanRepo, pilotRepo, dslValidator, payloadWriter, physicsTester)
+        + listTestablePlansForCurrentPilot() : List<FlightPlan>
+        + testForCurrentPilot(flightPlanId : FlightPlanId) : FlightPlanTestResult
+        + test(flightPlanId : FlightPlanId, pilotId : PilotId) : FlightPlanTestResult
+        + isTestable(status : FlightPlanStatus) : boolean {static}
+        - resolvePilotIdForCurrentUser() : PilotId
+    }
+
+    interface FlightPlanDslValidationPort {
+        + validate(flightPlan : FlightPlan) : List<String>
+    }
+
+    class FlightPlanDslFileValidator {
+        - importer : FlightPlanImporter
+        + {constructor} FlightPlanDslFileValidator()
+        + validate(flightPlan : FlightPlan) : List<String>
+        - resolveDslPath(flightPlan : FlightPlan) : Path {static}
+    }
+
+    interface FlightPlanTestPayloadWriter {
+        + writePayload(flightPlan : FlightPlan) : Path
+    }
+
+    interface FlightPlanPhysicsTestPort {
+        + run(inputJson : Path) : List<String>
+    }
+
+    class FlightPlanPhysicsValidator {
+        - validatorBaseDir : Path
+        + {constructor} FlightPlanPhysicsValidator(validatorBaseDir : Path)
+        + run(inputJson : Path) : List<String>
+    }
+
+    class FlightPlanTestPayloadBuilder {
+        - aircraftRepo : AircraftRepository
+        - modelRepo : AircraftModelRepository
+        - airportRepo : AirportRepository
+        - profileReader : DslSegmentProfileReader
+        + {constructor} FlightPlanTestPayloadBuilder(aircraftRepo, modelRepo, airportRepo)
+        + writePayload(flightPlan : FlightPlan) : Path
+        - totalFuelKg(plan : FlightPlan) : double
+        - resolveAirport(airportId : AirportId) : Airport
+    }
+
+    class DslSegmentProfileReader {
+        - importer : FlightPlanImporter
+        + {constructor} DslSegmentProfileReader()
+        + readSegmentAltitudesMeters(plan : FlightPlan) : List<Double>
+        + toMeters(value : double, unit : String) : double {static}
+        - resolveDslPath(plan : FlightPlan) : Path {static}
+    }
+
+    record FlightPlanTestResult {
+        + passed : boolean
+        + dslErrors : List<String>
+        + physicsErrors : List<String>
+        + newStatus : FlightPlanStatus
+        + success() : FlightPlanTestResult {static}
+        + failed(dslErrors : List<String>, physicsErrors : List<String>, status : FlightPlanStatus) : FlightPlanTestResult {static}
+    }
+
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles : Role[]) : void
+        + currentUsername() : String
+    }
+
+    class FrameworkAuthorizationAdapter {
+        + usingRegistry() : AuthorizationPort {static}
+    }
+}
+
+' ====================================================================
+' DOMAIN LAYER
+' ====================================================================
+package "Domain" #FFF8EC {
+
+    class FlightPlan <<(R,#FFCC66) Root>> {
+        - id : FlightPlanId
+        - aircraft : RegistrationNumber
+        - flightRoute : FlightRouteId
+        - pilot : PilotId
+        - designator : FlightPlanDesignator
+        - status : FlightPlanStatus
+        - flightType : FlightType
+        - departureDateTime : DepartureDateTime
+        - legs : List<FlightLeg>
+        - wind : FlightWind
+        - dslSourcePath : String
+        + {constructor} FlightPlan(id, aircraft, flightRoute, designator, flightType, departureDateTime, legs, wind)
+        + markTestPassed() : void
+        + markTestFailed() : void
+        + getStatus() : FlightPlanStatus
+        + setStatus(status : FlightPlanStatus) : void
+        + getPilot() : PilotId
+        + setPilot(pilot : PilotId) : void
+        + getAircraft() : RegistrationNumber
+        + getDslSourcePath() : String
+        + setDslSourcePath(path : String) : void
+        + getDesignator() : FlightPlanDesignator
+        + getLegs() : List<FlightLeg>
+        + getId() : FlightPlanId
+        + identity() : FlightPlanId
+    }
+
+    enum FlightPlanStatus {
+        DRAFT
+        SUBMITTED
+        APPROVED
+        REJECTED
+        ACTIVE
+        COMPLETED
+        CANCELLED
+        PENDING_TEST
+        TESTED
+    }
+
+    class FlightLeg <<(E,#B0C4DE) Entity>> {
+        - id : FlightLegId
+        - departureAirport : AirportId
+        - arrivalAirport : AirportId
+        - legOrder : int
+        - segments : List<FlightSegmentId>
+        - fuelPlan : FuelPlan
+        - weatherData : WeatherData
+        + {constructor} FlightLeg(id, departureAirport, arrivalAirport, legOrder, segments, fuelPlan)
+        + fuelPlan() : FuelPlan
+        + arrivalAirport() : AirportId
+        + departureAirport() : AirportId
+        + identity() : FlightLegId
+        + assignWeatherData(weatherData : WeatherData) : void
+    }
+
+    class FuelPlan <<(V,#9ACD32) Value Object>> {
+        - totalFuel : double
+        - reserveFuel : double
+        - unit : MeasurementUnit
+        + {constructor} FuelPlan(totalFuel, reserveFuel, unit)
+        + totalFuel() : double
+        + reserveFuel() : double
+    }
+
+    class FlightPlanDesignator <<(V,#9ACD32) Value Object>> {
+        - value : String
+        + {constructor} FlightPlanDesignator(value : String)
+        + toString() : String
+    }
+
+    class FlightPlanId <<(V,#9ACD32) Value Object>>
+    class DepartureDateTime <<(V,#9ACD32) Value Object>>
+    class FlightType <<enum>> {
+        COMMERCIAL
+        PRIVATE
+        CARGO
+    }
+    class RegistrationNumber <<(V,#9ACD32) VO>>
+    class FlightRouteId <<(V,#9ACD32) VO>>
+    class PilotId <<(V,#9ACD32) VO>>
+    class AirportId <<(V,#9ACD32) VO>>
+    class FlightLegId <<(V,#9ACD32) VO>>
+    class FlightSegmentId <<(V,#9ACD32) VO>>
+    class FlightWind <<(V,#9ACD32) VO>>
+
+    class Aircraft <<(R,#FFCC66) Root>> {
+        - registrationNumber : RegistrationNumber
+        - aircraftModelId : AircraftModelId
+        - ownerCompanyId : CompanyId
+        - operationalStatus : AircraftOperationalStatus
+        + aircraftModelId() : AircraftModelId
+    }
+
+    class AircraftModel <<(R,#FFCC66) Root>> {
+        - emptyWeightKg : double
+        - mtowKg : double
+        - mzfwKg : double
+        - maxFuelCapacityLiters : double
+        - serviceCeilingM : double
+        - cruiseSpeedMs : double
+        - wingAreaM2 : double
+        - cd0 : double
+        - cl : double
+        + serviceCeilingM() : double
+        + cruiseSpeedMs() : double
+        + wingAreaM2() : double
+        + cd0() : double
+        + cl() : double
+        + emptyWeightKg() : double
+    }
+
+    class Airport <<(R,#FFCC66) Root>> {
+        - icaoCode : String
+        - latitude : double
+        - longitude : double
+        - elevationMeters : double
+        - airControlArea : AirControlArea
+        + elevationMeters() : double
+        + identity() : String
+    }
+
+    class Pilot <<(R,#FFCC66) Root>> {
+        - id : PilotId
+        - email : Email
+        - company : CompanyId
+        + identity() : PilotId
+    }
+
+    interface FlightPlanRepository <<(I,#DDA0DD) Repository>> {
+        + findById(id : FlightPlanId) : Optional<FlightPlan>
+        + save(flightPlan : FlightPlan) : FlightPlan
+        + ofIdentity(id : FlightPlanId) : Optional<FlightPlan>
+        + findAll() : Iterable<FlightPlan>
+        + findByDepartureYearMonth(year : int, month : int) : Iterable<FlightPlan>
+        + hasAssignedFlightPlansFor(pilotId : PilotId) : boolean
+    }
+
+    interface AircraftRepository <<(I,#DDA0DD) Repository>> {
+        + ofIdentity(id : RegistrationNumber) : Optional<Aircraft>
+    }
+
+    interface AircraftModelRepository <<(I,#DDA0DD) Repository>> {
+        + ofIdentity(id : AircraftModelId) : Optional<AircraftModel>
+    }
+
+    interface AirportRepository <<(I,#DDA0DD) Repository>> {
+        + findById(code : String) : Optional<Airport>
+    }
+
+    interface PilotRepository <<(I,#DDA0DD) Repository>> {
+        + findByEmail(email : Email) : Optional<Pilot>
+        + findActiveByCompanyId(companyId : CompanyId) : Iterable<Pilot>
+        + ofIdentity(id : PilotId) : Optional<Pilot>
+        + findAll() : Iterable<Pilot>
+    }
+}
+
+' ====================================================================
+' INFRASTRUCTURE LAYER
+' ====================================================================
+package "Infrastructure / Persistence" #EAF3FB {
+    class JpaFlightPlanRepository <<Repository>>
+    class JpaAircraftRepository <<Repository>>
+    class JpaAircraftModelRepository <<Repository>>
+    class JpaAirportRepository <<Repository>>
+    class JpaPilotRepository <<Repository>>
+
+    class PersistenceContext {
+        + repositories() : RepositoryFactory {static}
+    }
+
+    interface RepositoryFactory <<AbstractFactory>> {
+        + flightPlans() : FlightPlanRepository
+        + pilots() : PilotRepository
+        + aircraft() : AircraftRepository
+        + aircraftModels() : AircraftModelRepository
+        + airports() : AirportRepository
+    }
+
+    class JpaRepositoryFactory <<Factory>>
+    class InMemoryRepositoryFactory <<Factory>>
+}
+
+' ====================================================================
+' EXTERNAL C COMPONENT
+' ====================================================================
+package "C Validator (lapr.base)" #FFF0F0 {
+    class flight_plan_validator <<executable>> {
+        main(argc, argv)
+        run_flight_plan_test(json_path)
+        validate_fuel_on_board(json)
+        validate_segment_altitudes(json)
+    }
+}
+
+' ====================================================================
+' RELATIONS — Presentation
+' ====================================================================
+TestFlightPlanUI ..> TestFlightPlanController : <<creates / uses>>
+
+' ====================================================================
+' RELATIONS — Application composition
+' ====================================================================
+TestFlightPlanController "1" *--> "1" AuthorizationPort
+TestFlightPlanController "1" *--> "1" FlightPlanRepository
+TestFlightPlanController "1" *--> "1" PilotRepository
+TestFlightPlanController "1" *--> "1" FlightPlanDslValidationPort
+TestFlightPlanController "1" *--> "1" FlightPlanTestPayloadWriter
+TestFlightPlanController "1" *--> "1" FlightPlanPhysicsTestPort
+TestFlightPlanController ..> FlightPlanTestResult : <<produces>>
+
+FlightPlanDslFileValidator ..|> FlightPlanDslValidationPort
+FlightPlanTestPayloadBuilder ..|> FlightPlanTestPayloadWriter
+FlightPlanPhysicsValidator ..|> FlightPlanPhysicsTestPort
+FrameworkAuthorizationAdapter ..|> AuthorizationPort
+
+FlightPlanTestPayloadBuilder "1" *--> "1" AircraftRepository
+FlightPlanTestPayloadBuilder "1" *--> "1" AircraftModelRepository
+FlightPlanTestPayloadBuilder "1" *--> "1" AirportRepository
+FlightPlanTestPayloadBuilder "1" *--> "1" DslSegmentProfileReader
+
+FlightPlanPhysicsValidator ..> flight_plan_validator : <<ProcessBuilder>>
+FlightPlanTestPayloadBuilder ..> "temp JSON file" : <<writes>>
+
+' ====================================================================
+' RELATIONS — Domain composition (FlightPlan aggregate)
+' ====================================================================
+FlightPlan "1" *-- "1" FlightPlanId : identity
+FlightPlan "1" *-- "1" FlightPlanDesignator : designator
+FlightPlan "1" *-- "1" FlightPlanStatus : status
+FlightPlan "1" *-- "1" FlightType : flightType
+FlightPlan "1" *-- "1" DepartureDateTime : departure
+FlightPlan "1" *-- "1..*" FlightLeg : legs
+FlightPlan "1" *-- "0..1" FlightWind : wind
+FlightLeg "1" *-- "1" FlightLegId : identity
+FlightLeg "1" *-- "1" FuelPlan : fuelPlan
+
+' ====================================================================
+' RELATIONS — Cross-aggregate ID references
+' ====================================================================
+FlightPlan "*" --> "1" RegistrationNumber : aircraft (ref)
+FlightPlan "*" --> "1" FlightRouteId : flightRoute (ref)
+FlightPlan "*" --> "1" PilotId : pilot (ref)
+FlightLeg "*" --> "2" AirportId : departureAirport/arrivalAirport (ref)
+FlightLeg "*" --> "0..*" FlightSegmentId : segments (ref)
+
+' ====================================================================
+' RELATIONS — Other aggregates
+' ====================================================================
+Aircraft "*" --> "1" AircraftModel : aircraftModelId (ref)
+
+' ====================================================================
+' RELATIONS — Repositories manage aggregates
+' ====================================================================
+FlightPlanRepository ..> FlightPlan : <<manages>>
+AircraftRepository ..> Aircraft : <<manages>>
+AircraftModelRepository ..> AircraftModel : <<manages>>
+AirportRepository ..> Airport : <<manages>>
+PilotRepository ..> Pilot : <<manages>>
+
+' ====================================================================
+' RELATIONS — Infrastructure implementations
+' ====================================================================
+JpaFlightPlanRepository ..|> FlightPlanRepository
+JpaAircraftRepository ..|> AircraftRepository
+JpaAircraftModelRepository ..|> AircraftModelRepository
+JpaAirportRepository ..|> AirportRepository
+JpaPilotRepository ..|> PilotRepository
+JpaRepositoryFactory ..|> RepositoryFactory
+InMemoryRepositoryFactory ..|> RepositoryFactory
+
+PersistenceContext --> RepositoryFactory : <<provides>>
+
+' ====================================================================
+' RELATIONS — Factory provides repositories
+' ====================================================================
+RepositoryFactory --> FlightPlanRepository : flightPlans()
+RepositoryFactory --> PilotRepository : pilots()
+RepositoryFactory --> AircraftRepository : aircraft()
+RepositoryFactory --> AircraftModelRepository : aircraftModels()
+RepositoryFactory --> AirportRepository : airports()
+
+@enduml

@@ -1,0 +1,63 @@
+@startuml SD_US071_DecommissionAircraft
+title Sequence Diagram — US071 Decommission (Retire) Aircraft (Happy Path)
+
+actor "Company Collaborator" as COLLAB
+participant ":DecommissionAircraftUI" as UI <<Presentation>>
+participant ":DecommissionAircraftController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":FleetListing" as LIST <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AircraftRepository" as AC_REPO <<Repository>>
+participant ":PendingFlightsChecker" as PFC <<Domain Service>>
+participant "reg:RegistrationNumber" as REG <<Value Object>>
+participant "ac:Aircraft" as AC <<Aggregate Root>>
+
+COLLAB -> UI : menu "Decommission aircraft"
+activate UI
+
+UI -> COLLAB : prompt "Aircraft registration (tail number):"
+COLLAB -> UI : registration
+
+UI -> CTRL : decommission(registration)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+AUTHZ --> CTRL : ok
+
+CTRL -> AUTHZ : currentUsername()
+AUTHZ --> CTRL : username
+
+CTRL -> LIST : requireCompanyOfUser(companyRepo, username)
+LIST -> CO_REPO : findCompanyIdForCollaboratorUsername(username)
+CO_REPO --> LIST : CompanyId
+LIST --> CTRL : companyId
+
+CTRL -> REG : valueOf(registrationRaw)
+REG --> CTRL : RegistrationNumber
+
+CTRL -> AC_REPO : findByRegistration(reg)
+AC_REPO --> CTRL : aircraft
+
+alt não pertence à companhia
+    CTRL --> UI : IllegalArgumentException
+    UI -> COLLAB : ex.getMessage()
+else mesma companhia
+    CTRL -> PFC : hasPendingFlights(registration)
+    PFC --> CTRL : boolean
+
+    alt hasPendingFlights
+        CTRL --> UI : IllegalStateException
+        UI -> COLLAB : ex.getMessage()
+    else sem voos pendentes
+        CTRL -> AC : markRetired()
+        AC --> CTRL : void
+        CTRL -> AC_REPO : save(aircraft)
+        AC_REPO --> CTRL : persisted
+        CTRL --> UI : void
+        UI -> COLLAB : "Aircraft {REG} has been retired from the fleet."
+    end
+end
+deactivate CTRL
+deactivate UI
+
+@enduml

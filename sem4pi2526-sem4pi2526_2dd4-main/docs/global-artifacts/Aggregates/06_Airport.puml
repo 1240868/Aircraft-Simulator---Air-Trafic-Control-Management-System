@@ -1,0 +1,75 @@
+@startuml Airport_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+' =====================================================================
+' AGGREGATE 6 – Airport (AR)
+' =====================================================================
+package "Airport (AR)" {
+  class Airport <<AggregateRoot>> {
+    - id          : AirportId
+    - name        : AirportName
+    - location    : AirportLocation
+    - iataCode    : AirportIATACode
+    - icaoCode    : AirportICAOCode
+    - coordinates : Coordinates
+    - elevation   : Elevation
+    - areaId      : AirControlAreaId <<Ref>>
+    - status      : OperationalStatus
+    --
+    + changeArea(newAreaId: AirControlAreaId) : void
+    + canHandle(specs: AircraftSpecsVO) : boolean
+    + getDistanceTo(destination: Coordinates) : Distance
+    + isOpenFor(conditions: WeatherConditionsVO) : boolean
+  }
+  class AirportId <<ValueObject>> {
+    - value : UUID
+  }
+  class AirportName <<ValueObject>> {
+    - value : String
+  }
+  class AirportLocation <<ValueObject>> {
+    - town    : String
+    - country : String
+  }
+  class AirportIATACode <<ValueObject>> {
+    - value : String <<3 letters>>
+  }
+  class AirportICAOCode <<ValueObject>> {
+    - value : String <<4 letters>>
+  }
+  class Coordinates <<ValueObject>> {
+    - latitude  : Double
+    - longitude : Double
+  }
+  class Elevation <<ValueObject>> {
+    - value : Double
+    - unit  : String
+  }
+  class OperationalStatus <<ValueObject>> {
+    - state      : Status <<enum>>
+    - updateTime : LocalDateTime
+    - reason     : String
+  }
+}
+
+Airport "1" *-- "1" AirportId
+Airport "1" *-- "1" AirportName
+Airport "1" *-- "1" AirportLocation
+Airport "1" *-- "1" AirportIATACode
+Airport "1" *-- "1" AirportICAOCode
+Airport "1" *-- "1" Coordinates
+Airport "1" *-- "1" Elevation
+Airport "1" *-- "1" OperationalStatus
+
+' referência externa
+Airport "1" --> "1" AirControlAreaId : ref
+note bottom of Airport
+  **Invariantes (US052):**
+  - O aeroporto deve pertencer a exatamente uma área (areaId).
+  - Coordenadas e altitude devem ser validadas nos VOs.
+end note
+
+@enduml

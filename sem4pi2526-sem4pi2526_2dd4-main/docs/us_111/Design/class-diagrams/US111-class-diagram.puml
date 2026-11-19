@@ -1,0 +1,107 @@
+@startuml US111-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US111 — Generate Simulation Report\nCamada EAPLI: Presentation → Application → OS/FileSystem
+
+package "presentation\n(aisafe.app.user.console)" {
+    class GenerateSimulationReportUI <<Presentation>> {
+        - controller : GenerateSimulationReportController
+        --
+        + doShow() : boolean
+        + headline() : String
+    }
+}
+
+package "application\n(aisafe.infrastructure.application)" {
+
+    class GenerateSimulationReportController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - service : SimulationReportService
+        --
+        + GenerateSimulationReportController()
+        + GenerateSimulationReportController(authz, service)
+        + generateReport() : SimulationReportResult
+    }
+
+    class SimulationReportService {
+        - scompBaseDir : Path
+        + {static} EXECUTABLE : String = "./flight_sim"
+        + {static} REPORT_RELATIVE_PATH : String = "logs/simulation_report.txt"
+        --
+        + SimulationReportService(scompBaseDir : Path)
+        + generateReport() : SimulationReportResult
+    }
+
+    class SimulationReportResult <<record>> {
+        + success : boolean
+        + reportContent : String
+        + reportPath : Path
+        + errorMessage : String
+        --
+        + {static} success(content, path) : SimulationReportResult
+        + {static} failure(error) : SimulationReportResult
+    }
+}
+
+package "application.security\n(aisafe.infrastructure.application)" {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...) : void
+        + currentUsername() : String
+    }
+
+    class FrameworkAuthorizationAdapter {
+        + {static} usingRegistry() : AuthorizationPort
+    }
+}
+
+package "roles\n(aisafe.core)" {
+    class Roles <<Constants>> {
+        + {static} FLIGHT_CONTROL_OPERATOR : Role
+    }
+}
+
+package "java.lang / java.nio\n(JDK)" {
+    class ProcessBuilder <<Java>> {
+        + directory(dir) : ProcessBuilder
+        + redirectErrorStream(b) : ProcessBuilder
+        + start() : Process
+    }
+    class Process <<Java>> {
+        + getInputStream() : InputStream
+        + waitFor() : int
+    }
+    class Files <<Java>> {
+        + {static} readString(path) : String
+    }
+}
+
+GenerateSimulationReportUI --> GenerateSimulationReportController : uses
+GenerateSimulationReportController --> AuthorizationPort : enforces authz
+GenerateSimulationReportController --> SimulationReportService : delegates
+GenerateSimulationReportController ..> Roles : FLIGHT_CONTROL_OPERATOR
+GenerateSimulationReportController ..> SimulationReportResult : returns
+
+FrameworkAuthorizationAdapter ..|> AuthorizationPort
+
+SimulationReportService --> ProcessBuilder : creates
+SimulationReportService --> Process : reads stdout / waitFor
+SimulationReportService --> Files : readString(reportPath)
+SimulationReportService ..> SimulationReportResult : produces
+
+note bottom of SimulationReportService
+  Executa "./flight_sim" a partir de scomp.base/.
+  O programa C (US109/report.c) escreve o relatório em
+  scomp.base/logs/simulation_report.txt.
+  Sem persistência em RDBMS — ficheiro é o artefacto final.
+end note
+
+note right of SimulationReportResult
+  Java record (imutável).
+  Sem comportamento de domínio —
+  apenas transporta dados do serviço para a UI.
+end note
+
+@enduml

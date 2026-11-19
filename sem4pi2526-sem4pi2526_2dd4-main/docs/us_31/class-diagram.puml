@@ -1,0 +1,53 @@
+@startuml US031_RegisterUsers
+
+package "presentation" {
+    class AddUserUI {
+        +doShow()
+    }
+}
+
+package "application" {
+    class AddUserController <<Controller>> {
+        -authz: AuthorizationService
+        -userSvc: UserManagementService
+        +addUser(username, password, firstName, lastName, email, roles): SystemUser
+        +getRoleTypes(): Role[]
+    }
+}
+
+package "domain" {
+    class AisafePasswordPolicy {
+        +isSatisfiedBy(rawPassword): boolean
+    }
+
+    class AisafeUserBuilderHelper <<Utility>> {
+        +builder(): SystemUserBuilder
+    }
+
+    enum Roles {
+        ADMIN
+        BACKOFFICE_OPERATOR
+        PILOT
+        FLIGHT_CONTROL_OPERATOR
+        WEATHER_PERSON
+        AIR_TRANSPORT_COMPANY_COLLABORATOR
+    }
+}
+
+package "framework" {
+    interface PasswordPolicy {
+        +isSatisfiedBy(rawPassword): boolean
+    }
+
+    class UserManagementService {
+        +registerNewUser(...): SystemUser
+    }
+}
+
+AddUserUI --> AddUserController : uses
+AddUserController --> UserManagementService : uses
+AddUserController --> Roles : uses
+AisafePasswordPolicy ..|> PasswordPolicy
+AisafeUserBuilderHelper --> AisafePasswordPolicy : uses
+
+@enduml

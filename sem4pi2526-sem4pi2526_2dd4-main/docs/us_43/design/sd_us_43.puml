@@ -1,0 +1,67 @@
+@startuml SD_US043_ConsultWeatherData
+title Sequence Diagram — US043 Consult Weather Data
+
+skinparam sequenceFontName sans-serif
+
+actor "Actor" as ACTOR
+participant ":ConsultWeatherDataUI" as UI <<Presentation>>
+participant ":ConsultWeatherDataController" as CTRL <<Application>>
+participant ":ConsultWeatherDataService" as SVC <<Application>>
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant ":WeatherDataRepository" as WD_REPO <<Repository>>
+participant "queryDate:WeatherQueryDate" as QDATE <<Value Object>>
+
+ACTOR -> UI : select consult weather data
+activate UI
+
+UI -> ACTOR : prompt area code and date
+ACTOR -> UI : areaCode, date
+
+UI -> CTRL : consult(areaCode, date)
+activate CTRL
+
+CTRL -> CTRL : ensureAuthenticatedUserHasAnyOf(\n  WEATHER_PERSON, PILOT, FCO)
+
+CTRL -> SVC : consult(areaCode, date)
+activate SVC
+
+SVC -> SVC : code = AirControlAreaCode.valueOf(areaCode)
+
+SVC -> AREA_REPO : findByCode(code)
+activate AREA_REPO
+AREA_REPO --> SVC : Optional<AirControlArea>
+deactivate AREA_REPO
+
+alt area not found
+    SVC --> CTRL : IllegalArgumentException
+    CTRL --> UI : error message
+    UI --> ACTOR : display error
+else area exists
+
+    SVC -> QDATE ** : new WeatherQueryDate(date)
+    QDATE --> SVC : queryDate
+
+    SVC -> WD_REPO : findByAreaCodeBetween(\n  code,\n  queryDate.startOfDayUtc(),\n  queryDate.endOfDayExclusiveUtc())
+    activate WD_REPO
+    WD_REPO --> SVC : Iterable<WeatherData>
+    deactivate WD_REPO
+
+    alt records found
+        SVC -> SVC : sort by observedAt\nmap each to WeatherDataSummary
+        SVC --> CTRL : WeatherConsultationResult
+        CTRL --> UI : WeatherConsultationResult
+        UI --> ACTOR : display weather records\n(sorted by observedAt)
+
+    else no records
+        SVC --> CTRL : WeatherConsultationResult\n(empty list)
+        CTRL --> UI : WeatherConsultationResult
+        UI --> ACTOR : display no data message
+    end
+
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

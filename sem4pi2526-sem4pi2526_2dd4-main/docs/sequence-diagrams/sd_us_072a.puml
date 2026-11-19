@@ -1,0 +1,73 @@
+@startuml SD_US072a_ListFleetByModel
+title Sequence Diagram — US072a List Active Fleet by Aircraft Model
+
+actor "Company Collaborator" as COLLAB
+participant ":ListFleetByModelUI" as UI <<Presentation>>
+participant ":AddAircraftController" as MODELS_CTRL <<Application>>
+participant ":ListFleetByModelController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":FleetListing" as LIST <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+participant ":AircraftRepository" as AC_REPO <<Repository>>
+
+COLLAB -> UI : menu "List fleet by aircraft model"
+activate UI
+
+UI -> MODELS_CTRL : listAircraftModels()
+activate MODELS_CTRL
+MODELS_CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+MODELS_CTRL -> AM_REPO : findAll()
+AM_REPO --> MODELS_CTRL : models
+MODELS_CTRL --> UI : List<AircraftModelOptionDTO>
+deactivate MODELS_CTRL
+
+alt models.isEmpty()
+    UI -> COLLAB : "No aircraft models available."
+    UI --> COLLAB : false
+else
+    UI -> COLLAB : listar "--- Aircraft models (select one) ---"
+    UI -> COLLAB : prompt "Select model number"
+    COLLAB -> UI : choice
+
+    alt choice inválido
+        UI -> COLLAB : "Invalid selection."
+    else
+        UI -> UI : selected = models.get(choice - 1)
+
+        UI -> CTRL : listFleetByModel(selected.modelId())
+        activate CTRL
+
+        CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(...)
+        CTRL -> AUTHZ : currentUsername()
+        CTRL -> LIST : requireCompanyOfUser(companyRepo, username)
+        LIST -> CO_REPO : findCompanyIdForCollaboratorUsername(...)
+        LIST --> CTRL : companyId
+        CTRL -> CTRL : parseModelId(modelIdRaw)
+        CTRL -> LIST : requireModel(modelRepo, modelId)
+        LIST -> AM_REPO : ofIdentity(modelId)
+        CTRL -> AC_REPO : findActiveByOwnerCompanyAndModel(companyId, modelId)
+        AC_REPO --> CTRL : aircraft
+
+        loop each Aircraft
+            CTRL -> LIST : toRow(a, model)
+        end
+        CTRL -> CTRL : sort + FleetListResult.of(...)
+
+        CTRL --> UI : FleetListResult
+        deactivate CTRL
+
+        alt r.messageWhenEmpty() != null
+            UI -> COLLAB : messageWhenEmpty
+        else
+            UI -> COLLAB : "--- Aircraft (selected model, active fleet) ---"
+            loop each row in r.aircraft()
+                UI -> COLLAB : printf registration | model | maker | status | seats
+            end
+            UI -> COLLAB : "-----------------------------------------------"
+        end
+    end
+end
+deactivate UI
+
+@enduml

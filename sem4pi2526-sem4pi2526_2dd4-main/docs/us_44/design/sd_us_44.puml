@@ -1,0 +1,58 @@
+@startuml US044_SequenceDiagram
+
+skinparam shadowing false
+title US044 – Remote TCP Access (Weather Person)
+
+actor "Weather Person" as WP #EEF0FB
+participant "WeatherClient" as CLIENT #EEF0FB
+participant "ServerConnection" as CONN #EEF0FB
+participant "ClientHandler\n(server thread)" as HANDLER #E8F5F0
+participant "WeatherSessionHandler" as SESSION #E8F5F0
+participant "AuthenticationService" as AUTH #FFF3E0
+participant "RegisterWeatherDataController\n(US041)" as REG #E8F5F0
+database "PersistenceContext" as DB #FFE5E5
+
+== Connect ==
+
+WP -> CLIENT : start client
+CLIENT -> CONN : new ServerConnection(127.0.0.1, 8889)
+CONN -> HANDLER : TCP connect
+HANDLER --> CONN : connected
+
+== LOGIN ==
+
+WP -> CLIENT : option 1 + credentials
+CLIENT -> CONN : send("LOGIN|weather|Weather123!")
+CONN -> HANDLER : line
+HANDLER -> SESSION : processCommand
+SESSION -> AUTH : authenticate(user, pass, WEATHER_PERSON)
+AUTH -> DB : load SystemUser
+AUTH --> SESSION : UserSession
+SESSION --> HANDLER : "OK"
+HANDLER --> CONN : "OK"
+CONN --> CLIENT : "OK"
+
+== REGISTER_WEATHER (US041) ==
+
+WP -> CLIENT : option 3 + measurements
+CLIENT -> CONN : send("REGISTER_WEATHER|PT-LIS|...")
+CONN -> HANDLER : line
+HANDLER -> SESSION : processCommand
+SESSION -> SESSION : ensureWeatherPerson()
+SESSION -> REG : register(...)
+REG -> DB : areaRepo + weatherRepo.save
+REG --> SESSION : WeatherData
+SESSION --> HANDLER : "OK|<id>"
+HANDLER --> CONN : response
+CONN --> CLIENT : response
+CLIENT --> WP : show id
+
+== LOGOUT ==
+
+WP -> CLIENT : option 7
+CLIENT -> CONN : send("LOGOUT")
+SESSION --> HANDLER : "BYE"
+HANDLER --> CONN : "BYE"
+note over HANDLER : closes socket
+
+@enduml

@@ -1,0 +1,100 @@
+@startuml WeatherData_Aggregate_Final
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "WeatherData Aggregate (AR)" {
+  class WeatherData <<AggregateRoot>> {
+    - id       : WeatherDataId
+    - areaId   : AirControlAreaId
+    - date     : LocalDateTime
+    - source   : WeatherSource
+    - readings : List<WeatherReading>
+    --
+    + addReading(reading: WeatherReading) : void
+    + getReadingForAltitude(alt: Altitude) : WeatherReading
+  }
+
+  class WeatherReading <<ValueObject>> {
+    - altitude      : Altitude
+    - airDensity    : AirDensity
+    - wind          : Wind
+    - temperature   : Temperature
+    - visibility    : Visibility
+    - cloudCeiling  : Altitude
+    - precipitation : PrecipitationType
+  }
+
+  class Wind <<ValueObject>> {
+    - direction : Angle
+    - speed     : Speed
+  }
+
+  ' VOs de Grandeza Física e Restrição
+  class AirDensity <<ValueObject>> {
+    - value : Double
+  }
+  class Temperature <<ValueObject>> {
+    - value : Double
+    - unit  : String
+  }
+  class Visibility <<ValueObject>> {
+    - value : Double
+  }
+  class Angle <<ValueObject>> {
+    - value : Double
+    ' Valida 0-360º no construtor
+  }
+  enum PrecipitationType <<ValueObject>> {
+    SNOW
+    RAIN
+    HAIL
+    NONE
+  }
+  class WeatherSource <<ValueObject>> {
+    - name : String
+  }
+}
+
+' VOs Reutilizáveis (frequentemente usados em outros agregados)
+class Altitude <<ValueObject>> {
+  - value : Double
+  - unit  : String
+}
+class Speed <<ValueObject>> {
+  - value : Double
+  - unit  : String
+}
+
+' Referências externas
+class AirControlAreaId <<ValueObject>>
+class WeatherDataId <<ValueObject>>
+
+' LIGAÇÕES INTERNAS (Composição)
+WeatherData "1" *-- "1" WeatherDataId
+WeatherData "1" *-- "1" WeatherSource
+WeatherData "1" *-- "1..*" WeatherReading
+
+WeatherReading "1" *-- "2" Altitude : "altitude & cloudCeiling"
+WeatherReading "1" *-- "1" AirDensity
+WeatherReading "1" *-- "1" Wind
+WeatherReading "1" *-- "1" Temperature
+WeatherReading "1" *-- "1" Visibility
+WeatherReading "1" *-- "1" PrecipitationType
+
+Wind "1" *-- "1" Angle
+Wind "1" *-- "1" Speed
+
+' LIGAÇÕES EXTERNAS (Referência por Identidade)
+WeatherData "1" --> "1" AirControlAreaId : "areaId"
+
+note bottom of WeatherData
+  **Invariantes e Semântica (US041, US043, US110):**
+  - O uso de VOs como AirDensity e Temperature evita a
+    "obsessão por primitivos" e garante unidades corretas [2, 3].
+  - Wind agrupa direção e velocidade como um conceito atómico [4].
+  - Valores numéricos são validados como positivos nos construtores [5].
+end note
+
+@enduml

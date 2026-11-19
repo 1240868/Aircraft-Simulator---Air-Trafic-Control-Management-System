@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="952px" preserveAspectRatio="none" style="width:1520px;height:952px;" version="1.1" viewBox="0 0 1520 952" width="1520px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="415" x="548.5" y="16.708">US060 - Registar empresa de transporte aéreo</text><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="776" x="368" y="37.6611">RegisterAirTransportCompanyController | aisafe.infrastructure.application + aisafe.core</text><!--MD5=[69beeede9266e3154ecfee41ab94b9e4]
+cluster company_application--><rect fill="#FFFFFF" height="156" style="stroke: #000000; stroke-width: 1.5;" width="392" x="559.59" y="65.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="163" x="674.09" y="80.9014">company_application</text><!--MD5=[2549100e5a80009690c063f9cf4d4e0c]
+cluster application_security--><rect fill="#FFFFFF" height="117" style="stroke: #000000; stroke-width: 1.5;" width="290" x="392.59" y="267.4063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="156" x="459.59" y="282.4014">application_security</text><!--MD5=[bb318b1642000020df62398d3004dc3f]
+cluster company_domain--><rect fill="#FFFFFF" height="402" style="stroke: #000000; stroke-width: 1.5;" width="811" x="188.59" y="429.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="135" x="526.59" y="444.9014">company_domain</text><!--MD5=[e7f3582e38aebf42709d501eff791fa7]
+cluster company_repositories--><rect fill="#FFFFFF" height="142" style="stroke: #000000; stroke-width: 1.5;" width="536" x="827.59" y="254.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="174" x="1008.59" y="269.9014">company_repositories</text><!--MD5=[dd2eac0a0b903f841bd1dd0351fdf4f4]
+class RegisterAirTransportCompanyController--><rect fill="#FEFECE" height="105.1563" id="RegisterAirTransportCompanyController" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="359" x="576.09" y="100.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="128" x="691.59" y="117.0449">«UseCaseController»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="247" x="632.09" y="131.0137">RegisterAirTransportCompanyController</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="577.09" x2="934.09" y1="138.8438" y2="138.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="142" x="582.09" y="153.0542">-authz : AuthorizationPort</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="226" x="582.09" y="165.8589">-repo : AirTransportCompanyRepository</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="577.09" x2="934.09" y1="172.4531" y2="172.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="264" x="582.09" y="186.6636">+register(companyName, iataCode, icaoCode,</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="339" x="590.09" y="199.4683">certificateNumber, certificateExpiry) : AirTransportCompany</text><!--MD5=[58d93e9cbb8e32d20b8c614d8381e11d]
+class AuthorizationPort--><rect fill="#FEFECE" height="65.5781" id="AuthorizationPort" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="257" x="409.09" y="302.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="108" x="483.59" y="318.5449">AuthorizationPort</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="410.09" x2="665.09" y1="326.375" y2="326.375"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="410.09" x2="665.09" y1="334.375" y2="334.375"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="245" x="415.09" y="348.5854">+ensureAuthenticatedUserHasAnyOf(roles)</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="163" x="415.09" y="361.3901">+currentUsername() : String</text><!--MD5=[d3d6b2dd7b1ac58bcce00efbb0cb1582]
+class AirTransportCompany--><rect fill="#FEFECE" height="169.1797" id="AirTransportCompany" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="259" x="722.09" y="464.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="109" x="797.09" y="481.0449">«AggregateRoot»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="134" x="784.59" y="495.0137">AirTransportCompany</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="723.09" x2="980.09" y1="502.8438" y2="502.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="221" x="728.09" y="517.0542">-collaboratorUsernames : Set&lt;String&gt;</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="723.09" x2="980.09" y1="523.6484" y2="523.6484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="133" x="728.09" y="537.8589">+identity() : CompanyId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="147" x="728.09" y="550.6636">+name() : CompanyName</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="182" x="728.09" y="563.4683">+iataCode() : CompanyIataCode</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="186" x="728.09" y="576.2729">+icaoCode() : CompanyIcaoCode</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="209" x="728.09" y="589.0776">+certificate() : AirOperatorCertificate</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="247" x="728.09" y="601.8823">+addCollaborator(username : String) : void</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="234" x="728.09" y="614.687">+collaboratorUsernames() : Set&lt;String&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="228" x="728.09" y="627.4917">+listActiveCollaborators() : List&lt;String&gt;</text><!--MD5=[a633b2e08e873e63a8bc4ec35b03f531]
+class CompanyId--><rect fill="#FEFECE" height="92.3516" id="CompanyId" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="137" x="499.09" y="717.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="523.59" y="733.5449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="68" x="533.59" y="747.5137">CompanyId</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="500.09" x2="635.09" y1="755.3438" y2="755.3438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="505.09" y="769.5542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="500.09" x2="635.09" y1="776.1484" y2="776.1484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="125" x="505.09" y="790.3589">+newId() : CompanyId</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="95" x="505.09" y="803.1636">+asUuid() : UUID</text><!--MD5=[69b356077da38fcd93ec051631ba6a03]
+class CompanyName--><rect fill="#FEFECE" height="79.5469" id="CompanyName" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="105" x="205.09" y="723.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="213.59" y="739.5449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="93" x="211.09" y="753.5137">CompanyName</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="206.09" x2="309.09" y1="761.3438" y2="761.3438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="211.09" y="775.5542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="206.09" x2="309.09" y1="782.1484" y2="782.1484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="93" x="211.09" y="796.3589">+value() : String</text><!--MD5=[242a9a8c44564cc21226d97753a4c9ce]
+class CompanyIataCode--><rect fill="#FEFECE" height="79.5469" id="CompanyIataCode" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="119" x="345.09" y="723.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="360.59" y="739.5449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="113" x="348.09" y="753.5137">CompanyIataCode</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="346.09" x2="463.09" y1="761.3438" y2="761.3438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="351.09" y="775.5542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="346.09" x2="463.09" y1="782.1484" y2="782.1484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="93" x="351.09" y="796.3589">+value() : String</text><!--MD5=[3ac1be866cb68e44e71e0a8d7970bf23]
+class CompanyIcaoCode--><rect fill="#FEFECE" height="79.5469" id="CompanyIcaoCode" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="121" x="671.09" y="723.4063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="687.59" y="739.5449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="115" x="674.09" y="753.5137">CompanyIcaoCode</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="672.09" x2="791.09" y1="761.3438" y2="761.3438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="80" x="677.09" y="775.5542">-value : String</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="672.09" x2="791.09" y1="782.1484" y2="782.1484"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="93" x="677.09" y="796.3589">+value() : String</text><!--MD5=[b5075ce010c23809f041392e613f0315]
+class AirOperatorCertificate--><rect fill="#FEFECE" height="105.1563" id="AirOperatorCertificate" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="156" x="827.59" y="710.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="861.59" y="727.0449">«ValueObject»</text><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="136" x="837.59" y="741.0137">AirOperatorCertificate</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="828.59" x2="982.59" y1="748.8438" y2="748.8438"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="94" x="833.59" y="763.0542">-number : String</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="131" x="833.59" y="775.8589">-expiryDate : LocalDate</text><line style="stroke: #A80036; stroke-width: 1.0;" x1="828.59" x2="982.59" y1="782.4531" y2="782.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="107" x="833.59" y="796.6636">+number() : String</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="144" x="833.59" y="809.4683">+expiryDate() : LocalDate</text><!--MD5=[d31d05b21b055a99934574a91103f166]
+class AirTransportCompanyRepository--><rect fill="#FEFECE" height="91.1875" id="AirTransportCompanyRepository" rx="3" ry="3" style="stroke: #A80036; stroke-width: 1.5;" width="504" x="843.59" y="289.9063"/><text fill="#000000" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="200" x="995.59" y="306.0449">AirTransportCompanyRepository</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="844.59" x2="1346.59" y1="313.875" y2="313.875"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="844.59" x2="1346.59" y1="321.875" y2="321.875"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="399" x="849.59" y="336.0854">+findByIataCode(iataCode : String) : Optional&lt;AirTransportCompany&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="403" x="849.59" y="348.8901">+findByIcaoCode(icaoCode : String) : Optional&lt;AirTransportCompany&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="492" x="849.59" y="361.6948">+findCompanyIdForCollaboratorUsername(username : String) : Optional&lt;CompanyId&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="231" x="849.59" y="374.4995">+save(company) : AirTransportCompany</text><path d="M65.09,295.4063 L65.09,375.0703 A3,3 0 0 0 68.09,378.0703 L371.09,378.0703 A3,3 0 0 0 374.09,375.0703 L374.09,302.4063 L364.09,292.4063 L68.09,292.4063 A3,3 0 0 0 65.09,295.4063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M364.09,292.4063 L364.09,300.9063 A1.5,1.5 0 0 0 365.59,302.4063 L374.09,302.4063 L364.09,292.4063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="259" x="71.09" y="309.4731">Papeis: ADMIN, BACKOFFICE_OPERATOR.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="260" x="71.09" y="324.606">Rejeita IATA duplicado (case-insensitive).</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="263" x="71.09" y="339.7388">Rejeita ICAO duplicado (case-insensitive).</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="288" x="71.09" y="354.8716">CompanyIataCode: exatamente 2 letras A-Z.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="240" x="71.09" y="370.0044">CompanyIcaoCode: 2 ou 3 letras A-Z.</text><path d="M1016.09,524.9063 L1016.09,545.4063 L981.27,549.4063 L1016.09,553.4063 L1016.09,574.3047 A3,3 0 0 0 1019.09,577.3047 L1324.09,577.3047 A3,3 0 0 0 1327.09,574.3047 L1327.09,531.9063 L1317.09,521.9063 L1019.09,521.9063 A3,3 0 0 0 1016.09,524.9063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M1317.09,521.9063 L1317.09,530.4063 A1.5,1.5 0 0 0 1318.59,531.9063 L1327.09,531.9063 L1317.09,521.9063 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="290" x="1022.09" y="538.9731">collaboratorUsernames: @ElementCollection.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="211" x="1022.09" y="554.106">addCollaborator faz trim e rejeita</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="219" x="1022.09" y="569.2388">duplicados (IllegalStateException).</text><!--MD5=[5932aa56897cbf2e76e4a231906c68a4]
+link RegisterAirTransportCompanyController to AuthorizationPort--><path d="M683.869,213.6295 C683.869,213.6295 614.84,270.6163 586.48,294.0363 " fill="none" id="RegisterAirTransportCompanyController-AuthorizationPort" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="576.41,302.3463,585.8982,299.7055,580.2673,299.1648,580.8079,293.5339,576.41,302.3463" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="580.2673" x2="586.435" y1="299.1648" y2="294.0762"/><polygon fill="#FFFFFF" points="693.12,205.9863,685.9468,206.7242,683.869,213.6295,691.0423,212.8915,693.12,205.9863" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[56beafc5913cbd615a4b9c74760f3399]
+link RegisterAirTransportCompanyController to AirTransportCompanyRepository--><path d="M863.629,211.5942 C863.629,211.5942 957.69,261.4063 999.76,283.6763 " fill="none" id="RegisterAirTransportCompanyController-AirTransportCompanyRepository" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1011.41,289.8463,1005.3186,282.1071,1006.9884,287.5119,1001.5836,289.1816,1011.41,289.8463" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="1006.9884" x2="999.925" y1="287.5119" y2="283.7613"/><polygon fill="#FFFFFF" points="853.02,205.9863,856.4552,212.3266,863.629,211.5942,860.1938,205.2539,853.02,205.9863" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[4e377f891272660f23c987baf68d9681]
+link RegisterAirTransportCompanyController to AirTransportCompany--><path d="M768.14,205.9163 C783.83,270.3162 810.94,381.5663 829.99,459.7663 " fill="none" id="RegisterAirTransportCompanyController-&gt;AirTransportCompany" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="831.23,464.8663,832.9815,455.1744,830.0442,460.0089,825.2097,457.0716,831.23,464.8663" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[8cded31bcf1923abe638cfb85236c3d7]
+link RegisterAirTransportCompanyController to CompanyName--><path d="M576.06,165.6862 C377.86,180.0063 82.04,207.6663 47.59,246.9063 C-79.72,391.9263 119.34,624.3463 213.09,719.5963 " fill="none" id="RegisterAirTransportCompanyController-&gt;CompanyName" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="216.65,723.1963,213.1702,713.9826,213.136,719.6394,207.4792,719.6051,216.65,723.1963" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[c0a2ac9175528eba4cd8aa1a71a076aa]
+link RegisterAirTransportCompanyController to CompanyIataCode--><path d="M746.5,205.9462 C735.96,258.1363 715.66,340.1563 682.59,404.9063 C618.33,530.7063 507.33,656.0163 446.85,719.5663 " fill="none" id="RegisterAirTransportCompanyController-&gt;CompanyIataCode" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="443.3,723.2863,452.4038,719.5285,446.7486,719.6659,446.6113,714.0107,443.3,723.2863" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[5eb9b36c91d0dad2af13781dc01783bb]
+link RegisterAirTransportCompanyController to CompanyIcaoCode--><path d="M935.43,159.0063 C1092.52,166.9562 1304.45,188.5463 1363.59,246.9063 C1486.35,368.0563 1482.3,486.5963 1392.59,633.9063 C1368.91,672.7863 1345.47,668.8163 1301.59,680.9063 C1090.81,738.9863 1018.16,642.2663 810.59,710.9063 C802.99,713.4163 795.42,716.8463 788.13,720.7463 " fill="none" id="RegisterAirTransportCompanyController-&gt;CompanyIcaoCode" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="783.64,723.2363,793.4521,722.3866,788.0168,720.819,789.5845,715.3837,783.64,723.2363" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[aeb4d645f6869eccc51666ad9afc9903]
+link RegisterAirTransportCompanyController to AirOperatorCertificate--><path d="M935.1,156.7963 C1110.98,162.9163 1362.76,182.9963 1434.59,246.9063 C1491.87,297.8763 1471.04,336.9563 1481.59,412.9063 C1495.23,511.1463 1508.33,553.2663 1450.59,633.9063 C1397.36,708.2363 1128.17,742.7063 989.08,755.7663 " fill="none" id="RegisterAirTransportCompanyController-&gt;AirOperatorCertificate" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="983.78,756.2563,993.1174,759.3887,988.7577,755.7842,992.3622,751.4245,983.78,756.2563" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[f9fa4e1c0ee3bc5f92a618bf145dcd65]
+link AirTransportCompanyRepository to AirTransportCompany--><path d="M1044.14,381.1063 C1017.27,404.4563 983.44,433.8463 951.66,461.4563 " fill="none" id="AirTransportCompanyRepository-&gt;AirTransportCompany" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="947.8,464.8163,957.2135,461.9202,951.57,461.5318,951.9584,455.8883,947.8,464.8163" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[135e74f82831bfb87bfc52a540b058ed]
+link AirTransportCompanyRepository to CompanyId--><path d="M1300.14,380.9763 C1317.36,391.8163 1332.7,405.2563 1344.59,421.9063 C1399.33,498.5863 1407.41,563.6863 1344.59,633.9063 C1241.56,749.0463 799.99,661.5363 653.59,710.9063 C649.35,712.3363 645.09,713.9963 640.87,715.8263 " fill="none" id="AirTransportCompanyRepository-&gt;CompanyId" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><polygon fill="#A80036" points="636.3,717.8863,646.1487,717.8291,640.8572,715.8291,642.8572,710.5376,636.3,717.8863" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[4fa88cbd3c831239c6b52c24489c0010]
+reverse link AirTransportCompany to CompanyId--><path d="M799.63,644.5163 C788.84,658.2063 776.45,670.9963 762.59,680.9063 C721.7,710.1163 699.79,691.1563 653.59,710.9063 C647.83,713.3663 641.98,716.1563 636.2,719.1363 " fill="none" id="AirTransportCompany&lt;-CompanyId" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="807.58,633.9063,800.7821,636.3122,800.3884,643.5126,807.1863,641.1066,807.58,633.9063" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="11" x="782.59" y="676.9731">id</text><!--MD5=[3768ece82bdc9ce3eac089ffc1b0c328]
+reverse link AirTransportCompany to CompanyName--><path d="M709.39,580.1963 C601.09,606.1163 450.24,649.2563 327.59,710.9063 C320.44,714.4963 313.25,718.8063 306.35,723.3863 " fill="none" id="AirTransportCompany&lt;-CompanyName" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="722.05,577.2063,715.2913,574.6923,710.3712,579.9643,717.13,582.4782,722.05,577.2063" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[f910b543813c26788d4611b892ddaa59]
+reverse link AirTransportCompany to CompanyIataCode--><path d="M770.18,642.8163 C752.91,657.6963 733.76,671.3363 713.59,680.9063 C619.65,725.4762 578.93,674.3763 481.59,710.9063 C473,714.1263 464.43,718.4663 456.28,723.2663 " fill="none" id="AirTransportCompany&lt;-CompanyIataCode" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="780.12,633.9263,772.9809,634.943,771.1737,641.9239,778.3127,640.9072,780.12,633.9263" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[58ae1f6b7a0be85ab7ef91a9ad0b7734]
+reverse link AirTransportCompany to CompanyIcaoCode--><path d="M849.35,646.9063 C846.55,658.8263 842.46,670.4663 836.59,680.9063 C830.45,691.8163 810.65,708.1163 789.88,723.2863 " fill="none" id="AirTransportCompany&lt;-CompanyIcaoCode" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="851.9,633.9063,846.8153,639.0195,849.5796,645.6798,854.6643,640.5665,851.9,633.9063" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[617395044c7995dda0729505b99602c5]
+reverse link AirTransportCompany to AirOperatorCertificate--><path d="M876.19,647.0163 C881.78,668.9463 887.51,691.4263 892.4,710.6463 " fill="none" id="AirTransportCompany&lt;-AirOperatorCertificate" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="872.93,634.1963,870.5372,640.9988,875.8962,645.8239,878.289,639.0213,872.93,634.1963" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[dd95f366e1711c7afa467c937e308ccc]
+link RegisterAirTransportCompanyController to GMN96--><path d="M575.94,191.9362 C516.7,206.4863 451.04,224.9763 392.59,246.9063 C359.18,259.4363 323.78,276.5963 293.76,292.3963 " fill="none" id="RegisterAirTransportCompanyController-GMN96" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><rect fill="#DDDDDD" height="75.1875" rx="5" ry="5" style="stroke: #000000; stroke-width: 1.0;" width="413" x="549" y="865.9063"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="389" x="555" y="883.9014">company_application  = eapli.aisafe.company.application</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="367" x="555" y="900.1982">application_security = eapli.aisafe.application.security</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="363" x="555" y="916.4951">company_domain       = eapli.aisafe.company.domain</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="401" x="555" y="932.792">company_repositories = eapli.aisafe.company.repositories</text><!--MD5=[7a36a977ac729130b82c8a009ce57ac5]
+@startuml US060-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam Roundcorner 6
+hide circle
+
+title US060 - Registar empresa de transporte aéreo\nRegisterAirTransportCompanyController | aisafe.infrastructure.application + aisafe.core
+
+package company_application {
+    class RegisterAirTransportCompanyController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - repo : AirTransportCompanyRepository
+        - -
+        + register(companyName, iataCode, icaoCode,\n  certificateNumber, certificateExpiry) : AirTransportCompany
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+package company_domain {
+    class AirTransportCompany <<AggregateRoot>> {
+        - collaboratorUsernames : Set<String>
+        - -
+        + identity() : CompanyId
+        + name() : CompanyName
+        + iataCode() : CompanyIataCode
+        + icaoCode() : CompanyIcaoCode
+        + certificate() : AirOperatorCertificate
+        + addCollaborator(username : String) : void
+        + collaboratorUsernames() : Set<String>
+        + listActiveCollaborators() : List<String>
+    }
+
+    class CompanyId <<ValueObject>> {
+        - value : String
+        - -
+        + {static} newId() : CompanyId
+        + asUuid() : UUID
+    }
+
+    class CompanyName <<ValueObject>> {
+        - value : String
+        - -
+        + value() : String
+    }
+
+    class CompanyIataCode <<ValueObject>> {
+        - value : String
+        - -
+        + value() : String
+    }
+
+    class CompanyIcaoCode <<ValueObject>> {
+        - value : String
+        - -
+        + value() : String
+    }
+
+    class AirOperatorCertificate <<ValueObject>> {
+        - number : String
+        - expiryDate : LocalDate
+        - -
+        + number() : String
+        + expiryDate() : LocalDate
+    }
+}
+
+package company_repositories {
+    interface AirTransportCompanyRepository {
+        + findByIataCode(iataCode : String) : Optional<AirTransportCompany>
+        + findByIcaoCode(icaoCode : String) : Optional<AirTransportCompany>
+        + findCompanyIdForCollaboratorUsername(username : String) : Optional<CompanyId>
+        + save(company) : AirTransportCompany
+    }
+}
+
+RegisterAirTransportCompanyController o- -> AuthorizationPort
+RegisterAirTransportCompanyController o- -> AirTransportCompanyRepository
+RegisterAirTransportCompanyController ..> AirTransportCompany
+RegisterAirTransportCompanyController ..> CompanyName
+RegisterAirTransportCompanyController ..> CompanyIataCode
+RegisterAirTransportCompanyController ..> CompanyIcaoCode
+RegisterAirTransportCompanyController ..> AirOperatorCertificate
+
+AirTransportCompanyRepository ..> AirTransportCompany
+AirTransportCompanyRepository ..> CompanyId
+
+AirTransportCompany *- - CompanyId : id
+AirTransportCompany *- - CompanyName
+AirTransportCompany *- - CompanyIataCode
+AirTransportCompany *- - CompanyIcaoCode
+AirTransportCompany *- - AirOperatorCertificate
+
+note bottom of RegisterAirTransportCompanyController
+  Papeis: ADMIN, BACKOFFICE_OPERATOR.
+  Rejeita IATA duplicado (case-insensitive).
+  Rejeita ICAO duplicado (case-insensitive).
+  CompanyIataCode: exatamente 2 letras A-Z.
+  CompanyIcaoCode: 2 ou 3 letras A-Z.
+end note
+
+note right of AirTransportCompany
+  collaboratorUsernames: @ElementCollection.
+  addCollaborator faz trim e rejeita
+  duplicados (IllegalStateException).
+end note
+
+legend bottom
+  company_application  = eapli.aisafe.company.application
+  application_security = eapli.aisafe.application.security
+  company_domain       = eapli.aisafe.company.domain
+  company_repositories = eapli.aisafe.company.repositories
+endlegend
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 10:22:07 UTC 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 17.0.19+10
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

@@ -1,0 +1,230 @@
+@startuml CD_US073_CreateFlightRoute
+title Class Diagram — US073 Create a Flight Route
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam packageBackgroundColor #F8F8F8
+hide circle
+
+' =====================================================================
+' PRESENTATION LAYER
+' =====================================================================
+package "Presentation\n(aisafe.app.user.console)" #EEF0FB {
+
+  class CreateFlightRouteUI {
+    - controller : CreateFlightRouteController
+    --
+    + doShow() : boolean
+  }
+}
+
+' =====================================================================
+' APPLICATION LAYER (eapli.aisafe.flightroute.application)
+' =====================================================================
+package "Application" #E8F5F0 {
+
+  class CreateFlightRouteController <<UseCaseController>> {
+    - authz : AuthorizationPort
+    - service : CreateFlightRouteService
+    - airportRepo : AirportRepository
+    --
+    + listOperationalAirports() : List<OperationalAirportDTO>
+    + createRoute(numericSuffix : String,\n  originIcao : String,\n  destinationIcao : String) : FlightRouteDTO
+  }
+
+  class CreateFlightRouteService {
+    - routeRepo : FlightRouteRepository
+    - airportRepo : AirportRepository
+    - companyRepo : AirTransportCompanyRepository
+    --
+    + createRoute(numericSuffix : String,\n  originIcao : String,\n  destinationIcao : String,\n  username : String) : FlightRouteDTO
+    - requireOperationalAirport(icao : String) : Airport
+  }
+
+  class FleetListing <<helper>> {
+    + {static} requireCompanyOfUser(\n  companyRepo, username) : CompanyId
+  }
+
+  class FlightRouteDTO <<record>> {
+    + routeId : String
+    + routeName : String
+    + companyName : String
+    + originAirportIcao : String
+    + originAirportIata : String
+    + destinationAirportIcao : String
+    + destinationAirportIata : String
+    + distanceKm : double
+    + durationMinutes : long
+    + status : String
+  }
+
+  class OperationalAirportDTO <<record>> {
+    + icaoCode : String
+    + iataCode : String
+    + name : String
+    + town : String
+    + country : String
+  }
+}
+
+' =====================================================================
+' DOMAIN LAYER (eapli.aisafe.flightroute)
+' =====================================================================
+package "Domain" #FFF8EC {
+
+  package "FlightRoute (AR)" {
+
+    class FlightRoute <<AggregateRoot>> {
+      - id : FlightRouteId
+      - name : FlightRouteName
+      - companyId : CompanyId <<Ref>>
+      - originAirportId : AirportId <<Ref>>
+      - destinationAirportId : AirportId <<Ref>>
+      - status : RouteActivationStatus
+      - distance : RouteDistance
+      - duration : RouteDuration
+      --
+      + {static} create(name, companyId,\n  originId, destId, distance, duration) : FlightRoute
+      + isActive() : boolean
+      + identity() : FlightRouteId
+      + getName() : FlightRouteName
+      + getDistance() : RouteDistance
+      + getDuration() : RouteDuration
+      + getStatus() : RouteActivationStatus
+    }
+
+    class FlightRouteId <<ValueObject>> {
+      - value : UUID
+      + {static} newId() : FlightRouteId
+    }
+
+    class FlightRouteName <<ValueObject>> {
+      - value : String
+      + {static} compose(iataPrefix : String,\n  numericSuffix : String) : FlightRouteName
+      + value() : String
+    }
+
+    enum RouteActivationStatus {
+      ACTIVE
+      INACTIVE
+      TEMPORARILY_CLOSED
+      PERMANENTLY_CLOSED
+    }
+
+    class RouteDistance <<ValueObject>> {
+      - value : double
+      - unit : MeasurementUnit
+      + value() : double
+      + unit() : MeasurementUnit
+    }
+
+    class RouteDuration <<ValueObject>> {
+      - minutes : long
+      + minutes() : long
+    }
+  }
+
+  class HaversineRouteDistanceCalculator <<DomainService>> {
+    + {static} calculateDistance(origin : Airport,\n  destination : Airport) : RouteDistance
+    + {static} estimateDuration(distance : RouteDistance) : RouteDuration
+  }
+
+  class Airport <<AggregateRoot>> {
+      + icaoCode() : String
+      + iataCode() : String
+      + name() : String
+      + town() : String
+      + country() : String
+      + latitude() : double
+      + longitude() : double
+      + isOperational() : boolean
+  }
+
+  class AirTransportCompany <<AggregateRoot>> {
+      + identity() : CompanyId
+      + iataCode() : CompanyIataCode
+      + name() : CompanyName
+  }
+
+  class AirportId <<ValueObject>> {
+    + {static} forIcaoCode(icao : String) : AirportId
+  }
+  class CompanyId <<ValueObject>>
+
+  interface FlightRouteRepository <<Repository>> {
+    + save(route : FlightRoute) : FlightRoute
+    + existsByName(name : FlightRouteName) : boolean
+    + findById(id : String) : Optional<FlightRoute>
+  }
+
+  interface AirportRepository <<Repository>> {
+    + findByIcaoCode(icao : String) : Optional<Airport>
+    + findAll() : Iterable<Airport>
+  }
+
+  interface AirTransportCompanyRepository <<Repository>> {
+    + ofIdentity(id : CompanyId) : Optional<AirTransportCompany>
+    + findCompanyIdForCollaboratorUsername(username : String) : Optional<CompanyId>
+  }
+}
+
+' =====================================================================
+' INFRASTRUCTURE
+' =====================================================================
+package "Infrastructure / Persistence" #EAF3FB {
+
+  class JpaFlightRouteRepository <<Repository>>
+  class JpaAirportRepository <<Repository>>
+  class JpaAirTransportCompanyRepository <<Repository>>
+}
+
+' =====================================================================
+' RELATIONS
+' =====================================================================
+CreateFlightRouteUI ..> CreateFlightRouteController
+CreateFlightRouteController ..> CreateFlightRouteService
+CreateFlightRouteController ..> AirportRepository
+CreateFlightRouteController ..> OperationalAirportDTO : <<returns>>
+CreateFlightRouteController ..> FlightRouteDTO : <<returns>>
+
+CreateFlightRouteService ..> FleetListing : requireCompanyOfUser
+CreateFlightRouteService ..> FlightRouteRepository
+CreateFlightRouteService ..> AirportRepository
+CreateFlightRouteService ..> AirTransportCompanyRepository
+CreateFlightRouteService ..> HaversineRouteDistanceCalculator
+CreateFlightRouteService ..> FlightRoute : <<creates>>
+CreateFlightRouteService ..> FlightRouteDTO : <<builds>>
+
+FlightRoute "1" *-- "1" FlightRouteId
+FlightRoute "1" *-- "1" FlightRouteName
+FlightRoute "1" *-- "1" RouteActivationStatus
+FlightRoute "1" *-- "1" RouteDistance
+FlightRoute "1" *-- "1" RouteDuration
+FlightRoute --> "1" CompanyId
+FlightRoute --> "1" AirportId : origin
+FlightRoute --> "1" AirportId : destination
+
+HaversineRouteDistanceCalculator ..> Airport
+HaversineRouteDistanceCalculator ..> RouteDistance : <<creates>>
+HaversineRouteDistanceCalculator ..> RouteDuration : <<creates>>
+
+JpaFlightRouteRepository ..|> FlightRouteRepository
+JpaAirportRepository ..|> AirportRepository
+JpaAirTransportCompanyRepository ..|> AirTransportCompanyRepository
+
+note bottom of FlightRoute
+  **Invariants (US073):**
+  - name format: 2 letters + 1-4 digits (FlightRouteName)
+  - origin != destination
+  - globally unique name (existsByName)
+  - status = ACTIVE on creation
+end note
+
+note bottom of HaversineRouteDistanceCalculator
+  Static utility (no interface).
+  Distance stored in METER;
+  cruise speed 850 km/h.
+end note
+
+@enduml

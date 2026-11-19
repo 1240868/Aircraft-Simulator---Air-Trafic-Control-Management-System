@@ -1,0 +1,191 @@
+@startuml US112-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US112 - Gerar Relatorio Mensal\nTemplate Method + Strategy
+
+' ─── UI ──────────────────────────────────────────────────────────
+package user_presentation {
+    class GenerateMonthlyReportUI {
+        - controller : GenerateMonthlyReportController
+        --
+        + doShow() : boolean
+    }
+}
+
+' ─── Application ─────────────────────────────────────────────────
+package reporting_application {
+    class GenerateMonthlyReportController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - areaRepo : AirControlAreaRepository
+        - flightPlanRepo : FlightPlanRepository
+        - airportRepo : AirportRepository
+        - exporter : ReportExporter
+        --
+        + generate(year, month) : MonthlyReportResult
+    }
+
+    class MonthlyReportDataCollector <<Strategy / ReportDataCollector>> {
+        - flightPlanRepo : FlightPlanRepository
+        - airportRepo : AirportRepository
+        - areaCode : AirControlAreaCode
+        - year : int
+        - month : int
+        --
+        + collect() : MonthlyReportStats
+        - airportIcaoCodesForArea() : Set<String>
+        - departsFromArea(fp, codes) : boolean
+        .. collects in one pass ..
+        by status (9 values)
+        by type (6 values)
+        distinct pilots + aircraft
+    }
+
+    record MonthlyReportResult {
+        success : boolean
+        reportPath : Path
+        errorMessage : String
+        --
+        {static} + success(path) : MonthlyReportResult
+        {static} + failure(error) : MonthlyReportResult
+    }
+
+    interface ReportExporter {
+        + export(report : Report) : Path
+    }
+
+    class TextFileReportExporter {
+        + export(report : Report) : Path
+    }
+}
+
+' ─── Domain ──────────────────────────────────────────────────────
+package reporting_domain {
+
+    abstract class Report <<Template Method>> {
+        - generatedAt : LocalDateTime
+        --
+        + {abstract} title() : String
+        # {abstract} sections() : List<ReportSection>
+        + generatedAt() : LocalDateTime
+        + final render() : String
+    }
+
+    class MonthlyStatisticsReport {
+        - areaCode : AirControlAreaCode
+        - areaName : String
+        - period : YearMonth
+        - stats : MonthlyReportStats
+        --
+        + title() : String
+        # sections() : List<ReportSection>
+        + stats() : MonthlyReportStats
+        + period() : YearMonth
+        + areaCode() : AirControlAreaCode
+    }
+
+    class ReportSection <<ValueObject>> {
+        - title : String
+        - content : String
+        --
+        + title() : String
+        + content() : String
+    }
+
+    class MonthlyReportStats <<ValueObject>> {
+        .. by status ..
+        - total, approved, rejected, draft
+        - submitted, completed, cancelled
+        - active, pendingTest, tested
+        .. by type ..
+        - commercial, cargo, charter
+        - privateFlights, military, emergency
+        .. activity ..
+        - distinctPilots : int
+        - distinctAircraft : int
+        --
+        {static} + builder() : Builder
+        + totalFlightPlans() : int
+        + approvedFlightPlans() : int
+        + commercialFlights() : int
+        + distinctPilots() : int
+        + distinctAircraft() : int
+    }
+
+    interface ReportDataCollector<T> <<Strategy>> {
+        + collect() : T
+    }
+}
+
+' ─── Repositories ────────────────────────────────────────────────
+package repositories {
+    interface FlightPlanRepository {
+        + findByDepartureYearMonth(year, month) : Iterable<FlightPlan>
+    }
+
+    interface AirControlAreaRepository {
+        + findByCollaboratorUsername(username) : Optional<AirControlArea>
+    }
+
+    interface AirportRepository {
+        + findByAirControlAreaCode(areaCode) : Iterable<Airport>
+    }
+}
+
+' ─── Security ────────────────────────────────────────────────────
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles) : void
+        + currentUsername() : String
+    }
+}
+
+' ─── Relations ───────────────────────────────────────────────────
+GenerateMonthlyReportUI --> GenerateMonthlyReportController
+
+GenerateMonthlyReportController --> AuthorizationPort
+GenerateMonthlyReportController --> AirControlAreaRepository
+GenerateMonthlyReportController --> FlightPlanRepository
+GenerateMonthlyReportController --> AirportRepository
+GenerateMonthlyReportController --> ReportExporter
+GenerateMonthlyReportController ..> MonthlyReportDataCollector : creates
+GenerateMonthlyReportController ..> MonthlyStatisticsReport : creates
+GenerateMonthlyReportController ..> MonthlyReportResult : returns
+
+MonthlyReportDataCollector ..|> ReportDataCollector
+MonthlyReportDataCollector --> FlightPlanRepository
+MonthlyReportDataCollector --> AirportRepository
+MonthlyReportDataCollector ..> MonthlyReportStats : returns
+
+MonthlyStatisticsReport --|> Report
+MonthlyStatisticsReport *-- MonthlyReportStats
+MonthlyStatisticsReport *-- ReportSection
+
+TextFileReportExporter ..|> ReportExporter
+
+note bottom of Report
+  Template Method: render() define
+  o esqueleto (branding, header,
+  footer). Subclasses implementam
+  title() e sections().
+end note
+
+note right of ReportDataCollector
+  Strategy: cada tipo de relatorio
+  define como recolhe os seus dados.
+  MonthlyReportDataCollector consulta
+  AirportRepository para obter os
+  aeroportos da area do FCO e filtra
+  os FlightPlans pelo aeroporto de
+  partida (primeiro leg).
+end note
+
+note bottom of GenerateMonthlyReportController
+  A area NAO e seleccionada pelo FCO.
+  E resolvida automaticamente via
+  findByCollaboratorUsername(username).
+end note
+
+@enduml

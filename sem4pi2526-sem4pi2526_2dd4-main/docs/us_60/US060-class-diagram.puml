@@ -1,0 +1,121 @@
+@startuml US060-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam Roundcorner 6
+hide circle
+
+title US060 - Registar empresa de transporte aéreo\nRegisterAirTransportCompanyController | aisafe.infrastructure.application + aisafe.core
+
+package company_application {
+    class RegisterAirTransportCompanyController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - repo : AirTransportCompanyRepository
+        --
+        + register(companyName, iataCode, icaoCode,\n  certificateNumber, certificateExpiry) : AirTransportCompany
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles)
+        + currentUsername() : String
+    }
+}
+
+package company_domain {
+    class AirTransportCompany <<AggregateRoot>> {
+        - collaboratorUsernames : Set<String>
+        --
+        + identity() : CompanyId
+        + name() : CompanyName
+        + iataCode() : CompanyIataCode
+        + icaoCode() : CompanyIcaoCode
+        + certificate() : AirOperatorCertificate
+        + addCollaborator(username : String) : void
+        + collaboratorUsernames() : Set<String>
+        + listActiveCollaborators() : List<String>
+    }
+
+    class CompanyId <<ValueObject>> {
+        - value : String
+        --
+        + {static} newId() : CompanyId
+        + asUuid() : UUID
+    }
+
+    class CompanyName <<ValueObject>> {
+        - value : String
+        --
+        + value() : String
+    }
+
+    class CompanyIataCode <<ValueObject>> {
+        - value : String
+        --
+        + value() : String
+    }
+
+    class CompanyIcaoCode <<ValueObject>> {
+        - value : String
+        --
+        + value() : String
+    }
+
+    class AirOperatorCertificate <<ValueObject>> {
+        - number : String
+        - expiryDate : LocalDate
+        --
+        + number() : String
+        + expiryDate() : LocalDate
+    }
+}
+
+package company_repositories {
+    interface AirTransportCompanyRepository {
+        + findByIataCode(iataCode : String) : Optional<AirTransportCompany>
+        + findByIcaoCode(icaoCode : String) : Optional<AirTransportCompany>
+        + findCompanyIdForCollaboratorUsername(username : String) : Optional<CompanyId>
+        + save(company) : AirTransportCompany
+    }
+}
+
+RegisterAirTransportCompanyController o--> AuthorizationPort
+RegisterAirTransportCompanyController o--> AirTransportCompanyRepository
+RegisterAirTransportCompanyController ..> AirTransportCompany
+RegisterAirTransportCompanyController ..> CompanyName
+RegisterAirTransportCompanyController ..> CompanyIataCode
+RegisterAirTransportCompanyController ..> CompanyIcaoCode
+RegisterAirTransportCompanyController ..> AirOperatorCertificate
+
+AirTransportCompanyRepository ..> AirTransportCompany
+AirTransportCompanyRepository ..> CompanyId
+
+AirTransportCompany *-- CompanyId : id
+AirTransportCompany *-- CompanyName
+AirTransportCompany *-- CompanyIataCode
+AirTransportCompany *-- CompanyIcaoCode
+AirTransportCompany *-- AirOperatorCertificate
+
+note bottom of RegisterAirTransportCompanyController
+  Papeis: ADMIN, BACKOFFICE_OPERATOR.
+  Rejeita IATA duplicado (case-insensitive).
+  Rejeita ICAO duplicado (case-insensitive).
+  CompanyIataCode: exatamente 2 letras A-Z.
+  CompanyIcaoCode: 2 ou 3 letras A-Z.
+end note
+
+note right of AirTransportCompany
+  collaboratorUsernames: @ElementCollection.
+  addCollaborator faz trim e rejeita
+  duplicados (IllegalStateException).
+end note
+
+legend bottom
+  company_application  = eapli.aisafe.company.application
+  application_security = eapli.aisafe.application.security
+  company_domain       = eapli.aisafe.company.domain
+  company_repositories = eapli.aisafe.company.repositories
+endlegend
+
+@enduml

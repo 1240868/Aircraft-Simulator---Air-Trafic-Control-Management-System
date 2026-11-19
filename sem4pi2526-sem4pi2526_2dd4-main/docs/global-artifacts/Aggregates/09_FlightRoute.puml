@@ -1,0 +1,72 @@
+@startuml FlightRoute_Aggregate_Corrected
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "FlightRoute Aggregate (AR)" {
+  class FlightRoute <<AggregateRoot>> {
+    - id                   : FlightRouteId
+    - name                 : FlightRouteName
+    - companyId            : CompanyId
+    - originAirportId      : AirportId
+    - destinationAirportId : AirportId
+    - status               : RouteActivationStatus
+    - duration             : Duration
+    - distance             : Distance
+    --
+    + deactivate(fromDate: LocalDate) : void
+    + isActive(onDate: LocalDate) : boolean
+    ' Corrigido: Recebe especificações (VO) em vez da entidade AircraftModel [1]
+    + calculateRequiredFuel(specs: AircraftPerformanceSpecsVO) : FuelQuantity
+    + isCompatibleWith(specs: AircraftPerformanceSpecsVO) : boolean
+    - validateRouteCoherence() : void
+  }
+
+  class FlightRouteId <<ValueObject>> {
+    - value : UUID
+  }
+
+  class FlightRouteName <<ValueObject>> {
+    - value : String <<2 letters + up to 4 digits>>
+    ' Valida o formato US073 no construtor [10]
+  }
+
+  class RouteActivationStatus <<ValueObject>> {
+    - activeUntil : LocalDate
+    - isDeactivated : boolean
+  }
+
+  class Distance <<ValueObject>> {
+    - value : Double
+    - unit : String
+  }
+
+  class Duration <<ValueObject>> {
+    - value : Double
+  }
+}
+
+' Referências externas (Apenas por ID para manter a escalabilidade) [1, 3]
+class CompanyId <<ValueObject>>
+class AirportId <<ValueObject>>
+
+FlightRoute "1" *-- "1" FlightRouteId
+FlightRoute "1" *-- "1" FlightRouteName
+FlightRoute "1" *-- "1" Distance
+FlightRoute "1" *-- "1" Duration
+FlightRoute "1" *-- "1" RouteActivationStatus
+
+' Associações de Identidade
+FlightRoute --> "1" CompanyId
+FlightRoute --> "1" AirportId : origin
+FlightRoute --> "1" AirportId : destination
+
+note bottom of FlightRoute
+  **Invariantes Protegidos:**
+  1. Origin != Destination (US089) [4]
+  2. Formato do Nome (US073) [10]
+  3. Lógica de desativação por data (US074) [7]
+end note
+
+@enduml

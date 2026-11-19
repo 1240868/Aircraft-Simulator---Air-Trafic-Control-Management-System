@@ -1,0 +1,78 @@
+@startuml US072b-ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+hide circle
+
+title US072b - Listar frota ativa por fabricante\nListFleetByMakerController
+
+package fleet_application {
+    class ListFleetByMakerController <<UseCaseController>> {
+        - authz : AuthorizationPort
+        - aircraftRepo : AircraftRepository
+        - modelRepo : AircraftModelRepository
+        - companyRepo : AirTransportCompanyRepository
+        --
+        + listFleetByMaker(manufacturerRaw : String) : FleetListResult
+    }
+
+    class FleetListResult <<record>> {
+        + aircraft : List<AircraftFleetListItemDTO>
+        + messageWhenEmpty : String
+    }
+
+    class AircraftFleetListItemDTO <<record>> {
+        + registrationNumber : String
+        + modelName : String
+        + manufacturer : String
+        + operationalStatus : String
+        + numberOfSeats : int
+        + ageInCompleteYears : Integer
+    }
+}
+
+package application_security {
+    interface AuthorizationPort {
+        + ensureAuthenticatedUserHasAnyOf(roles...)
+        + currentUsername() : String
+    }
+}
+
+package fleet_domain {
+    class ManufacturerNormalizer <<utility>> {
+        + {static} normalize(manufacturerRaw : String) : String
+    }
+
+    class Aircraft <<AggregateRoot>> {
+        + aircraftModelId() : AircraftModelId
+        + isRetired() : boolean
+    }
+
+    class AircraftModel <<Entity>> {
+        + manufacturer() : String
+    }
+
+    interface AircraftRepository {
+        + findByOwnerCompanyId(companyId)
+    }
+
+    interface AircraftModelRepository {
+        + findAll() : Iterable<AircraftModel>
+    }
+}
+
+package company_domain {
+    interface AirTransportCompanyRepository {
+        + findCompanyIdForCollaboratorUsername(username) : Optional<CompanyId>
+    }
+}
+
+ListFleetByMakerController o--> AuthorizationPort
+ListFleetByMakerController --> AircraftRepository
+ListFleetByMakerController --> AircraftModelRepository
+ListFleetByMakerController --> AirTransportCompanyRepository
+ListFleetByMakerController ..> ManufacturerNormalizer
+ListFleetByMakerController ..> FleetListResult
+FleetListResult *-- AircraftFleetListItemDTO
+
+@enduml

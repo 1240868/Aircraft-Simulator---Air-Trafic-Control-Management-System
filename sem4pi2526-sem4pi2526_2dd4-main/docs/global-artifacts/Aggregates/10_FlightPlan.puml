@@ -1,0 +1,141 @@
+@startuml FlightPlan_Aggregate_Complete
+
+skinparam monochrome true
+skinparam shadowing false
+hide circle
+
+package "FlightPlan Aggregate (AR)" {
+
+  class FlightPlan <<AggregateRoot>> {
+    - id         : FlightPlanId
+    - designator : FlightDesignator
+    - type       : FlightType
+    - routeId    : FlightRouteId <<Ref>>
+    - aircraftId : AircraftId <<Ref>>
+    - legs       : List<FlightLeg>
+    - fuelPlan   : FuelPlan
+    --
+    + addLeg(leg: FlightLeg) : void
+    + validate() : ValidationResult
+    + totalFuel() : FuelQuantity
+    + isCompatibleWithSpecs(specs: AircraftSpecsVO) : boolean
+    + enforceLegsCoherence() : void
+  }
+
+  ' ── FlightLeg ────────────────────────────────────────────────────────
+  ' Cada leg é uma etapa não-stop entre dois aeroportos.
+  ' É um ValueObject: a sua identidade é a sua posição (sequence)
+  ' dentro do FlightPlan pai.
+  class FlightLeg <<ValueObject>> {
+    - sequence             : Integer
+    - departureAirportCode : AirportCode
+    - arrivalAirportCode   : AirportCode
+    - legFuel              : LegFuelLoad
+    - segments             : List<FlightSegment>
+  }
+
+  ' ── FlightSegment ────────────────────────────────────────────────────
+  ' Troço linear entre dois nós/junctions.
+  ' Contém slots de altitude permitidos e condições de vento.
+  class FlightSegment <<ValueObject>> {
+    - startNode            : Coordinates
+    - endNode              : Coordinates
+    - allowedAltitudeSlots : List<AltitudeSlot>
+    - wind                 : Wind
+  }
+
+  class AltitudeSlot <<ValueObject>> {
+    - altitude : Altitude
+    - width    : Double
+  }
+
+  class AirportCode <<ValueObject>> {
+    - value  : String
+    - format : CodeFormat
+  }
+
+  enum CodeFormat {
+    IATA
+    ICAO
+  }
+
+  class Wind <<ValueObject>> {
+    - directionDegrees : Double
+    - speedMs          : Double
+  }
+
+  class Coordinates <<ValueObject>> {
+    - latitude  : Double
+    - longitude : Double
+  }
+
+  class Altitude <<ValueObject>> {
+    - value : Double
+    - unit  : String
+  }
+
+  class LegFuelLoad <<ValueObject>> {
+    - quantity : Double
+    - unit     : String
+  }
+
+  class FlightDesignator <<ValueObject>> {
+    - airlineCode  : String
+    - flightNumber : Integer
+    - suffix       : String
+  }
+
+  ' Breakdown de combustível para o plano global (ICAO standard):
+  ' taxi + trip + contingency + alternate + final reserve
+  class FuelPlan <<ValueObject>> {
+    - taxiFuel         : Double
+    - tripFuel         : Double
+    - contingencyFuel  : Double
+    - alternateFuel    : Double
+    - finalReserveFuel : Double
+  }
+
+  enum FlightType {
+    REGULAR
+    CHARTER
+  }
+}
+
+' ── Referências externas (só IDs — sem acoplamento direto) ─────────────
+class FlightRouteId <<ValueObject>>
+class AircraftId   <<ValueObject>>
+class FlightPlanId <<ValueObject>>
+
+' ── Composições internas ───────────────────────────────────────────────
+FlightPlan "1" *-- "1..*" FlightLeg
+FlightPlan "1" *-- "1"    FlightDesignator
+FlightPlan "1" *-- "1"    FuelPlan
+FlightPlan "1" *-- "1"    FlightType
+
+FlightLeg "1" *-- "1..*" FlightSegment
+FlightLeg "1" *-- "1"    AirportCode : departure
+FlightLeg "1" *-- "1"    AirportCode : arrival
+FlightLeg "1" *-- "1"    LegFuelLoad
+
+FlightSegment "1" *-- "1"    Coordinates : start
+FlightSegment "1" *-- "1"    Coordinates : end
+FlightSegment "1" *-- "1..*" AltitudeSlot
+FlightSegment "1" *-- "1"    Wind
+
+AltitudeSlot "1" *-- "1" Altitude
+AirportCode  "1" *-- "1" CodeFormat
+
+' ── Referências por ID a outros agregados ─────────────────────────────
+FlightPlan --> FlightRouteId : ref
+FlightPlan --> AircraftId    : ref
+
+' ── Nota de design ────────────────────────────────────────────────────
+note bottom of FlightPlan
+  Um FlightPlan é reutilizável por múltiplos Flights (relação 1-N):
+    Flight "0..*" --> "1" FlightPlanId
+
+  Dados específicos de cada instância de voo (pilotId, status,
+  weatherDataIds, payload) pertencem ao agregado Flight, não aqui.
+end note
+
+@enduml

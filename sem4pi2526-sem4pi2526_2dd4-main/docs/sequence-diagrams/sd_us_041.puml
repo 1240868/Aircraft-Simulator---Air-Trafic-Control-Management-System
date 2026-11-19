@@ -1,0 +1,64 @@
+@startuml SD_US041_RegisterWeatherData
+title Sequence Diagram — US041 Register Weather Data (Happy Path)
+
+actor "Weather Person" as WP
+participant ":RegisterWeatherDataUI" as UI <<Presentation>>
+participant ":RegisterWeatherDataController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":AirControlAreaRepository" as AREA_REPO <<Repository>>
+participant ":WeatherDataRepository" as WD_REPO <<Repository>>
+participant "code:AirControlAreaCode" as CODE <<Value Object>>
+participant "wd:WeatherData" as WD <<Aggregate Root>>
+
+WP -> UI : menu "Register weather data"
+activate UI
+
+UI -> WP : prompt "Air control area code:"
+WP -> UI : areaCode
+UI -> WP : prompt "Observed at (yyyy-MM-ddTHH:mm, UTC):"
+WP -> UI : observedAtStr
+UI -> UI : LocalDateTime.parse(observedAtStr) → Instant UTC
+
+alt DateTimeParseException
+    UI -> WP : "Invalid date/time. Use format yyyy-MM-ddTHH:mm..."
+    UI --> WP : doShow returns false
+else
+    UI -> WP : prompt "Temperature (C):"
+    WP -> UI : temperatureC
+    UI -> WP : prompt "Humidity (%):"
+    WP -> UI : humidityPercent
+    UI -> WP : prompt "Wind speed (m/s):"
+    WP -> UI : windSpeed
+    UI -> WP : prompt "Wind direction (degrees 0-359):"
+    WP -> UI : windDirection
+
+    UI -> CTRL : register(areaCode, observedAt,\ntemperatureC, humidityPercent,\nwindSpeed, windDirection)
+    activate CTRL
+
+    CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(WEATHER_PERSON)
+    AUTHZ --> CTRL : ok
+
+    CTRL -> CODE : valueOf(areaCode)
+    CODE --> CTRL : code
+
+    CTRL -> AREA_REPO : findByCode(code)
+    AREA_REPO --> CTRL : Optional<AirControlArea>
+
+    alt area not found
+        CTRL --> UI : IllegalArgumentException
+        UI -> WP : ex.getMessage()
+    else area exists
+        CTRL -> WD ** : new WeatherData(code, observedAt,\nwindSpeedMs, windDirectionDegrees,\ntemperatureC, humidityPercent)
+        WD --> CTRL : wd
+
+        CTRL -> WD_REPO : save(wd)
+        WD_REPO --> CTRL : persisted wd
+
+        CTRL --> UI : WeatherData
+        UI -> WP : "Weather data registered: " + wd.identity()
+    end
+    deactivate CTRL
+end
+deactivate UI
+
+@enduml

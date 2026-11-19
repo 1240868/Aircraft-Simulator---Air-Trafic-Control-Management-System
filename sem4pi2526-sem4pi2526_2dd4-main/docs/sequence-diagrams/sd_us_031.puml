@@ -1,0 +1,57 @@
+@startuml SD_US031_AddSystemUser
+title Sequence Diagram — US031 Register System User (Happy Path)
+
+actor Admin
+participant ":AddUserUI" as UI <<Presentation>>
+participant ":AddUserController" as CTRL <<Application>>
+participant ":AuthzRegistry" as REG <<Framework>>
+participant ":AuthorizationService" as AUTHZ <<Framework>>
+participant ":UserManagementService" as UMS <<Framework>>
+
+Admin -> UI : menu "Add User"
+activate UI
+
+UI -> Admin : prompt "Username"
+Admin -> UI : username
+UI -> Admin : prompt "Password"
+Admin -> UI : password
+UI -> Admin : prompt "First Name"
+Admin -> UI : firstName
+UI -> Admin : prompt "Last Name"
+Admin -> UI : lastName
+UI -> Admin : prompt "E-Mail"
+Admin -> UI : email
+
+loop showRoles until VerticalMenuRenderer.render() returns true
+    UI -> CTRL : getRoleTypes()
+    activate CTRL
+    CTRL --> UI : Role[]
+    deactivate CTRL
+    UI -> Admin : menu vertical (roles + "No Role")
+    Admin -> UI : seleciona role(s) → roleTypes.add(role)
+end
+
+UI -> CTRL : addUser(username, password, firstName,\nlastName, email, roleTypes)
+activate CTRL
+
+CTRL -> REG : authorizationService()
+REG --> CTRL : AuthorizationService
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(ADMIN)
+AUTHZ --> CTRL : ok
+
+CTRL -> REG : userService()
+REG --> CTRL : UserManagementService
+CTRL -> UMS : registerNewUser(..., roleTypes, now)
+UMS --> CTRL : SystemUser
+
+CTRL --> UI : SystemUser
+deactivate CTRL
+
+alt sucesso
+    UI --> Admin : (sem mensagem explícita; doShow returns false)
+else IntegrityViolationException | ConcurrencyException
+    UI -> Admin : "That username is already in use."
+end
+deactivate UI
+
+@enduml

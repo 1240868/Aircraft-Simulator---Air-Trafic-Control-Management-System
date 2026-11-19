@@ -1,0 +1,56 @@
+@startuml SD_US072d_ListFleetByAge
+title Sequence Diagram — US072d List Active Fleet by Age (Complete Years)
+
+actor "Company Collaborator" as COLLAB
+participant ":ListFleetByAgeUI" as UI <<Presentation>>
+participant ":ListFleetByAgeController" as CTRL <<Application>>
+participant ":AuthorizationPort" as AUTHZ <<Application>>
+participant ":FleetListing" as LIST <<Application>>
+participant ":AirTransportCompanyRepository" as CO_REPO <<Repository>>
+participant ":AircraftRepository" as AC_REPO <<Repository>>
+participant ":AircraftModelRepository" as AM_REPO <<Repository>>
+
+COLLAB -> UI : menu "List fleet by aircraft age"
+activate UI
+
+UI -> COLLAB : prompt "Aircraft age to list (complete years, positive integer):"
+COLLAB -> UI : ageRaw
+
+UI -> CTRL : listFleetByAge(ageRaw)
+activate CTRL
+
+CTRL -> AUTHZ : ensureAuthenticatedUserHasAnyOf(\nAIR_TRANSPORT_COMPANY_COLLABORATOR)
+CTRL -> AUTHZ : currentUsername()
+CTRL -> LIST : requireCompanyOfUser(companyRepo, username)
+LIST --> CTRL : companyId
+CTRL -> CTRL : parsePositiveAgeYears(ageRaw)
+CTRL -> CTRL : asOf = today.get()
+
+CTRL -> AC_REPO : findActiveByOwnerCompanyAndAge(\ncompanyId, ageYears, asOf)
+AC_REPO --> CTRL : Iterable<Aircraft>
+
+loop each Aircraft a
+    CTRL -> LIST : requireModelForAircraft(modelRepo, a)
+    CTRL -> LIST : toRowWithAge(a, model, asOf)
+end
+
+CTRL -> CTRL : sort + FleetListResult.of(...)
+CTRL --> UI : FleetListResult
+deactivate CTRL
+
+alt r.messageWhenEmpty() != null
+    UI -> COLLAB : messageWhenEmpty
+else
+    UI -> COLLAB : "--- Aircraft (age match, active fleet) ---"
+    loop each row
+        UI -> COLLAB : printf ... | age=%d years
+    end
+    UI -> COLLAB : "------------------------------------------"
+end
+
+opt IllegalArgumentException | IllegalStateException
+    UI -> COLLAB : ex.getMessage()
+end
+deactivate UI
+
+@enduml

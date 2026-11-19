@@ -1,0 +1,70 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+hide footbox
+
+actor "Operador de Backoffice" as Op
+participant ":CompanyController" as Ctrl
+participant ":CompanyApplicationService" as AppSvc
+participant "iata:IataCode" as IataVO
+participant "icao:IcaoCode" as IcaoVO
+participant "svc:CompanyUniquenessService" as DomSvc
+participant "repoC:CompanyRepository" as RepoC
+participant "repoP:PilotRepository" as RepoP
+participant "company:AirTransportCompany" as AR
+
+' == Registo da Companhia (US060) ==
+Op -> Ctrl : registarCompanhia(dados)
+activate Ctrl
+
+Ctrl -> AppSvc : registerCompany(dados)
+activate AppSvc
+
+' 1. Auto-validação de VOs (Invariante de Formatação)
+' De acordo com as fontes [1, 2], VOs garantem estado válido no "nascimento"
+AppSvc -> IataVO** : new(dados.iata)
+
+AppSvc -> IcaoVO** : new(dados.icao)
+
+' 2. Validação de Unicidade Global (Domain Service)
+' Lógica que não cabe numa única entidade [3, 4]
+AppSvc -> DomSvc : isUnique(iata, icao)
+activate DomSvc
+DomSvc -> RepoC : existsByIataOrIcao(iata, icao)
+DomSvc --> AppSvc : result
+deactivate DomSvc
+
+AppSvc -> AR** : create(dados.nome, iata, icao)
+AppSvc -> RepoC : save(company)
+AppSvc --> Ctrl : companyDTO
+deactivate AppSvc
+
+Ctrl --> Op : sucesso
+deactivate Ctrl
+
+' == Gestão de Colaboradores (Exclusividade de Utilizador - US075) ==
+Op -> Ctrl : associarPiloto(companyId, userId, license)
+activate Ctrl
+
+Ctrl -> AppSvc : associatePilot(companyId, userId, license)
+activate AppSvc
+
+' 3. Garantia de Exclusividade (Invariante de Domínio)
+AppSvc -> RepoP : findByUserId(userId)
+activate RepoP
+RepoP --> AppSvc : existingPilot
+deactivate RepoP
+
+alt existingPilot == null
+    ' Referência por Identidade [5-7]
+    AppSvc -> "pilot:Pilot"** : create(userId, companyId, license)
+    AppSvc -> RepoP : save(pilot)
+    AppSvc --> Ctrl : pilotDTO
+else
+    AppSvc --> Ctrl : throw UserAlreadyCollaboratorException
+end
+
+deactivate AppSvc
+Ctrl --> Op : confirmação
+deactivate Ctrl
+@enduml
